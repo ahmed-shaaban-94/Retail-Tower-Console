@@ -1,3 +1,40 @@
+<!--
+SYNC IMPACT REPORT
+==================
+Version change:        (unversioned) → 1.0.0
+Bump rationale:        Initial formal ratification. The 10 principles below were
+                       established in commit a4629a6 (2026-05-25) but the file
+                       lacked the spec-kit governance footer (version, ratified,
+                       last-amended). This commit attaches that metadata without
+                       changing any principle content; the body is materially
+                       identical to the previously committed version.
+
+Modified principles:   None (no content changes to principles 1–10)
+Renamed principles:    None
+Added sections:        Governance footer (Version / Ratified / Last Amended)
+Removed sections:      None
+Deferred placeholders: None
+
+Templates requiring updates:
+  ✅ .specify/templates/plan-template.md — "Constitution Check" gate is a generic
+      hook ("[Gates determined based on constitution file]"). No edits required;
+      it already defers to whatever this file says. /speckit-plan runs will read
+      principles 1–10 and the Implementation readiness gates section at runtime.
+  ✅ .specify/templates/spec-template.md — Generic feature-spec scaffold. No
+      principle here imposes mandatory spec sections beyond what the template
+      already covers (User Stories, Requirements, Success Criteria, Assumptions).
+      No edits required.
+  ✅ .specify/templates/tasks-template.md — Generic phased task layout. The
+      "implementation readiness gates" are enforced at plan time, not task time,
+      so no task-template changes required.
+  ✅ .specify/templates/checklist-template.md — Not principle-bearing. No edits
+      required.
+  ✅ CLAUDE.md — Already instructs Claude to "read the current plan" for context.
+      No edits required.
+
+Follow-up TODOs:       None.
+-->
+
 # Retail-Tower-Console Constitution
 
 ## Current status
@@ -112,7 +149,9 @@ over to another.
 
 ---
 
-## Amendment rule
+## Governance
+
+### Amendment rule
 
 Changes to ownership boundaries, source-of-truth order, or implementation gates
 require explicit written approval from the human owner before taking effect.
@@ -120,3 +159,25 @@ require explicit written approval from the human owner before taking effect.
 No agent, assistant, or automated process may amend this constitution unilaterally.
 Amendment proposals must be documented as a `planning/spec` slice and approved
 before the change is applied.
+
+### Versioning policy
+
+The constitution uses semantic versioning (MAJOR.MINOR.PATCH):
+
+- **MAJOR**: Backward-incompatible governance changes, principle removals, or
+  redefinitions that invalidate prior approvals (e.g., removing a readiness gate,
+  weakening a boundary, changing the source-of-truth order).
+- **MINOR**: New principle added, new readiness gate added, or material expansion
+  of an existing principle's scope.
+- **PATCH**: Clarifications, wording cleanup, formatting, metadata, or
+  non-semantic refinements that do not change behavior or obligations.
+
+### Compliance review
+
+Every `/speckit-plan`, `/speckit-tasks`, and `/speckit-implement` run MUST verify
+the proposed work against principles 1–10 and the Implementation readiness gates.
+A plan that violates any principle MUST be rejected at the Constitution Check
+gate; the violation may only proceed if documented in the plan's Complexity
+Tracking section with explicit human approval recorded in the spec.
+
+**Version**: 1.0.0 | **Ratified**: 2026-05-25 | **Last Amended**: 2026-05-25

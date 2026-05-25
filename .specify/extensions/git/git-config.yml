@@ -34,7 +34,7 @@ auto_commit:
     enabled: false
     message: "[Spec Kit] Save progress before issue sync"
   after_constitution:
-    enabled: false
+    enabled: true
     message: "[Spec Kit] Add project constitution"
   after_specify:
     enabled: false
