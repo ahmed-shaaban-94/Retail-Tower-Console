@@ -9,8 +9,8 @@
 | Mode | Planning-only (cross-repo verification artifact) |
 | Owner | Ahmed Shaaban |
 | Created | 2026-05-25 |
-| Last verified | 2026-05-25 (RF-1 and RF-4b) |
-| Status | Partially verified — RF-1 (all 3 rows) and RF-4b (both rows) carry dated Data-Pulse-2 references. RF-2 / RF-3 / RF-5 / RF-6 / RF-7 remain `unknown`. |
+| Last verified | 2026-05-25 (RF-1 promoted to `stable`; RF-4a and RF-4b verified) |
+| Status | Partially verified — RF-1 (all 3 rows `stable`), RF-4a (both rows `draft`), and RF-4b (both rows `blocked`) carry dated Data-Pulse-2 references. RF-2 / RF-3 / RF-5 / RF-6 / RF-7 remain `unknown`. |
 
 ---
 
@@ -62,10 +62,41 @@ specific Data-Pulse-2 reference (branch + SHA, OpenAPI file path + commit,
 wave-status filename + date, or active spec path + commit). "I checked, looks
 fine" is not a verification.
 
+**Version-suffix convention rule.** Every OpenAPI file in
+Data-Pulse-2 `packages/contracts/openapi/` carries the version label
+`1.0.0-draft` (or `1.1.0-draft`, etc.). This is a Data-Pulse-2 repo-wide
+**labeling convention**, not a per-surface stability flag. The `-draft`
+suffix therefore does NOT, by itself, force a row to classify as `draft`.
+
+A row MAY classify as `stable` despite an upstream `-draft` suffix when
+**all three** of the following hold:
+
+1. The named OpenAPI file (with `-draft` suffix) exists on Data-Pulse-2
+   `main` and defines the operationId(s) the row depends on.
+2. The upstream Data-Pulse-2 slice that owns those operationId(s)
+   provides a `sc-verification.md` (or equivalent named verification
+   artifact) declaring milestone completion at a specific Data-Pulse-2
+   SHA.
+3. That `sc-verification.md` reports the relevant Success Criteria as
+   `Verified` (not `Partial`, not `Pending`).
+
+Without all three, the row remains `draft` even if the OpenAPI file
+looks complete. With all three, `stable` is the correct classification
+and `draft` would be under-classification (which has its own audit
+cost — see Demotion rule note).
+
 **Demotion rule.** A row may move *back* to a less-stable status (e.g.,
 `stable` → `draft`, or `draft` → `blocked`) if a subsequent verification
 shows the contract changed or was withdrawn. The history of changes is
 tracked in §Verification log below.
+
+*Note on under-classification.* Classifying a `stable` surface as
+`draft` is **not safer** than classifying it correctly. A `draft` row
+triggers re-verification work on every downstream slice (FR-005), which
+costs reviewer time and creates churn. The audit goal is *accurate*
+classification, not maximally-conservative classification. The
+Version-suffix convention rule above exists to enable correct
+promotion when corroborating evidence is strong.
 
 ---
 
@@ -101,16 +132,19 @@ the named active spec/wave-status file on `main`).
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Sign-in / session endpoint | `draft` | Data-Pulse-2 `packages/contracts/openapi/auth.openapi.yaml` on `main` @ `b5142fe` (v1.0.0-draft; `operationId: signIn`, `POST /api/v1/auth/signin`; cookie-based dashboard sessions, `dp2_session` HttpOnly cookie); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md` on `main` (declares "All nine Success Criteria SC-1 … SC-9 are now Verified — Foundation milestone complete" at SHA `602ae5c`) | 2026-05-25 | Ahmed Shaaban | OQ-1 closed for this row. `-draft` suffix is a Data-Pulse-2 repo-wide convention (all 10 OpenAPI files share it), not a contract-instability marker. Classified `draft` per literal Step 4 rule; corroborating SC-verification evidence is strong. SignInResponse includes `memberships[]` driving the active-tenant chooser. |
-| Session-context endpoint (active tenant + active store for the authenticated actor) | `draft` | Data-Pulse-2 `packages/contracts/openapi/context.openapi.yaml` on `main` @ `b5142fe` (v1.0.0-draft; `operationId: getActiveContext`, `GET /api/v1/context/me`; also `switchActiveTenant POST /api/v1/context/tenant`, `switchActiveStore POST /api/v1/context/store`, `clearActiveStore DELETE /api/v1/context/store`); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md` SC-5 (p95 = 7.0 ms ≤ 200 ms threshold, Verified) | 2026-05-25 | Ahmed Shaaban | OQ-1 closed for this row. ContextResponse carries `user`, `active_tenant`, `active_store`, `active_role_code`, `memberships[]` (with `store_access_kind` enum and `accessible_store_ids`). Sufficient for the console's tenant/store context shell. |
-| Session lifecycle (sign-out, refresh, expiry semantics) | `draft` | Data-Pulse-2 `packages/contracts/openapi/auth.openapi.yaml` on `main` @ `b5142fe` (`operationId: signOut POST /api/v1/auth/signout`; `operationId: refreshSession POST /api/v1/auth/refresh` for sliding window within absolute cap); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/frontend-bypass-probe.md` (server-only authorization confirmed via T205 automated test + manual probe — backs FR-002) | 2026-05-25 | Ahmed Shaaban | OQ-1 closed for this row. Auth surface also defines password-reset (`requestPasswordReset`, `confirmPasswordReset`) and email-verification (`requestEmailVerification`, `confirmEmailVerification`) — not required for RF-1 MVP but available to later RF-5 work. |
+| Sign-in / session endpoint | `stable` | Data-Pulse-2 `packages/contracts/openapi/auth.openapi.yaml` on `main` @ `b5142fe` (`-draft` per repo convention; `operationId: signIn`, `POST /api/v1/auth/signin`; cookie-based dashboard sessions, `dp2_session` HttpOnly cookie); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md` on `main` (declares "All nine Success Criteria SC-1 … SC-9 are now Verified — Foundation milestone complete" at SHA `602ae5c`) | 2026-05-25 (promoted to `stable` per §Status legend Version-suffix convention rule) | Ahmed Shaaban | OQ-1 closed for this row. Promotion rationale: upstream SC-verification declares Foundation milestone complete at SHA `602ae5c`; SC-1, SC-3, SC-4, SC-5 (auth-relevant) all Verified. `-draft` suffix is the Data-Pulse-2 labeling convention. SignInResponse includes `memberships[]` driving the active-tenant chooser. |
+| Session-context endpoint (active tenant + active store for the authenticated actor) | `stable` | Data-Pulse-2 `packages/contracts/openapi/context.openapi.yaml` on `main` @ `b5142fe` (`-draft` per repo convention; `operationId: getActiveContext`, `GET /api/v1/context/me`; also `switchActiveTenant POST /api/v1/context/tenant`, `switchActiveStore POST /api/v1/context/store`, `clearActiveStore DELETE /api/v1/context/store`); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md` SC-5 (p95 = 7.0 ms ≤ 200 ms threshold, Verified) | 2026-05-25 (promoted to `stable` per §Status legend Version-suffix convention rule) | Ahmed Shaaban | OQ-1 closed for this row. Promotion rationale: SC-5 directly Verified at p95 = 7.0 ms (35× headroom under target). ContextResponse carries `user`, `active_tenant`, `active_store`, `active_role_code`, `memberships[]` (with `store_access_kind` enum and `accessible_store_ids`). Sufficient for the console's tenant/store context shell. |
+| Session lifecycle (sign-out, refresh, expiry semantics) | `stable` | Data-Pulse-2 `packages/contracts/openapi/auth.openapi.yaml` on `main` @ `b5142fe` (`operationId: signOut POST /api/v1/auth/signout`; `operationId: refreshSession POST /api/v1/auth/refresh` for sliding window within absolute cap); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/frontend-bypass-probe.md` (server-only authorization confirmed via T205 automated test + manual probe — backs FR-002) | 2026-05-25 (promoted to `stable` per §Status legend Version-suffix convention rule) | Ahmed Shaaban | OQ-1 closed for this row. Promotion rationale: SC-4 (server-only authorization) Verified via T205 + manual probe. Auth surface also defines password-reset (`requestPasswordReset`, `confirmPasswordReset`) and email-verification (`requestEmailVerification`, `confirmEmailVerification`) — not required for RF-1 MVP but available to later RF-5 work. |
 
 **Gate impact.** Until all RF-1 rows are at `stable` or `draft`, no per-family
 `implementation` slice (RF-2..RF-7) may open. **All three RF-1 rows are now
-at `draft`** (verified 2026-05-25 against Data-Pulse-2 `main` @ `b5142fe`).
-This gate is now met. The console may not yet *begin implementation* — that
-still requires the full FR-008 five-gate approval per slice — but planning
-is unblocked.
+at `stable`** (verified 2026-05-25 against Data-Pulse-2 `main` @ `b5142fe`,
+promoted from `draft` to `stable` on 2026-05-25 per the §Status legend
+Version-suffix convention rule). This gate is now met. The console may not
+yet *begin implementation* — that still requires the full FR-008 five-gate
+approval per slice — but planning is unblocked, and downstream slices
+consuming RF-1 do NOT need to re-verify the surface (only re-verify if a
+Data-Pulse-2 demotion event has been logged here).
 
 ---
 
@@ -142,8 +176,8 @@ is unblocked.
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Unknown-item list (scoped by tenant/store) | `draft` *(carried from spec.md §6 per author instruction)* | _Not yet verified against a specific Data-Pulse-2 ref_ | — | — | Must be re-verified before RF-4 implementation gate (FR-005). Status may demote to `blocked` or `unknown` if verification fails. |
-| Unknown-item dismiss | `draft` *(carried from spec.md §6)* | _Not yet verified_ | — | — | Same as above. |
+| Unknown-item list (scoped by tenant/store) | `draft` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` @ `b5142fe` — Wave 1 `operationId: tenantAdminListUnknownItems` confirmed present (`-draft` per repo convention) | 2026-05-25 (verified incidental to RF-4b lookup) | Ahmed Shaaban | Classified `draft` (not `stable`): Wave 1 file's surrounding artifacts (Wave 2 gating) indicate active reconciliation work upstream. Must be re-verified before RF-4 implementation gate (FR-005). |
+| Unknown-item dismiss | `draft` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` @ `b5142fe` — Wave 1 `operationId: tenantAdminDismissUnknownItem` confirmed present | 2026-05-25 (verified incidental to RF-4b lookup) | Ahmed Shaaban | Same Wave 1 classification reasoning as list row above. |
 
 ### RF-4b — Link to existing / create new from unknown (reconciliation)
 
@@ -214,12 +248,15 @@ Updated whenever a row above changes status enough to affect the gate.
 ### Resolved blockers
 
 - ~~**RF-1 auth/session/context remains `unknown`**~~ — **resolved
-  2026-05-25.** All three RF-1 rows verified to `draft` against
-  Data-Pulse-2 `main` @ `b5142fe` (`auth.openapi.yaml` +
+  2026-05-25.** All three RF-1 rows verified and promoted to `stable`
+  against Data-Pulse-2 `main` @ `b5142fe` (`auth.openapi.yaml` +
   `context.openapi.yaml`; Data-Pulse-2 slice `001-foundation-auth-tenant-store`
   is past `sc-verification.md` with all 9 success criteria Verified at
-  SHA `602ae5c`). OQ-1 closed in spec.md §10 traceability via the
-  Verification log entry below. Gate-lift condition 1 now met.
+  SHA `602ae5c`). Promoted from `draft` to `stable` on 2026-05-25 per
+  the §Status legend Version-suffix convention rule (added in the same
+  edit). OQ-1 closed in spec.md §10 traceability via the Verification
+  log entry below. Gate-lift condition 1 now met (would have been met
+  at `draft`; `stable` is the more accurate classification).
 - ~~**RF-4b unknown-item link / create-new reconciliation remains
   `blocked`**~~ — resolved 2026-05-25 by `spec.md` §11 SD-1 (Scope
   deferrals). RF-4b is deferred *out* of the first-pass plan; the
@@ -263,8 +300,10 @@ The `/speckit-plan` status MAY move from `blocked` to `ready` only when
 
 1. RF-1 (all three rows under RF-1 in §RF-1 above) is resolved to
    `stable` or `draft` against a specific Data-Pulse-2 reference.
-   **Status: met. All three rows `draft` against Data-Pulse-2 `main` @
-   `b5142fe`, verified 2026-05-25 (see Verification log).**
+   **Status: met. All three rows `stable` against Data-Pulse-2 `main` @
+   `b5142fe`, verified 2026-05-25 and promoted from `draft` to `stable`
+   on 2026-05-25 per the Version-suffix convention rule (see
+   Verification log).**
 2. RF-4b is either (a) demoted to `draft` against a Data-Pulse-2 reference
    that supersedes the current Wave 2 "gated approval" posture, or
    (b) explicitly scoped *out* of the first-pass plan via an amendment to
@@ -326,6 +365,68 @@ One entry per verification event. Most recent first.
   `spec.md` §10.
 - Confirmer: Ahmed Shaaban.
 - Verified against: this commit on branch `001-console-foundation`.
+
+### 2026-05-25 — RF-1 promotion `draft` → `stable` + Version-suffix convention rule added
+
+- §Status legend: added "Version-suffix convention rule" — a row MAY
+  classify as `stable` despite an upstream `-draft` version suffix
+  when (1) the OpenAPI file exists on Data-Pulse-2 `main` and defines
+  the operationId(s), (2) the upstream slice owning those operations
+  provides a `sc-verification.md` or equivalent, and (3) that
+  verification artifact reports the relevant Success Criteria as
+  `Verified`. Same section also adds an under-classification note:
+  classifying a `stable` surface as `draft` is not safer than
+  classifying it correctly.
+- RF-1 "Sign-in / session endpoint": `draft` → `stable`.
+- RF-1 "Session-context endpoint": `draft` → `stable`.
+- RF-1 "Session lifecycle (sign-out / refresh / expiry)": `draft` → `stable`.
+- Promotion evidence (unchanged from the original RF-1 verification —
+  re-stated here for the audit trail):
+  - All three rows verified earlier on 2026-05-25 against Data-Pulse-2
+    `main` @ `b5142fe`. See the "2026-05-25 — RF-1 verification against
+    Data-Pulse-2 (OQ-1)" entry below.
+  - Upstream slice `001-foundation-auth-tenant-store`'s
+    `sc-verification.md` declares "All nine Success Criteria
+    SC-1 … SC-9 are now Verified — Foundation milestone complete"
+    at Data-Pulse-2 SHA `602ae5c`.
+  - SC-1, SC-3, SC-4, SC-5 are the auth/context-relevant criteria, all
+    directly Verified (SC-5 measured at p95 = 7.0 ms vs 200 ms target).
+- Confirmer: Ahmed Shaaban.
+- Driver: 2026-05-25 external review (S-1) flagged that the literal
+  "`-draft` suffix → `draft` row" rule was producing under-classification
+  in the face of overwhelming corroborating evidence. The Version-suffix
+  convention rule resolves the tension: literal rule still holds in the
+  general case; explicit named exception when the SC-verification trio
+  is met.
+- `spec.md` §6 RF-1 row updated in the same commit (sync rule).
+
+### 2026-05-25 — RF-4a verification (incidental to RF-4b lookup)
+
+- RF-4a "Unknown-item list (scoped by tenant/store)":
+  `draft` (seeded) → `draft` (verified, no status change).
+- RF-4a "Unknown-item dismiss":
+  `draft` (seeded) → `draft` (verified, no status change).
+- Verified against:
+  - Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on
+    `main` @ `b5142fe` — Wave 1 operations confirmed present in the same
+    lookup that verified RF-4b: `tenantAdminListUnknownItems`,
+    `tenantAdminDismissUnknownItem`, and `posCaptureItem` (the latter is
+    the POS-side capture that feeds the queue and is out of console scope
+    for direct invocation; it produces the data the console reads).
+- Confirmer: Ahmed Shaaban.
+- Status promotion rationale: NOT promoted to `stable` even though the
+  operations are present. Wave 1 sits inside an upstream wave-status
+  process where Wave 2 reconciliation is explicitly gated; until
+  Data-Pulse-2 publishes a SC-verification for the unknown-items surface
+  comparable to slice `001-foundation-auth-tenant-store`'s, `draft` is
+  the correct ceiling. The §Status legend Version-suffix convention rule
+  requires an upstream SC-verification artifact for `stable` — absent
+  for RF-4a today.
+- Note: The seeded `draft` from spec.md author instruction is now backed
+  by actual cross-repo evidence. Prior to this entry, the rows carried
+  `draft` without a Verification log entry (an audit gap pointed out in
+  the 2026-05-25 external review); this entry closes that gap.
+- `spec.md` §6 RF-4a row does NOT need updating: status unchanged.
 
 ### 2026-05-25 — RF-1 verification against Data-Pulse-2 (OQ-1)
 
