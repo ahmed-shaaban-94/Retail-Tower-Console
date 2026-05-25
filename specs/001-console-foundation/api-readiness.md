@@ -214,10 +214,12 @@ Updated whenever a row above changes status enough to affect the gate.
   session lifecycle. RF-1 is the hard prerequisite for every other RF
   (`spec.md` §5 sequencing rule), so this single `unknown` blocks the
   entire plan gate. OQ-1 from `spec.md` §10 remains open.
-- **RF-4b unknown-item link / create-new reconciliation remains `blocked`** —
-  verified 2026-05-25 against Data-Pulse-2 `main` (see Verification log).
-  Wave 2 contract is deferred to a gated extension in Data-Pulse-2 and is
-  not stable. FR-012 guard active.
+- ~~**RF-4b unknown-item link / create-new reconciliation remains
+  `blocked`**~~ — **resolved as a plan-gate blocker** by `spec.md` §11
+  SD-1 (Scope deferrals). RF-4b is deferred *out* of the first-pass
+  plan; the upstream Wave 2 gate no longer blocks planning. FR-012
+  guard remains active for any *future* slice that depends on RF-4b
+  (e.g., a successor feature that re-opens it).
 
 ### Allowed next work
 
@@ -244,11 +246,13 @@ The `/speckit-plan` status MAY move from `blocked` to `ready` only when
 
 1. RF-1 (all three rows under RF-1 in §RF-1 above) is resolved to
    `stable` or `draft` against a specific Data-Pulse-2 reference.
+   **Status: not yet met.**
 2. RF-4b is either (a) demoted to `draft` against a Data-Pulse-2 reference
    that supersedes the current Wave 2 "gated approval" posture, or
    (b) explicitly scoped *out* of the first-pass plan via an amendment to
    `spec.md` (in which case FR-009 "no silent scope expansion" requires
    that amendment to be visible and approved before planning proceeds).
+   **Status: met via path (b) — `spec.md` §11 SD-1 (2026-05-25).**
 
 Per-family planning for RF-2 / RF-3 / RF-5 / RF-6 / RF-7 remains additionally
 gated on their own `unknown` rows resolving — but those are per-family
