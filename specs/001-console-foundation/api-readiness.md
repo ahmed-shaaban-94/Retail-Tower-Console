@@ -9,8 +9,8 @@
 | Mode | Planning-only (cross-repo verification artifact) |
 | Owner | Ahmed Shaaban |
 | Created | 2026-05-25 |
-| Last verified | 2026-05-25 (RF-4b only) |
-| Status | Partially verified — RF-4b rows now carry a dated Data-Pulse-2 reference. All other rows remain `unknown`. |
+| Last verified | 2026-05-25 (RF-1 and RF-4b) |
+| Status | Partially verified — RF-1 (all 3 rows) and RF-4b (both rows) carry dated Data-Pulse-2 references. RF-2 / RF-3 / RF-5 / RF-6 / RF-7 remain `unknown`. |
 
 ---
 
@@ -75,8 +75,9 @@ The verifier (whoever is filling this file) MUST consult these sources, in
 this order, before promoting a row away from `unknown`:
 
 1. **Data-Pulse-2 `main` branch** — implementation truth.
-   - Repo: `https://github.com/<org>/Data-Pulse-2` <!-- TODO(owner): record actual URL when first verification runs -->
+   - Repo: `https://github.com/ahmed-shaaban-94/Data-Pulse-2`
    - Branch: `main`
+   - HEAD at time of RF-1 verification: `b5142fe` (2026-05-25)
 2. **Data-Pulse-2 OpenAPI source** — contract truth.
    - Path inside Data-Pulse-2: <!-- TODO(owner): record path on first verification -->
 3. **Data-Pulse-2 active specs / execution maps / wave-status files** —
@@ -100,13 +101,16 @@ the named active spec/wave-status file on `main`).
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Sign-in / session endpoint | `unknown` | — | — | — | OQ-1 (spec.md §10). Blocks every other RF (spec.md §5 sequencing rule). |
-| Session-context endpoint (active tenant + active store for the authenticated actor) | `unknown` | — | — | — | OQ-1. |
-| Session lifecycle (sign-out, refresh, expiry semantics) | `unknown` | — | — | — | OQ-1. |
+| Sign-in / session endpoint | `draft` | Data-Pulse-2 `packages/contracts/openapi/auth.openapi.yaml` on `main` @ `b5142fe` (v1.0.0-draft; `operationId: signIn`, `POST /api/v1/auth/signin`; cookie-based dashboard sessions, `dp2_session` HttpOnly cookie); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md` on `main` (declares "All nine Success Criteria SC-1 … SC-9 are now Verified — Foundation milestone complete" at SHA `602ae5c`) | 2026-05-25 | Ahmed Shaaban | OQ-1 closed for this row. `-draft` suffix is a Data-Pulse-2 repo-wide convention (all 10 OpenAPI files share it), not a contract-instability marker. Classified `draft` per literal Step 4 rule; corroborating SC-verification evidence is strong. SignInResponse includes `memberships[]` driving the active-tenant chooser. |
+| Session-context endpoint (active tenant + active store for the authenticated actor) | `draft` | Data-Pulse-2 `packages/contracts/openapi/context.openapi.yaml` on `main` @ `b5142fe` (v1.0.0-draft; `operationId: getActiveContext`, `GET /api/v1/context/me`; also `switchActiveTenant POST /api/v1/context/tenant`, `switchActiveStore POST /api/v1/context/store`, `clearActiveStore DELETE /api/v1/context/store`); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md` SC-5 (p95 = 7.0 ms ≤ 200 ms threshold, Verified) | 2026-05-25 | Ahmed Shaaban | OQ-1 closed for this row. ContextResponse carries `user`, `active_tenant`, `active_store`, `active_role_code`, `memberships[]` (with `store_access_kind` enum and `accessible_store_ids`). Sufficient for the console's tenant/store context shell. |
+| Session lifecycle (sign-out, refresh, expiry semantics) | `draft` | Data-Pulse-2 `packages/contracts/openapi/auth.openapi.yaml` on `main` @ `b5142fe` (`operationId: signOut POST /api/v1/auth/signout`; `operationId: refreshSession POST /api/v1/auth/refresh` for sliding window within absolute cap); Data-Pulse-2 `specs/001-foundation-auth-tenant-store/frontend-bypass-probe.md` (server-only authorization confirmed via T205 automated test + manual probe — backs FR-002) | 2026-05-25 | Ahmed Shaaban | OQ-1 closed for this row. Auth surface also defines password-reset (`requestPasswordReset`, `confirmPasswordReset`) and email-verification (`requestEmailVerification`, `confirmEmailVerification`) — not required for RF-1 MVP but available to later RF-5 work. |
 
 **Gate impact.** Until all RF-1 rows are at `stable` or `draft`, no per-family
-`implementation` slice (RF-2..RF-7) may open. This is the single hardest
-gate in this file.
+`implementation` slice (RF-2..RF-7) may open. **All three RF-1 rows are now
+at `draft`** (verified 2026-05-25 against Data-Pulse-2 `main` @ `b5142fe`).
+This gate is now met. The console may not yet *begin implementation* — that
+still requires the full FR-008 five-gate approval per slice — but planning
+is unblocked.
 
 ---
 
@@ -203,41 +207,54 @@ Updated whenever a row above changes status enough to affect the gate.
 
 | Field | Value |
 | --- | --- |
-| `/speckit-plan` status | **blocked** |
-| Decision date | 2026-05-25 |
+| `/speckit-plan` status | **ready** |
+| Decision date | 2026-05-25 (gate-lift) |
 | Decided by | Ahmed Shaaban |
 
-### Blockers
+### Resolved blockers
 
-- **RF-1 auth/session/context remains `unknown`** — no Data-Pulse-2
-  verification performed yet for sign-in/session, session-context, or
-  session lifecycle. RF-1 is the hard prerequisite for every other RF
-  (`spec.md` §5 sequencing rule), so this single `unknown` blocks the
-  entire plan gate. OQ-1 from `spec.md` §10 remains open.
+- ~~**RF-1 auth/session/context remains `unknown`**~~ — **resolved
+  2026-05-25.** All three RF-1 rows verified to `draft` against
+  Data-Pulse-2 `main` @ `b5142fe` (`auth.openapi.yaml` +
+  `context.openapi.yaml`; Data-Pulse-2 slice `001-foundation-auth-tenant-store`
+  is past `sc-verification.md` with all 9 success criteria Verified at
+  SHA `602ae5c`). OQ-1 closed in spec.md §10 traceability via the
+  Verification log entry below. Gate-lift condition 1 now met.
 - ~~**RF-4b unknown-item link / create-new reconciliation remains
-  `blocked`**~~ — **resolved as a plan-gate blocker** by `spec.md` §11
-  SD-1 (Scope deferrals). RF-4b is deferred *out* of the first-pass
-  plan; the upstream Wave 2 gate no longer blocks planning. FR-012
-  guard remains active for any *future* slice that depends on RF-4b
-  (e.g., a successor feature that re-opens it).
+  `blocked`**~~ — resolved 2026-05-25 by `spec.md` §11 SD-1 (Scope
+  deferrals). RF-4b is deferred *out* of the first-pass plan; the
+  upstream Wave 2 gate no longer blocks planning. FR-012 guard remains
+  active for any *future* slice that depends on RF-4b. Gate-lift
+  condition 2b met.
 
 ### Allowed next work
 
-- Continue cross-repo API readiness verification.
-- Verify RF-1 in Data-Pulse-2 (the highest-impact next step — would unblock
-  the plan gate as soon as RF-4b is no longer the only remaining blocker
-  AND RF-1 reaches `stable` or `draft`).
+- **Run `/speckit-plan`** against this spec. Both gate-lift conditions are
+  met. The plan MUST:
+  - Treat RF-1 as the foundational layer (spec.md §5 sequencing rule)
+    and consume the Data-Pulse-2 endpoints recorded in §RF-1 above
+    (signIn / signOut / refreshSession; getActiveContext /
+    switchActiveTenant / switchActiveStore / clearActiveStore).
+  - Honor SD-1: RF-4b is out of scope.
+  - Treat RF-2 / RF-3 / RF-5 / RF-6 / RF-7 as still requiring per-family
+    API readiness resolution. The plan may sequence their work but MUST
+    NOT clear FR-008 gates for any of them in this round.
+- Continue cross-repo API readiness verification for RF-2 / RF-3 / RF-5 /
+  RF-6 / RF-7 — these remain `unknown` and gate their respective
+  per-family implementation slices (not the foundation plan).
 - Continue updating this file (and `spec.md` §6 in sync) as further
   verifications land.
 
 ### Not yet allowed
 
-- **Do not create `plan.md` yet.** FR-005 and FR-008 are not satisfied.
-- Do not create `tasks.md`.
-- Do not begin any per-family implementation slice.
+- Do not begin any per-family **implementation** slice. `/speckit-plan` is
+  ready, but FR-008's full five-gate approval (spec + plan + tasks + API
+  map + validation gates, all approved by the human owner) is still
+  required per-slice.
 - Do not add `package.json`, lockfile, `src/`, `app/`, `pages/`,
   `components/`, framework scaffold, generated client, CI workflow, or
-  deployment configuration.
+  deployment configuration. These remain gated by the constitution
+  regardless of plan-gate status.
 
 ### Gate-lift conditions
 
@@ -246,13 +263,16 @@ The `/speckit-plan` status MAY move from `blocked` to `ready` only when
 
 1. RF-1 (all three rows under RF-1 in §RF-1 above) is resolved to
    `stable` or `draft` against a specific Data-Pulse-2 reference.
-   **Status: not yet met.**
+   **Status: met. All three rows `draft` against Data-Pulse-2 `main` @
+   `b5142fe`, verified 2026-05-25 (see Verification log).**
 2. RF-4b is either (a) demoted to `draft` against a Data-Pulse-2 reference
    that supersedes the current Wave 2 "gated approval" posture, or
    (b) explicitly scoped *out* of the first-pass plan via an amendment to
    `spec.md` (in which case FR-009 "no silent scope expansion" requires
    that amendment to be visible and approved before planning proceeds).
    **Status: met via path (b) — `spec.md` §11 SD-1 (2026-05-25).**
+
+**Both conditions met as of 2026-05-25.** `/speckit-plan` is unblocked.
 
 Per-family planning for RF-2 / RF-3 / RF-5 / RF-6 / RF-7 remains additionally
 gated on their own `unknown` rows resolving — but those are per-family
@@ -306,6 +326,47 @@ One entry per verification event. Most recent first.
   `spec.md` §10.
 - Confirmer: Ahmed Shaaban.
 - Verified against: this commit on branch `001-console-foundation`.
+
+### 2026-05-25 — RF-1 verification against Data-Pulse-2 (OQ-1)
+
+- RF-1 "Sign-in / session endpoint": `unknown` → `draft`.
+- RF-1 "Session-context endpoint": `unknown` → `draft`.
+- RF-1 "Session lifecycle (sign-out / refresh / expiry)": `unknown` → `draft`.
+- Verified against:
+  - Data-Pulse-2 `packages/contracts/openapi/auth.openapi.yaml` on `main`
+    @ `b5142fe` — v1.0.0-draft, defines `signIn POST /api/v1/auth/signin`,
+    `signOut POST /api/v1/auth/signout`, `refreshSession POST
+    /api/v1/auth/refresh`, plus password-reset and email-verification
+    sub-surfaces. Uses cookie-based dashboard sessions
+    (`dp2_session` HttpOnly + Secure + SameSite=Lax).
+  - Data-Pulse-2 `packages/contracts/openapi/context.openapi.yaml` on
+    `main` @ `b5142fe` — v1.0.0-draft, defines `getActiveContext GET
+    /api/v1/context/me`, `switchActiveTenant POST /api/v1/context/tenant`,
+    `switchActiveStore POST /api/v1/context/store`, `clearActiveStore
+    DELETE /api/v1/context/store`. ContextResponse includes user,
+    active_tenant, active_store, active_role_code, memberships.
+  - Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md`
+    on `main` — declares "All nine Success Criteria SC-1 … SC-9 are now
+    Verified — Foundation milestone complete" at Data-Pulse-2 SHA
+    `602ae5c`. SC-5 (context resolution p95 ≤ 200 ms) Verified at p95 =
+    7.0 ms. SC-4 (server-only authorization) Verified.
+  - Data-Pulse-2 `specs/001-foundation-auth-tenant-store/frontend-bypass-probe.md`
+    on `main` — confirms FR-002 ("backend-enforced tenant/store safety")
+    is operationally backed via T205 + manual probe.
+- Confirmer: Ahmed Shaaban.
+- Classification reasoning: All 10 OpenAPI files in Data-Pulse-2
+  `packages/contracts/openapi/` carry the version label `1.0.0-draft`.
+  This is a repo-wide convention, not a contract-instability marker.
+  Per the literal Step 4 rule in this file ("file version is `*-draft`
+  → `draft`"), all three rows classified `draft` rather than `stable`.
+  Corroborating evidence (SC-verification "Foundation milestone
+  complete") is strong but does not override the literal version-label
+  rule. A future status promotion to `stable` would require the
+  upstream `info.version` to drop the `-draft` suffix.
+- OQ-1 from `spec.md` §10 is now answered for all three RF-1 rows.
+- `spec.md` §6 RF-1 row MUST be updated in this same commit (sync rule):
+  status `unknown` → `draft`, with reference to this verification log
+  entry.
 
 ### 2026-05-25 — RF-4b verification against Data-Pulse-2 (OQ-2)
 

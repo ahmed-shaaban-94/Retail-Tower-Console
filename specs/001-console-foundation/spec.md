@@ -185,7 +185,7 @@ the constitution (Principle 2, "Data-Pulse-2 contract authority").
 
 | Route family | Required backend surface (named only, not specified) | Status | Notes |
 | --- | --- | --- | --- |
-| RF-1 Auth / session / context shell | Sign-in/session endpoint; active tenant/store context endpoint | `unknown` | Cross-repo confirmation required before RF-1 leaves spec phase. Treated as the foundational gate for every other family. |
+| RF-1 Auth / session / context shell | Sign-in/session endpoint; active tenant/store context endpoint | `draft` | Verified 2026-05-25 against Data-Pulse-2 `main` @ `b5142fe`: `auth.openapi.yaml` (signIn / signOut / refreshSession, cookie-based `dp2_session`) and `context.openapi.yaml` (getActiveContext / switchActiveTenant / switchActiveStore / clearActiveStore). Corroborated by Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md` ("Foundation milestone complete" at SHA `602ae5c`). `-draft` is a Data-Pulse-2 repo-wide convention, not a stability marker. Full record: [`api-readiness.md`](./api-readiness.md) §RF-1 + Verification log entry "2026-05-25 — RF-1 verification (OQ-1)". |
 | RF-2 Tenant / store management | Tenant CRUD; store CRUD; tenant/store list scoped to actor | `unknown` | Cross-repo confirmation required. |
 | RF-3 Catalog management | Catalog read; catalog write; catalog scope by tenant/store | `unknown` | Cross-repo confirmation required. |
 | RF-4a Unknown items — list / dismiss | List unknown items; dismiss an unknown item | `draft` | Permitted to be `draft` per spec author instruction. Must be re-confirmed against Data-Pulse-2 before RF-4 implementation gate. |
