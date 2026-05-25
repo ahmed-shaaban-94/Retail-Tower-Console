@@ -9,8 +9,8 @@
 | Mode | Planning-only (cross-repo verification artifact) |
 | Owner | Ahmed Shaaban |
 | Created | 2026-05-25 |
-| Last verified | _none yet_ |
-| Status | Unverified — every row below is `unknown` until a Data-Pulse-2 confirmation is recorded. |
+| Last verified | 2026-05-25 (RF-4b only) |
+| Status | Partially verified — RF-4b rows now carry a dated Data-Pulse-2 reference. All other rows remain `unknown`. |
 
 ---
 
@@ -145,8 +145,8 @@ gate in this file.
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Link unknown-item to existing catalog row | `blocked` | _No verification yet; classified blocked per spec.md FR-012_ | — | — | OQ-2. Must remain `blocked` or `draft` until Data-Pulse-2 confirms reconciliation contract is stable. Depends on RF-3 catalog identity model. |
-| Create new catalog row from unknown-item | `blocked` | _No verification yet; classified blocked per spec.md FR-012_ | — | — | OQ-2. Same gate as link-to-existing. |
+| Link unknown-item to existing catalog row | `blocked` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` (v1.0.0-draft; Wave 1 only — `posCaptureItem`, `tenantAdminListUnknownItems`, `tenantAdminDismissUnknownItem`); Data-Pulse-2 `specs/005-pos-catalog-sync-reconciliation/wave-status.md` on `main` (Wave 2 `tenantAdminLinkUnknownItem` requires gated approval) | 2026-05-25 | Ahmed Shaaban | OQ-2 closed for this row: Wave 2 reconciliation operations are deferred to a separate gated extension in Data-Pulse-2 — contract is not stable in `main`. FR-012 guard remains active. |
+| Create new catalog row from unknown-item | `blocked` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` (v1.0.0-draft; Wave 1 only); Data-Pulse-2 `specs/005-pos-catalog-sync-reconciliation/wave-status.md` on `main` (Wave 2 `tenantAdminCreateProductFromUnknownItem` requires gated approval) | 2026-05-25 | Ahmed Shaaban | OQ-2 closed for this row: Wave 2 reconciliation operation is deferred to a separate gated extension. FR-012 guard remains active. |
 
 **Cross-reference.** `spec.md` FR-012 codifies the reconciliation guard. Any
 demotion of these two rows away from `blocked` is a spec-significant event
@@ -196,6 +196,66 @@ that must also update `spec.md` §6 in the same edit.
 
 ---
 
+## Plan gate decision
+
+A standing record of whether `/speckit-plan` may run against this feature.
+Updated whenever a row above changes status enough to affect the gate.
+
+| Field | Value |
+| --- | --- |
+| `/speckit-plan` status | **blocked** |
+| Decision date | 2026-05-25 |
+| Decided by | Ahmed Shaaban |
+
+### Blockers
+
+- **RF-1 auth/session/context remains `unknown`** — no Data-Pulse-2
+  verification performed yet for sign-in/session, session-context, or
+  session lifecycle. RF-1 is the hard prerequisite for every other RF
+  (`spec.md` §5 sequencing rule), so this single `unknown` blocks the
+  entire plan gate. OQ-1 from `spec.md` §10 remains open.
+- **RF-4b unknown-item link / create-new reconciliation remains `blocked`** —
+  verified 2026-05-25 against Data-Pulse-2 `main` (see Verification log).
+  Wave 2 contract is deferred to a gated extension in Data-Pulse-2 and is
+  not stable. FR-012 guard active.
+
+### Allowed next work
+
+- Continue cross-repo API readiness verification.
+- Verify RF-1 in Data-Pulse-2 (the highest-impact next step — would unblock
+  the plan gate as soon as RF-4b is no longer the only remaining blocker
+  AND RF-1 reaches `stable` or `draft`).
+- Continue updating this file (and `spec.md` §6 in sync) as further
+  verifications land.
+
+### Not yet allowed
+
+- **Do not create `plan.md` yet.** FR-005 and FR-008 are not satisfied.
+- Do not create `tasks.md`.
+- Do not begin any per-family implementation slice.
+- Do not add `package.json`, lockfile, `src/`, `app/`, `pages/`,
+  `components/`, framework scaffold, generated client, CI workflow, or
+  deployment configuration.
+
+### Gate-lift conditions
+
+The `/speckit-plan` status MAY move from `blocked` to `ready` only when
+**both** of the following hold:
+
+1. RF-1 (all three rows under RF-1 in §RF-1 above) is resolved to
+   `stable` or `draft` against a specific Data-Pulse-2 reference.
+2. RF-4b is either (a) demoted to `draft` against a Data-Pulse-2 reference
+   that supersedes the current Wave 2 "gated approval" posture, or
+   (b) explicitly scoped *out* of the first-pass plan via an amendment to
+   `spec.md` (in which case FR-009 "no silent scope expansion" requires
+   that amendment to be visible and approved before planning proceeds).
+
+Per-family planning for RF-2 / RF-3 / RF-5 / RF-6 / RF-7 remains additionally
+gated on their own `unknown` rows resolving — but those are per-family
+planning decisions, not the foundation plan gate above.
+
+---
+
 ## How to update this file
 
 When performing a cross-repo verification, update the affected row(s) and
@@ -242,6 +302,29 @@ One entry per verification event. Most recent first.
   `spec.md` §10.
 - Confirmer: Ahmed Shaaban.
 - Verified against: this commit on branch `001-console-foundation`.
+
+### 2026-05-25 — RF-4b verification against Data-Pulse-2 (OQ-2)
+
+- RF-4b "Link unknown-item to existing catalog row": `blocked` → `blocked`
+  (no status change; verification confirms the existing classification).
+- RF-4b "Create new catalog row from unknown-item": `blocked` → `blocked`
+  (no status change; verification confirms the existing classification).
+- Verified against:
+  - Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml`
+    on `main` — v1.0.0-draft. Defines Wave 1 operations only:
+    `posCaptureItem`, `tenantAdminListUnknownItems`,
+    `tenantAdminDismissUnknownItem`. The same YAML states Wave 2
+    reconciliation operations (link / create-new) are deferred to a
+    separate gated extension.
+  - Data-Pulse-2 `specs/005-pos-catalog-sync-reconciliation/wave-status.md`
+    on `main` — Wave 2 contract for `tenantAdminLinkUnknownItem` and
+    `tenantAdminCreateProductFromUnknownItem` requires gated approval.
+- Confirmer: Ahmed Shaaban.
+- OQ-2 from `spec.md` §10 is now answered for both RF-4b rows.
+  FR-012 guard remains active until Data-Pulse-2 promotes the Wave 2
+  contract out of "requires gated approval."
+- Note: `spec.md` §6 RF-4b classification (currently `blocked`) does not
+  need to change — the verification confirmed the existing status.
 
 <!-- Append new entries below this line. Format:
 ### YYYY-MM-DD — <short title>
