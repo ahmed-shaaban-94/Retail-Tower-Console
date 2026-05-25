@@ -185,11 +185,11 @@ the constitution (Principle 2, "Data-Pulse-2 contract authority").
 
 | Route family | Required backend surface (named only, not specified) | Status | Notes |
 | --- | --- | --- | --- |
-| RF-1 Auth / session / context shell | Sign-in/session endpoint; active tenant/store context endpoint | `unknown` | Cross-repo confirmation required before RF-1 leaves spec phase. Treated as the foundational gate for every other family. |
+| RF-1 Auth / session / context shell | Sign-in/session endpoint; active tenant/store context endpoint | `draft` | Verified 2026-05-25 against Data-Pulse-2 `main` @ `b5142fe`: `auth.openapi.yaml` (signIn / signOut / refreshSession, cookie-based `dp2_session`) and `context.openapi.yaml` (getActiveContext / switchActiveTenant / switchActiveStore / clearActiveStore). Corroborated by Data-Pulse-2 `specs/001-foundation-auth-tenant-store/sc-verification.md` ("Foundation milestone complete" at SHA `602ae5c`). `-draft` is a Data-Pulse-2 repo-wide convention, not a stability marker. Full record: [`api-readiness.md`](./api-readiness.md) §RF-1 + Verification log entry "2026-05-25 — RF-1 verification (OQ-1)". |
 | RF-2 Tenant / store management | Tenant CRUD; store CRUD; tenant/store list scoped to actor | `unknown` | Cross-repo confirmation required. |
 | RF-3 Catalog management | Catalog read; catalog write; catalog scope by tenant/store | `unknown` | Cross-repo confirmation required. |
 | RF-4a Unknown items — list / dismiss | List unknown items; dismiss an unknown item | `draft` | Permitted to be `draft` per spec author instruction. Must be re-confirmed against Data-Pulse-2 before RF-4 implementation gate. |
-| RF-4b Unknown items — link / create-new reconciliation | Link unknown item to existing catalog row; create new catalog row from unknown item | `blocked` | Required to be `blocked` or `draft` per spec author instruction. Treated as `blocked` in this document because reconciliation contract has not been confirmed stable in Data-Pulse-2. Must be re-evaluated, not assumed, before any RF-4b planning artifact references it. |
+| RF-4b Unknown items — link / create-new reconciliation | Link unknown item to existing catalog row; create new catalog row from unknown item | `blocked` | Required to be `blocked` or `draft` per spec author instruction. Verified 2026-05-25 against Data-Pulse-2 `main`: Wave 2 reconciliation operations (`tenantAdminLinkUnknownItem`, `tenantAdminCreateProductFromUnknownItem`) are deferred to a gated extension upstream. **Deferred out of the first-pass plan** — see §11 Scope deferrals (SD-1). |
 | RF-5 Operator / admin management | Identity list/detail for A1–A5; role/scope assignment surface | `unknown` | Cross-repo confirmation required. Must not overlap with POS-Pulse-owned A6 surfaces. |
 | RF-6 Audit / search | Audit query surface; operational-event search surface | `unknown` | Cross-repo confirmation required. POS-originated events are read-only on this side. |
 | RF-7 Settings / system management | Tenant/store config surfaces; platform-level config surface for A1 | `unknown` | Cross-repo confirmation required. Platform surfaces are A1-only. |
@@ -466,6 +466,67 @@ foundation document; they are blockers on the next phase.
   hashes, or a referenced wave-status file) that records each resolution?
   The artifact's form belongs to a future planning decision, but the spec
   notes that it must exist.
+
+---
+
+## 11. Scope deferrals
+
+A scope deferral is an **explicit narrowing** of the first-pass plan: a
+route family (or sub-family) that this spec still names and owns at the
+foundation level but that the upcoming `plan.md` will *not* cover in its
+first pass. Deferrals are recorded here so they are visible (FR-009 "no
+silent scope expansion" — symmetrically, no silent scope contraction
+either) and so future per-family slices can re-evaluate them against
+fresh evidence.
+
+A deferral does **not** remove the family from the spec, does **not**
+weaken any constitution principle, and does **not** lift any
+implementation gate. It records that the upcoming plan will be drafted
+without the deferred surface in scope.
+
+### SD-1 — RF-4b unknown-item reconciliation (link / create-new)
+
+- **Deferred surface:** RF-4b — both rows ("Link unknown-item to existing
+  catalog row" and "Create new catalog row from unknown-item").
+- **Why:** Verified 2026-05-25 against Data-Pulse-2 `main`. The Wave 2
+  reconciliation contract is deferred to a gated upstream extension in
+  Data-Pulse-2 and is not stable in `main`. Evidence:
+  `packages/contracts/openapi/catalog/unknown-items.yaml` (v1.0.0-draft,
+  Wave 1 only) and
+  `specs/005-pos-catalog-sync-reconciliation/wave-status.md` (Wave 2
+  requires gated approval). Full record:
+  [`api-readiness.md`](./api-readiness.md) §RF-4b and §Verification log
+  entry "2026-05-25 — RF-4b verification against Data-Pulse-2 (OQ-2)".
+- **What stays in scope:** RF-4a (unknown-item list / dismiss) is *not*
+  deferred. RF-4 is a useful product surface without reconciliation — an
+  admin who can triage and dismiss noise from the unknown-item queue
+  delivers value even before link/create-new is available.
+- **First-pass plan posture:** `plan.md` MUST NOT include design, route
+  planning, task decomposition, or implementation work for RF-4b. If
+  `plan.md` references RF-4b at all, it MUST be to acknowledge the
+  deferral (e.g., a one-line "RF-4b deferred per SD-1 — out of scope for
+  this plan").
+- **Re-evaluation trigger:** When Data-Pulse-2 promotes the Wave 2
+  reconciliation contract out of "requires gated approval" (either by
+  merging the Wave 2 spec into `main`, or by re-classifying it as `draft`
+  or `stable` in a successor wave-status file). At that point the
+  Verification log in `api-readiness.md` should record a new RF-4b
+  verification, RF-4b §6 status should update, and a new spec amendment
+  may close SD-1 by referencing the updated evidence.
+- **Re-evaluation owner:** Ahmed Shaaban.
+- **Closes:** Gate-lift condition 2b in
+  [`api-readiness.md`](./api-readiness.md) §Plan gate decision —
+  "RF-4b ... explicitly scoped *out* of the first-pass plan via an
+  amendment to `spec.md`."
+
+### Constitution and FR anchors
+
+- **FR-009** (no hidden scope expansion) — deferrals are recorded
+  visibly here rather than smuggled in downstream.
+- **FR-012** (RF-4b reconciliation guard) — unchanged; the guard
+  remains active while the upstream contract is gated.
+- **Constitution Principle 5** (no hidden scope expansion) — the same
+  principle is read symmetrically for contractions.
 
 ---
 
