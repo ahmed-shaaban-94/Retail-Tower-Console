@@ -1,0 +1,105 @@
+# Retail-Tower-Console Slice Schema
+#
+# This file defines the expected shape of a slice file in this repository.
+# It is a planning contract only. No tooling dependency is required.
+# Copy this schema when creating a new slice under docs/slices/.
+
+slice_id: ""
+# Unique identifier. Convention: RTC-NNN (e.g. RTC-001).
+
+title: ""
+# Short human-readable name for this slice.
+
+status: ""
+# One of: open | planning | spec_review | plan_review | task_review |
+#         api_map_review | gates_defined | approved | implementation |
+#         validation | done | blocked | cancelled
+
+owner: ""
+# GitHub handle or name of the human responsible for approving this slice.
+
+type: ""
+# One of: docs | planning/spec | implementation
+# implementation slices are blocked until all gates below are cleared.
+
+source_of_truth_checked:
+  data_pulse_2_main: false
+  # Set true after confirming relevant backend state on Data-Pulse-2 main branch.
+  data_pulse_2_openapi: false
+  # Set true after confirming relevant OpenAPI contracts in Data-Pulse-2.
+  data_pulse_2_specs: false
+  # Set true after checking active specs / execution maps / wave-status files.
+  pos_pulse_main: false
+  # Set true after confirming no POS-side scope is accidentally included.
+  pos_pulse_specs: false
+  # Set true after confirming POS-Pulse active specs where relevant.
+  local_planning_docs: false
+  # Set true after re-reading standing-rules, charter, boundaries, and constitution.
+
+depends_on: []
+# List of slice_ids that must reach status: done before this slice may begin.
+# Example:
+#   - RTC-001
+#   - RTC-002
+
+allowed_files: []
+# Explicit list of file paths or glob patterns this slice may create or modify.
+# Anything not listed here is out of scope for this slice.
+# Example:
+#   - docs/slices/RTC-003-route-map.md
+#   - docs/product/retail-tower-console-charter.md
+
+forbidden_files: []
+# Explicit list of files this slice must never touch.
+# Always forbidden regardless of what is listed here:
+#   - package.json / lockfiles
+#   - .github/workflows/
+#   - generated API clients
+#   - framework scaffold (src/, app/, pages/, components/ before approval)
+#   - OpenAPI source contracts
+#   - Database schema or SQL migrations
+#   - Deployment / infrastructure config
+#   - .env files or secrets
+
+implementation_allowed: false
+# Set to true only after ALL implementation gates are explicitly approved.
+# Gates (all must be true before setting this to true):
+#   spec_approved: false
+#   plan_approved: false
+#   tasks_approved: false
+#   api_dependency_map_approved: false
+#   validation_gates_defined: false
+
+backend_contract_dependencies: []
+# List of Data-Pulse-2 API endpoints or contract sections this slice depends on.
+# Format: METHOD /path — status
+# Example:
+#   - GET /api/v1/tenants — stable
+#   - POST /api/v1/tenants/{id}/stores — pending
+# Do not implement against a pending or unstable contract.
+
+pos_dependencies: []
+# List any POS-Pulse contract surfaces this slice consumes (usually none).
+# If non-empty, confirm with human owner that scope is correct.
+
+acceptance_criteria: []
+# Human-readable list of conditions that must be true for this slice to be done.
+# Example:
+#   - Route map document covers all planned admin screens.
+#   - Each screen lists its required Data-Pulse-2 endpoint.
+#   - No implementation files are created.
+
+validation:
+  gates: []
+  # List of checks that confirm the slice is done correctly.
+  # Example:
+  #   - No forbidden files exist in git diff.
+  #   - All acceptance criteria are met.
+  #   - Reviewer has signed off.
+  sign_off: ""
+  # Human owner sign-off. Fill in name/handle and date when approving.
+
+stop_point: ""
+# Describe the condition under which this slice must halt and escalate.
+# Example: "Stop if any Data-Pulse-2 contract listed above is not yet stable."
+# Always applies: stop before package files, lockfiles, CI, scaffold, or secrets.
