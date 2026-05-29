@@ -159,7 +159,7 @@ This slice **explicitly does not authorize**:
 - Any secret, credential, token, tenant identifier, or other
   environment-specific value.
 - Cadence/automation for re-pinning Data-Pulse-2 SHAs. Slice 002
-  records the *initial* pin (commit `b5142fe`) as part of D-2; an
+  records the *initial* pin (commit `62d0906`) as part of D-2; an
   automated re-pin workflow is a future slice if one is needed.
 
 ---
@@ -183,10 +183,18 @@ Sources: foundation `research.md` R-1..R-5, R-9.
   API code). The generated client is the only API surface allowed in
   per-family slices.
 - **C-4 (Data-Pulse-2 pin).** Generated client toolchain must pin to a
-  specific Data-Pulse-2 commit SHA. The initial pin is `b5142fe` (the
-  SHA against which RF-1 was verified `stable` —
-  `api-readiness.md` §RF-1). Pin policy (manual update, scheduled
-  bump, etc.) is part of D-2.
+  specific Data-Pulse-2 commit SHA. The initial pin is **`62d0906`** (the
+  SHA against which RF-1 *and* the rest of the console's consumed surfaces —
+  RF-2 / RF-5 / RF-6 — were verified `stable`, and RF-4a / RF-4b / RF-6
+  POS-event verified `draft`, on 2026-05-30; see
+  [`../001-console-foundation/api-readiness.md`](../001-console-foundation/api-readiness.md)
+  §Cross-repo references + the 2026-05-30 Verification log).
+  Pin policy (manual update, scheduled bump, etc.) is part of D-2.
+  *Pin history:* the foundation plan and this spec's original draft pinned
+  `b5142fe` (the 2026-05-25 RF-1-only verification basis); re-pinned to
+  `62d0906` on 2026-05-30 when the full RF-2..RF-7 readiness refresh landed
+  against that SHA, so the generated client is produced against the same
+  commit the readiness file verifies.
 - **C-5 (test isolation).** Tests must not depend on a live
   Data-Pulse-2 instance. Mocks of Data-Pulse-2 require explicit
   per-slice approval per the Maestro playbook §Mock rule; slice 002
@@ -243,7 +251,7 @@ defaults belong in the foundation plan, not in this slice's plan.
 ### D-2 — Generated OpenAPI client toolchain
 
 - **Constraint:** C-3, C-4. Must consume Data-Pulse-2 OpenAPI from
-  pinned reference (commit SHA initially `b5142fe`); must produce a
+  pinned reference (commit SHA `62d0906`); must produce a
   typed client importable by D-1.
 - **Alternatives already considered** (foundation `research.md` R-2):
   - **openapi-typescript + openapi-fetch** — minimal, type-only,
@@ -252,10 +260,13 @@ defaults belong in the foundation plan, not in this slice's plan.
   - **openapi-generator** (Java-based) — heavyweight; large output.
   - **swagger-codegen** — similar; older.
   - **Hand-rolled typed wrapper** — **ruled out** by Principle 8.
-  - **Data-Pulse-2 publishes its own typed client** — possible if
-    Data-Pulse-2's maintainers add a publish target. See OQ-002-1
-    below.
-- **Pin policy.** Slice 002 records the *initial* pin (`b5142fe`).
+  - ~~**Data-Pulse-2 publishes its own typed client**~~ — **ruled out by
+    OQ-002-1 answer (2026-05-30):** Data-Pulse-2 `packages/contracts/README.md`
+    @ `62d0906` states "Generated TypeScript client/server types are
+    intentionally deferred" — no published client package exists. D-2 must
+    therefore generate locally; D-7 must vendor the generated output (there
+    is no package to consume).
+- **Pin policy.** Slice 002 records the *initial* pin (`62d0906`).
   Cadence/automation for re-pinning is out of scope (§3 non-goals).
 - **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
 
@@ -524,22 +535,29 @@ be resolved before `/speckit-clarify` runs against this spec, or
 they remain blockers for specific decisions.
 
 - **OQ-002-1 — Does Data-Pulse-2 publish a generated client
-  package?** If yes (npm registry / GitHub Packages / similar), D-2
-  may consume that package directly rather than running a generator
-  locally. Cross-repo check against `Data-Pulse-2/main` is needed
-  before `/speckit-clarify` resolves D-2. The answer changes D-7's
-  alternatives meaningfully: if a published package exists, D-7
-  becomes "use the package; no local storage needed"; if not, D-7
-  is "vendor the generated output here."
-- **OQ-002-2 — CSRF posture.** Cookie `SameSite=Lax` blocks
-  cross-site cookie-attached POSTs, but Data-Pulse-2 may still expect
-  an `X-CSRF-Token` header on same-site POSTs. The foundation's
-  RF-1 verification did NOT confirm this either way (foundation
-  `contracts/rf1-auth-context.md` flagged this as "MUST re-verify
-  whether Data-Pulse-2 expects a CSRF token on POST endpoints").
-  Cross-repo re-verification against `Data-Pulse-2/main` is needed
-  before `/speckit-plan` resolves D-1, because framework choice may
-  depend on CSRF-middleware availability.
+  package? — ✅ RESOLVED (2026-05-30): NO.** Cross-repo check against
+  `Data-Pulse-2/main` @ `62d0906`: `packages/contracts/README.md` states
+  "Generated TypeScript client/server types are intentionally deferred."
+  No published client package exists on npm/GitHub Packages. **Consequence
+  for D-2/D-7:** generate the client locally and **vendor the output here**
+  (the "use the package; no local storage" branch is foreclosed). Recorded
+  also in `../001-console-foundation/api-readiness.md` §Cross-cutting
+  generated-client row.
+- **OQ-002-2 — CSRF posture. — ◑ PARTIALLY RESOLVED (2026-05-30).**
+  Verified against `Data-Pulse-2/main` @ `62d0906`: **no console-facing
+  contract declares an `X-CSRF-Token`/`X-XSRF-Token` header** on any POST
+  endpoint (checked `auth`, `context`, `tenants`, `stores`, `memberships`,
+  `audit`, `catalog/unknown-items`). **However**, the foundation auth plan
+  (`specs/001-foundation-auth-tenant-store/plan.md`) states CSRF is
+  "mitigated by SameSite + **double-submit token where needed**" — so a
+  double-submit token *may* be introduced on specific endpoints later
+  without a contract-header change being visible today. **Net:** the
+  console can plan for cookie-`SameSite=Lax` transport with **no
+  CSRF-header plumbing required against the current contract set**, but D-1
+  should keep a framework that *can* add a double-submit header if a future
+  Data-Pulse-2 endpoint requires one. Not a blocker for D-1 selection; the
+  "MUST re-verify" flag from foundation `contracts/rf1-auth-context.md` is
+  answered for the current contract surface.
 - **OQ-002-3 — Workspace structure.** Single-package repo, or
   pnpm workspaces / Turborepo / Nx monorepo? The foundation's
   "frontend-only" rule rules out workspaces that imply a separate
