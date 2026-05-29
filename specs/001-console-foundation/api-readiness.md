@@ -9,8 +9,8 @@
 | Mode | Planning-only (cross-repo verification artifact) |
 | Owner | Ahmed Shaaban |
 | Created | 2026-05-25 |
-| Last verified | 2026-05-25 (RF-1 promoted to `stable`; RF-4a and RF-4b verified) |
-| Status | Partially verified — RF-1 (all 3 rows `stable`), RF-4a (both rows `draft`), and RF-4b (both rows `blocked`) carry dated Data-Pulse-2 references. RF-2 / RF-3 / RF-5 / RF-6 / RF-7 remain `unknown`. |
+| Last verified | 2026-05-30 (RF-2 / RF-5 / RF-6 audit-query rows promoted to `stable`; RF-3 / RF-7 verified-absent → `blocked`; RF-4a evidence refreshed to v1.2.0; **RF-4b promoted `blocked` → `draft` on verified contract+runtime — `stable` still gated by FR-012, SD-1 still deferred**; **OQ-5 RF-6 POS-event surface resolved `unknown` → `draft` via dual-repo verification**) |
+| Status | Verified against Data-Pulse-2 `main` @ `62d0906` (2026-05-30). `stable`: RF-1 (3 rows), RF-2 (CRUD + matrix-shape), RF-5 (identity + A6-boundary), RF-6 (audit query + operational-event search). `draft`: RF-4a (list/dismiss/inspect/filter/sort/group), RF-4b (reconciliation link/create — owner-confirmed present; re-verify before impl gate per FR-005, SD-1 keeps it out of first-pass plan scope), RF-6 POS-originated event surface (dual-repo verified; no upstream sc-verification). `blocked`: RF-3 (no standalone catalog-mgmt contract on main), RF-7 (no settings contract on main). **No `unknown` rows remain.** |
 
 ---
 
@@ -109,15 +109,36 @@ this order, before promoting a row away from `unknown`:
    - Repo: `https://github.com/ahmed-shaaban-94/Data-Pulse-2`
    - Branch: `main`
    - HEAD at time of RF-1 verification: `b5142fe` (2026-05-25)
+   - HEAD at time of 2026-05-30 RF-2..RF-7 verification: `62d0906`
+     (PR #406, "test(007): address CodeRabbit review on #405").
 2. **Data-Pulse-2 OpenAPI source** — contract truth.
-   - Path inside Data-Pulse-2: <!-- TODO(owner): record path on first verification -->
+   - Path inside Data-Pulse-2: `packages/contracts/openapi/` — the six
+     contracts-of-record listed in `packages/contracts/README.md`
+     (`auth`, `context`, `tenants`, `stores`, `memberships`, `audit`),
+     plus `outbox.openapi.yaml`, the `pos-*` POS-namespace contracts, and
+     `catalog/unknown-items.yaml`. All carry a `*-draft` version label per
+     the repo-wide convention (see §Status legend Version-suffix rule).
 3. **Data-Pulse-2 active specs / execution maps / wave-status files** —
    in-flight contract intent.
-   - Path inside Data-Pulse-2: <!-- TODO(owner): record path on first verification -->
+   - Path inside Data-Pulse-2: `specs/<NNN-slice>/` — notably
+     `specs/001-foundation-auth-tenant-store/sc-verification.md` (foundation
+     SC-1..SC-9 Verified at SHA `602ae5c`),
+     `specs/005-pos-catalog-sync-reconciliation/wave-status.md`,
+     `specs/007-unknown-items-review-queue-api/wave-status.md`.
+     **Caution:** as of 2026-05-30 the 005 and 007 `wave-status.md` /
+     `execution-map.yaml` files were observed *locally modified* (uncommitted)
+     in the working tree. Where a wave-status claim is load-bearing this file
+     cites the committed contract YAML and `git show HEAD:<path>` instead, not
+     the dirty working-tree copy.
 4. **POS-Pulse `main` and active specs** — only required for rows whose
    surface is fed by POS (currently RF-4 unknown-item capture and RF-6 audit
-   events).
-   - Repo: `https://github.com/<org>/POS-Pulse` <!-- TODO(owner): record actual URL -->
+   events) or rows that must confirm a POS boundary (RF-5 A6).
+   - Repo: `https://github.com/ahmed-shaaban-94/POS-Pulse`, branch `main`
+     (HEAD `c9fd404` at 2026-05-30). POS device/operator identity is
+     POS-Pulse-owned (Electron terminal); the backend operator surface it
+     pairs against is Data-Pulse-2 `pos-operators.openapi.yaml`
+     (`/api/pos/v1/operators/*`, Clerk JWT) — a distinct namespace from the
+     console's session-cookie surfaces.
 
 Verification MUST NOT proceed from a fork, a feature branch, or a personal
 copy. The reference is always Data-Pulse-2 `main` (or, for in-flight intent,
@@ -152,11 +173,11 @@ Data-Pulse-2 demotion event has been logged here).
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Tenant list (scoped by actor) | `unknown` | — | — | — | OQ-3. |
-| Tenant detail / create / update | `unknown` | — | — | — | OQ-3. A1-only for create per FR-002 (backend enforces). |
-| Store list (scoped by tenant + actor) | `unknown` | — | — | — | OQ-3. |
-| Store detail / create / update | `unknown` | — | — | — | OQ-3. |
-| Tenant ↔ store ↔ actor scope graph (read of backend's authorization model) | `unknown` | — | — | — | OQ-4. Shape of the actor-permission matrix. |
+| Tenant list (scoped by actor) | `stable` | Data-Pulse-2 `packages/contracts/openapi/tenants.openapi.yaml` on `main` @ `62d0906` (`operationId: listTenants`, `GET /api/v1/tenants` — returns all for platform-admin, scoped otherwise); foundation `specs/001-foundation-auth-tenant-store/sc-verification.md` (SC-1 cross-tenant isolation Verified) | 2026-05-30 | Ahmed Shaaban | OQ-3 closed for this row. Promoted per §Status legend Version-suffix convention rule: same sc-verification basis already used for RF-1. |
+| Tenant detail / create / update | `stable` | Data-Pulse-2 `tenants.openapi.yaml` on `main` @ `62d0906` (`readTenant GET /{id}`, `createTenant POST` — 403 if not platform-admin, `updateTenant PATCH`, `softDeleteTenant DELETE`); sc-verification SC-1 / SC-3 Verified | 2026-05-30 | Ahmed Shaaban | OQ-3 closed. A1-only for create/delete enforced by backend (403) per FR-002. |
+| Store list (scoped by tenant + actor) | `stable` | Data-Pulse-2 `packages/contracts/openapi/stores.openapi.yaml` on `main` @ `62d0906` (`listStores GET /api/v1/stores` — scoped to active tenant; 401 if no active tenant); sc-verification SC-2 cross-store isolation Verified | 2026-05-30 | Ahmed Shaaban | OQ-3 closed for this row. |
+| Store detail / create / update | `stable` | Data-Pulse-2 `stores.openapi.yaml` on `main` @ `62d0906` (`readStore GET /{id}`, `createStore POST` — 403 insufficient role, `updateStore PATCH`, `softDeleteStore DELETE`); sc-verification SC-2 / SC-3 Verified | 2026-05-30 | Ahmed Shaaban | OQ-3 closed. Role enforcement (tenant-admin/owner) backend-side per FR-002. |
+| Tenant ↔ store ↔ actor scope graph (read of backend's authorization model) | `stable` | Data-Pulse-2 `context.openapi.yaml` on `main` @ `62d0906` (`getActiveContext` returns `memberships[]` with `role_code`, `store_access_kind` enum `[all, specific]`, `accessible_store_ids`); foundation sc-verification SC-3 (authorization coverage — four-variant matrix) Verified | 2026-05-30 | Ahmed Shaaban | OQ-4 closed for this row. The shape of the actor-permission matrix is readable from the context/membership response; the console reads + renders it and never decides scope (FR-002). |
 
 ---
 
@@ -164,9 +185,9 @@ Data-Pulse-2 demotion event has been logged here).
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Catalog read (scoped by tenant/store) | `unknown` | — | — | — | OQ-3. |
-| Catalog write (create / update / delete catalog rows) | `unknown` | — | — | — | OQ-3. Write semantics + scope enforcement live in Data-Pulse-2. |
-| Catalog row identity model (how a row is uniquely identified across stores) | `unknown` | — | — | — | OQ-3. Required before RF-4b reconciliation can be planned (a "link unknown to existing" call must know the existing row's identity). |
+| Catalog read (scoped by tenant/store) | `blocked` | Data-Pulse-2 `packages/contracts/openapi/` on `main` @ `62d0906` — no standalone catalog-management contract exists (`README.md` lists six contracts-of-record; `catalog/` directory contains only `unknown-items.yaml`); `specs/003-catalog-foundation/spec.md` is **specification-only** ("No application code … No OpenAPI files") | 2026-05-30 | Ahmed Shaaban | OQ-3 resolved → `blocked` (verified-absent). 003 defines the catalog source-of-truth *model* but ships no consumable CRUD contract. A standalone catalog-management API is a future gated Data-Pulse-2 feature. |
+| Catalog write (create / update / delete catalog rows) | `blocked` | Same as catalog-read row above — no catalog-write contract on `main` @ `62d0906`. (Note: `tenantAdminCreateProductFromUnknownItem` in `catalog/unknown-items.yaml` creates a product *from an unknown item* — that is RF-4b reconciliation, not a general catalog-write surface.) | 2026-05-30 | Ahmed Shaaban | OQ-3 resolved → `blocked` (verified-absent). Write semantics + scope enforcement will live in Data-Pulse-2 when the catalog-management feature ships. |
+| Catalog row identity model (how a row is uniquely identified across stores) | `blocked` | Data-Pulse-2 `specs/003-catalog-foundation/spec.md` on `main` @ `62d0906` — defines Tenant Catalog / Store Override / Product Aliases as concepts but ships no contract; the identity model is described in spec prose, not a consumable API | 2026-05-30 | Ahmed Shaaban | OQ-3 resolved → `blocked` (verified-absent). The `product_id` referenced by RF-4b reconciliation requests exists in the runtime (`tenant_products`), but no console-facing catalog read/identity contract is published on `main`. |
 
 ---
 
@@ -176,19 +197,37 @@ Data-Pulse-2 demotion event has been logged here).
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Unknown-item list (scoped by tenant/store) | `draft` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` @ `b5142fe` — Wave 1 `operationId: tenantAdminListUnknownItems` confirmed present (`-draft` per repo convention) | 2026-05-25 (verified incidental to RF-4b lookup) | Ahmed Shaaban | Classified `draft` (not `stable`): Wave 1 file's surrounding artifacts (Wave 2 gating) indicate active reconciliation work upstream. Must be re-verified before RF-4 implementation gate (FR-005). |
-| Unknown-item dismiss | `draft` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` @ `b5142fe` — Wave 1 `operationId: tenantAdminDismissUnknownItem` confirmed present | 2026-05-25 (verified incidental to RF-4b lookup) | Ahmed Shaaban | Same Wave 1 classification reasoning as list row above. |
+| Unknown-item list (scoped by tenant/store) | `draft` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` @ `62d0906` — now **v1.2.0-draft** (was v1.0.0-draft at the 2026-05-25 lookup); `operationId: tenantAdminListUnknownItems` + the 007 list-param extensions (`source_system`, `sort`, `group_by`) present in the committed contract. | 2026-05-30 (re-verified; evidence refreshed) | Ahmed Shaaban | **Status unchanged (`draft`), evidence advanced.** **Load-bearing reason for `draft`:** the catalog/unknown-items surface has **no upstream `sc-verification.md`** (unlike foundation 001); the §Status legend Version-suffix convention rule requires that artifact for `stable`, so `draft` is the correct ceiling regardless of runtime state. (Color, not load-bearing: the 007 wave-status — observed locally modified — attributes the list/filter/sort/group runtime to PR #405.) Must be re-verified before RF-4 implementation gate (FR-005). |
+| Unknown-item dismiss | `draft` | Data-Pulse-2 `catalog/unknown-items.yaml` on `main` @ `62d0906` (v1.2.0-draft) — `operationId: tenantAdminDismissUnknownItem` present; dismiss response now narrows to the `ReviewQueueItem` projection (007, no `sale_context`). | 2026-05-30 (re-verified) | Ahmed Shaaban | Same classification reasoning as list row above: runtime merged, no sc-verification ⇒ `draft`. |
+| Unknown-item inspect / filter / sort / group (007 review-queue read surface) | `draft` | Data-Pulse-2 `catalog/unknown-items.yaml` on `main` @ `62d0906` (v1.2.0-draft) — `operationId: tenantAdminInspectUnknownItem` (`GET /api/v1/catalog/unknown-items/{id}`), `source_system`/`sort`/`group_by` list params, `ReviewQueueItem` projection, and `forbidden` 8th error category all present in the committed contract. | 2026-05-30 (new row) | Ahmed Shaaban | New `draft` row recording the 007 read-side advance — review-safe list/filter/sort/group/inspect is contract-confirmed on `main`. **Load-bearing reason for `draft` (not `stable`):** the catalog/unknown-items surface has **no upstream `sc-verification.md`** (unlike foundation 001); the §Status legend Version-suffix convention rule requires that artifact for `stable`. (Color, not load-bearing: the 007 wave-status — observed locally modified — attributes the runtime to PR #405/#406; classification does not rest on that file.) |
+| Unknown-item reopen (`tenantAdminReopenUnknownItem`) | `draft` | Data-Pulse-2 `catalog/unknown-items.yaml` on `main` @ `62d0906` (v1.2.0-draft) — `operationId: tenantAdminReopenUnknownItem` present in the committed **contract** (tenant-wide actors only, FR-042). **Runtime confirmed absent in committed `main`:** `git show HEAD:apps/api/src/catalog/.../*.controller.ts` @ `62d0906` has no reopen route handler (only a comment referencing the future `forbidden`-category use); `git grep -niE "Reopen" HEAD` finds no committed controller route. | 2026-05-30 (new row) | Ahmed Shaaban | **Contract-on-main but runtime-absent-in-committed-main** (verified against HEAD, not the dirty wave-status). Kept `draft` and explicitly gated: contract presence is not runtime readiness. Re-verify both contract and runtime before any RF-4 reopen implementation. Do NOT mark reopen runtime stable. |
+| Unknown-item bulk-dismiss (`tenantAdminBulkDismissUnknownItems`) | `draft` | Data-Pulse-2 `catalog/unknown-items.yaml` on `main` @ `62d0906` (v1.2.0-draft) — `operationId: tenantAdminBulkDismissUnknownItems` present in the committed **contract** (≤200 ids, whole-batch reject over ceiling). **Runtime confirmed absent in committed `main`:** `git grep -niE "BulkDismiss" HEAD -- apps/api/src` @ `62d0906` finds no committed controller route handler. | 2026-05-30 (new row) | Ahmed Shaaban | **Contract-on-main but runtime-absent-in-committed-main** (verified against HEAD). Same gating as reopen row. Do NOT mark bulk-dismiss runtime stable. |
 
 ### RF-4b — Link to existing / create new from unknown (reconciliation)
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Link unknown-item to existing catalog row | `blocked` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` (v1.0.0-draft; Wave 1 only — `posCaptureItem`, `tenantAdminListUnknownItems`, `tenantAdminDismissUnknownItem`); Data-Pulse-2 `specs/005-pos-catalog-sync-reconciliation/wave-status.md` on `main` (Wave 2 `tenantAdminLinkUnknownItem` requires gated approval) | 2026-05-25 | Ahmed Shaaban | OQ-2 closed for this row: Wave 2 reconciliation operations are deferred to a separate gated extension in Data-Pulse-2 — contract is not stable in `main`. FR-012 guard remains active. |
-| Create new catalog row from unknown-item | `blocked` | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` (v1.0.0-draft; Wave 1 only); Data-Pulse-2 `specs/005-pos-catalog-sync-reconciliation/wave-status.md` on `main` (Wave 2 `tenantAdminCreateProductFromUnknownItem` requires gated approval) | 2026-05-25 | Ahmed Shaaban | OQ-2 closed for this row: Wave 2 reconciliation operation is deferred to a separate gated extension. FR-012 guard remains active. |
+| Link unknown-item to existing catalog row | `draft` (promoted from `blocked` 2026-05-30 on verified evidence; `stable` still gated by FR-012 — see notes) | Data-Pulse-2 `packages/contracts/openapi/catalog/unknown-items.yaml` on `main` @ `62d0906` — **v1.2.0-draft**, `operationId: tenantAdminLinkUnknownItem` present in committed contract (`POST /api/v1/catalog/unknown-items/{id}/link`); 005 Wave 2 LINK-HAPPY/EDGES runtime merged on `main` (`ReconciliationController` route at `git show HEAD:apps/api/src/catalog/reconciliation/reconciliation.controller.ts`, link handler present; PRs #355/#357/#359 per 005 wave-status) | 2026-05-30 (promoted `blocked` → `draft` on verified contract+runtime) | Ahmed Shaaban | **`blocked` → `draft` on the verified evidence alone** (contract + runtime on committed `main` @ `62d0906`). FR-012 requires no special ceremony for this move — both `blocked` and `draft` are inside the permitted band; the 2026-05-25 "deferred / not-in-main" rationale is simply superseded by the merge. **Held at `draft`, not `stable`:** FR-012 gates the move *to `stable`* on the owner recording that Data-Pulse-2 has confirmed the contract is **stable** — that confirmation has **not** been made, and the catalog/unknown-items surface has **no upstream `sc-verification.md`** (same ceiling as RF-4a). Must be re-verified before the RF-4b implementation gate clears (FR-005). **SD-1 remains deferred:** RF-4b is still out of scope for the first-pass plan; closing SD-1 is a separate spec amendment the owner makes when an RF-4b slice opens. |
+| Create new catalog row from unknown-item | `draft` (promoted from `blocked` 2026-05-30 on verified evidence; `stable` still gated by FR-012) | Data-Pulse-2 `catalog/unknown-items.yaml` on `main` @ `62d0906` (v1.2.0-draft) — `operationId: tenantAdminCreateProductFromUnknownItem` present in committed contract (`POST /api/v1/catalog/unknown-items/{id}/create-product`); 005 Wave 2 CREATE-HAPPY/EDGES runtime merged on `main` (`reconciliation.controller.ts` create-product handler present at HEAD; PRs #364/#367 per 005 wave-status) | 2026-05-30 (promoted `blocked` → `draft` on verified contract+runtime) | Ahmed Shaaban | Same basis as the link row above: `blocked` → `draft` on verified contract+runtime (committed `main`); no FR-012 ceremony needed for that move. Held at `draft` because FR-012's *stable*-gate is unmet (no sc-verification). SD-1 deferred. |
 
-**Cross-reference.** `spec.md` FR-012 codifies the reconciliation guard. Any
-demotion of these two rows away from `blocked` is a spec-significant event
-that must also update `spec.md` §6 in the same edit.
+**Cross-reference.** `spec.md` FR-012 codifies the reconciliation guard:
+RF-4b "MUST remain classified as `blocked` or `draft` **until** the human
+owner records that Data-Pulse-2 has confirmed the reconciliation contract is
+**stable**." Read literally, FR-012 gates the move **to `stable`** — it does
+**not** gate `blocked` → `draft` (both are inside the permitted band). So:
+- The **2026-05-30 `blocked` → `draft` move stands on the verified evidence
+  alone** (contract + runtime merged on committed `main` @ `62d0906`); no
+  owner ceremony was required for it.
+- The **FR-012 stable-confirmation has NOT been recorded** — and the
+  catalog/unknown-items surface has no `sc-verification.md` — which is exactly
+  **why these rows are `draft` and not `stable`.**
+
+This change is mirrored in `spec.md` §6 in the same edit (sync rule).
+**SD-1 (spec.md §11) stays in force**: RF-4b remains out of scope for the
+first-pass plan until a separate owner amendment closes it. A future move to
+`stable` requires the owner to record an FR-012 stability confirmation —
+which in turn needs either an upstream `sc-verification.md` for the
+catalog/unknown-items surface or an explicit, recorded owner override.
 
 ---
 
@@ -196,10 +235,10 @@ that must also update `spec.md` §6 in the same edit.
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Identity list (for A1–A5 only; A6 is POS-Pulse-owned and must not appear here) | `unknown` | — | — | — | OQ-3 + OQ-4 boundary check. |
-| Identity detail / invite / disable | `unknown` | — | — | — | OQ-3. |
-| Role / scope assignment surface | `unknown` | — | — | — | OQ-4. Backend enforces the scope; the console reads + renders. |
-| Boundary check: no overlap with POS-Pulse A6 operator surfaces | `unknown` | — | — | — | Cross-repo against POS-Pulse `main`. Must confirm A6 operators are *not* exposed via the same endpoints as A1–A5. |
+| Identity list (for A1–A5 only; A6 is POS-Pulse-owned and must not appear here) | `stable` | Data-Pulse-2 `packages/contracts/openapi/tenants.openapi.yaml` on `main` @ `62d0906` (`operationId: listMembers`, `GET /api/v1/tenants/{tenant_id}/members` → `MembershipDetail[]`); foundation `sc-verification.md` SC-1/SC-2 isolation Verified | 2026-05-30 | Ahmed Shaaban | OQ-3 + OQ-4 boundary check closed. The console membership-list surface is session-cookie-auth (`cookieAuth`) and tenant-scoped — distinct from the POS A6 surface (see boundary row below). |
+| Identity detail / invite / disable | `stable` | Data-Pulse-2 `packages/contracts/openapi/memberships.openapi.yaml` on `main` @ `62d0906` (`createInvitation POST /api/v1/memberships/invite` (idempotency-key required), `updateMembership PATCH /{id}`, `revokeMembership DELETE /{id}`, `acceptInvitation POST /api/v1/invitations/accept`); sc-verification SC-6 onboarding (invite→accept→signin) Verified | 2026-05-30 | Ahmed Shaaban | OQ-3 closed. "Disable" = soft-delete via `revokeMembership` (revoked_at). |
+| Role / scope assignment surface | `stable` | Data-Pulse-2 `memberships.openapi.yaml` on `main` @ `62d0906` (`MembershipUpdate` carries `role_code`, `store_access_kind` enum `[all, specific]`, `store_ids`); foundation sc-verification SC-2 (D-6 revoke-cache) + SC-3 Verified | 2026-05-30 | Ahmed Shaaban | OQ-4 closed for this row. Backend enforces the scope; the console reads + renders (FR-002). |
+| Boundary check: no overlap with POS-Pulse A6 operator surfaces | `stable` | Data-Pulse-2 `main` @ `62d0906`: the console identity surfaces above live on `/api/v1/memberships/*` + `/api/v1/tenants/{id}/members` under `cookieAuth`. The **A6 POS operator** surface is a **separate** contract `packages/contracts/openapi/pos-operators.openapi.yaml` ("POS-Pulse 004 Backend operator identity surface") on `/api/pos/v1/operators/*` under Clerk JWT bearer. POS-Pulse `main` @ `c9fd404` owns the terminal/operator-session app (Electron). | 2026-05-30 | Ahmed Shaaban | Boundary confirmed **clean**: A6 operators are not exposed via the A1–A5 endpoints. Console RF-5 scope is A1–A5 only; POS device/operator management belongs to POS-Pulse and its dedicated DP2 POS-namespace contract — **not in the console's scope** (FR-003, spec.md §4 POS boundary rule). |
 
 ---
 
@@ -207,9 +246,9 @@ that must also update `spec.md` §6 in the same edit.
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Audit query (scoped by tenant + optionally store) | `unknown` | — | — | — | OQ-3. |
-| Operational event search | `unknown` | — | — | — | OQ-3. |
-| POS-originated event surface (which POS-Pulse event types reach the audit/search read API, and under which retention + visibility rules) | `unknown` | — | — | — | OQ-5. Requires verification against **both** Data-Pulse-2 (for ingestion + storage) and POS-Pulse (for emission semantics). |
+| Audit query (scoped by tenant + optionally store) | `stable` | Data-Pulse-2 `packages/contracts/openapi/audit.openapi.yaml` on `main` @ `62d0906` (`operationId: listAuditEvents`, `GET /api/v1/audit/events` — filters `action` (prefix match), `actor_user_id`, `store_id`, `from`/`to`, cursor pagination; tenant-admin/platform-admin scope); foundation `sc-verification.md` SC-7 auditability Verified (365-day retention, insert-only, RLS-scoped) | 2026-05-30 | Ahmed Shaaban | OQ-3 closed for this row. Basic audit query readiness confirmed: read-only, tenant-scoped, server-enforced role (403). |
+| Operational event search | `stable` | Same surface as audit-query row: `listAuditEvents` on `audit.openapi.yaml` @ `62d0906` provides the action/actor/store/time filtered search. `AuditEvent` carries `action`, `target_type`, `target_id`, `metadata`. sc-verification SC-7 Verified | 2026-05-30 | Ahmed Shaaban | OQ-3 closed. The console's operational-event search consumes the same `listAuditEvents` query surface. (POS-*originated* event semantics are a separate concern — see the next row, now resolved to `draft` via dual-repo verification.) |
+| POS-originated event surface (which POS-Pulse event types reach the audit/search read API, and under which retention + visibility rules) | `draft` | **Dual-repo verified 2026-05-30.** *Ingestion (Data-Pulse-2 `main` @ `62d0906`):* `packages/contracts/openapi/pos-audit-events.openapi.yaml` (`operationId: posAuditEventsSync`, `POST /api/pos/v1/audit-events`) persists each event to **the same `audit_events` table the console's `listAuditEvents` reads** (the contract names "the `actor_user_id` FK on the audit_events table"; `acting_operator_id` Clerk subject → `users.id` via `users.clerk_user_id`). Closed POS event catalogue: `shift.open`, `shift.close`, `shift.forced_close`, `operator.session.takeover`, `cashier.pin.reset`, `cashier.pin.unlock`. *Emission (POS-Pulse `main` @ `c9fd404`):* `specs/004-operator-session/contracts/backend-endpoints.md` Endpoint 5 declares the **identical** catalogue emitted via the same `POST /api/pos/v1/audit-events`. *Retention:* single `audit_events` table ⇒ foundation SC-7 365-day mark-only retention applies uniformly (no POS-specific carve-out found in `packages/db`). *Visibility:* tenant + store scoped (`branch_id` → `store_id` at DTO boundary), RLS-enforced (foundation SC-1/SC-2). | 2026-05-30 | Ahmed Shaaban | **OQ-5 resolved `unknown` → `draft`.** Both ingestion (DP2) and emission (POS-Pulse) corroborate the same closed event catalogue reaching the console-readable `audit_events` table; payloads are redaction-guarded (PR-1/FR-027 forbidden-key list). `draft` not `stable`: `pos-audit-events.openapi.yaml` is `v1.0.0-draft` with **no upstream `sc-verification.md`** for the POS-audit ingestion surface, and the contract states its action-category catalogue is **append-only** (future categories land in a contract revision) — an active-evolution signal. **Specific residual to re-verify before the RF-6 impl gate (FR-005):** this verification confirmed POS events land in the *shared* `audit_events` table (the contract's `actor_user_id` FK reference) and are tenant/store-scoped; it did **not** confirm (a) how the POS `action_category` (e.g. `shift.forced_close`) maps onto the `action` column that `listAuditEvents` filters on, nor (b) that no dashboard-side visibility filter excludes POS-namespace rows from the console read. Those two mappings are exactly what the `draft` ceiling reserves. Console remains read-only over these events (FR-003). |
 
 ---
 
@@ -217,9 +256,9 @@ that must also update `spec.md` §6 in the same edit.
 
 | Backend surface (named, not specified) | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Tenant-level configuration surface | `unknown` | — | — | — | OQ-3. |
-| Store-level configuration surface | `unknown` | — | — | — | OQ-3. |
-| Platform-level configuration surface (A1 only) | `unknown` | — | — | — | OQ-3. Backend authorization restricts to A1 per FR-002. |
+| Tenant-level configuration surface | `blocked` | Data-Pulse-2 `packages/contracts/openapi/` on `main` @ `62d0906` — no settings/system-configuration contract exists among the contracts-of-record or any other published OpenAPI file. (`tenants.openapi.yaml` `TenantUpdate` exposes `name`/`status` only — tenant *administration*, not a general settings surface.) | 2026-05-30 | Ahmed Shaaban | OQ-3 resolved → `blocked` (verified-absent). A dedicated settings/system-management API is a future gated Data-Pulse-2 feature; nothing to plan a UI slice against yet. |
+| Store-level configuration surface | `blocked` | Same as tenant-level row: no settings contract on `main` @ `62d0906`. (`stores.openapi.yaml` `StoreUpdate` exposes `name`/`is_active` only.) | 2026-05-30 | Ahmed Shaaban | OQ-3 resolved → `blocked` (verified-absent). |
+| Platform-level configuration surface (A1 only) | `blocked` | Same: no platform-configuration contract on `main` @ `62d0906`. | 2026-05-30 | Ahmed Shaaban | OQ-3 resolved → `blocked` (verified-absent). When such a surface ships, backend authorization will restrict it to A1 per FR-002. |
 
 ---
 
@@ -227,9 +266,9 @@ that must also update `spec.md` §6 in the same edit.
 
 | Concern | Current status | Verified against | Date | Confirmer | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Actor → route-family permission matrix shape | `unknown` | — | — | — | OQ-4. Read of Data-Pulse-2's authorization model. Frontend never decides scope (FR-002). |
-| POS-Pulse boundary integrity (no console call ever writes back to a POS device or terminal) | `unknown` | — | — | — | Cross-repo against POS-Pulse `main` + active specs. The console MUST remain read-only for POS-originated data (FR-003). |
-| Generated-client toolchain + storage location | `deferred` | — | — | — | OQ-6. Decision is **gated** by FR-006: the toolchain is not chosen here. Recording it in this file is allowed *only after* the human owner has approved a specific slice authorizing the choice. Until then this row stays `deferred`. |
+| Actor → route-family permission matrix shape | `stable` | Data-Pulse-2 `context.openapi.yaml` on `main` @ `62d0906` (`getActiveContext` → `memberships[]` with `role_code` + `store_access_kind` + `accessible_store_ids`; `active_role_code`); foundation `sc-verification.md` SC-3 (four-variant authorization matrix — unauthenticated / wrong-tenant / wrong-store / insufficient-role) Verified | 2026-05-30 | Ahmed Shaaban | OQ-4 resolved. The matrix *shape* is readable from the membership/context response. Frontend never decides scope; it reads + renders backend truth (FR-002). |
+| POS-Pulse boundary integrity (no console call ever writes back to a POS device or terminal) | `stable` | Data-Pulse-2 `main` @ `62d0906`: every console-consumed surface (auth/context/tenants/stores/memberships/audit + the `/api/v1/catalog/unknown-items` review surface) is `cookieAuth` dashboard-facing. POS write-paths are isolated to `/api/pos/v1/*` POS-namespace contracts (`pos-operators`, `pos-shifts`, `pos-audit-events`, `pos-terminal-pairing`, `pos-payments/`) under Clerk JWT — the console consumes none of them. POS-Pulse `main` @ `c9fd404` is the Electron terminal app; the console renders POS-originated data via Data-Pulse-2 read APIs only. | 2026-05-30 | Ahmed Shaaban | Boundary confirmed: no console surface writes to a POS device. The console stays read-only for POS-originated data (FR-003). (The narrower question of *which POS event types* surface in audit/search is resolved to `draft` — see §RF-6 OQ-5.) |
+| Generated-client toolchain + storage location | `deferred` | OQ-002-1 input verified 2026-05-30 against Data-Pulse-2 `main` @ `62d0906`: `packages/contracts/README.md` states "Generated TypeScript client/server types are intentionally deferred" — **Data-Pulse-2 does NOT publish a client package.** | 2026-05-30 (input only; toolchain choice still gated) | Ahmed Shaaban | OQ-6 toolchain choice remains **gated** by FR-006 (decided in slice `002-tooling-and-scaffold`, not here). **OQ-002-1 answer recorded for 002's `/speckit-clarify`:** no upstream client package ⇒ 002's D-2/D-7 should plan to **generate locally and vendor the output**, not consume a published package. **C-4 pin refresh recommendation:** 002's spec pins the Data-Pulse-2 SHA at `b5142fe` (the 2026-05-25 RF-1 basis); the current verified `main` is **`62d0906`**, against which RF-1..RF-7 are all now verified. 002 should re-pin C-4 `b5142fe` → `62d0906` so the generated client is produced against the same SHA this readiness file verifies. (Recorded here as within-scope input; the actual edit to 002's spec is tracked separately.) |
 | Verification artifact shape (this file) | `confirmed` | This document | 2026-05-25 | Ahmed Shaaban | OQ-7 closure: this file is the artifact. Format may evolve via amendment; the *existence* of the artifact is now answered. |
 
 ---
@@ -263,6 +302,18 @@ Updated whenever a row above changes status enough to affect the gate.
   upstream Wave 2 gate no longer blocks planning. FR-012 guard remains
   active for any *future* slice that depends on RF-4b. Gate-lift
   condition 2b met.
+  - **2026-05-30 update:** SD-1's re-evaluation trigger **fired**. The
+    Data-Pulse-2 Wave 2 reconciliation contract **and** runtime are merged on
+    `main` @ `62d0906` (see §RF-4b + the 2026-05-30 "Follow-up resolutions"
+    Verification log entry), so RF-4b moved **`blocked` → `draft`** on that
+    verified evidence (FR-012 does not gate this move — both states are inside
+    its permitted band). This does **not** change the plan gate (still
+    `ready`). **SD-1 stays deferred:** RF-4b remains out-of-scope for the
+    first-pass plan; closing SD-1 (bringing RF-4b into plan scope) is a
+    separate spec amendment for when an RF-4b slice opens. **The remaining
+    gate to `stable`** is FR-012's owner stable-confirmation, which is unmet
+    and itself needs an upstream `sc-verification.md` for the
+    catalog/unknown-items surface (FR-005 re-verify-before-impl).
 
 ### Allowed next work
 
@@ -272,13 +323,22 @@ Updated whenever a row above changes status enough to affect the gate.
     and consume the Data-Pulse-2 endpoints recorded in §RF-1 above
     (signIn / signOut / refreshSession; getActiveContext /
     switchActiveTenant / switchActiveStore / clearActiveStore).
-  - Honor SD-1: RF-4b is out of scope.
-  - Treat RF-2 / RF-3 / RF-5 / RF-6 / RF-7 as still requiring per-family
-    API readiness resolution. The plan may sequence their work but MUST
-    NOT clear FR-008 gates for any of them in this round.
-- Continue cross-repo API readiness verification for RF-2 / RF-3 / RF-5 /
-  RF-6 / RF-7 — these remain `unknown` and gate their respective
-  per-family implementation slices (not the foundation plan).
+  - Honor SD-1: RF-4b is out of scope for the first-pass plan. (Note: as
+    of 2026-05-30 the SD-1 re-evaluation trigger has fired — see Resolved
+    blockers above — but RF-4b stays out-of-scope until an owner decision
+    closes SD-1.)
+  - Treat the per-family readiness now recorded (2026-05-30): RF-2, RF-5,
+    and RF-6 (audit query + operational-event search) are `stable`; RF-4a,
+    RF-4b, and RF-6 POS-originated-event surface are `draft`; RF-3 and RF-7
+    are `blocked`. **No `unknown` rows remain.** The plan may sequence their
+    work but MUST NOT clear FR-008 gates for any of them in this round, and
+    MUST honor SD-1 (RF-4b out of first-pass scope).
+- Continue cross-repo API readiness verification where rows remain at a
+  non-`stable` ceiling: the `draft` rows (RF-4a / RF-4b / RF-6 POS-event)
+  must be re-verified before their implementation gates clear (FR-005), and
+  the `blocked` RF-3 / RF-7 surfaces should be re-checked when Data-Pulse-2
+  ships catalog-management / settings contracts. These gate their respective
+  per-family implementation slices, not the foundation plan.
 - Continue updating this file (and `spec.md` §6 in sync) as further
   verifications land.
 
@@ -351,6 +411,136 @@ Do **not** record information that copies Data-Pulse-2 contract content
 
 A dated, append-only journal of every change to this file's row statuses.
 One entry per verification event. Most recent first.
+
+### 2026-05-30 — Follow-up resolutions: RF-4b owner promotion, OQ-5 dual-repo verification, OQ-002-1 input
+
+This entry follows the same-day cross-repo re-verification below; it records
+the owner-decision and additional-verification follow-ups taken to remove the
+deferred obstacles that the first pass had surfaced.
+
+- **RF-4b (both rows) `blocked` → `draft`.** Promoted on the **verified
+  evidence alone** — the reconciliation contract **and** runtime are on
+  Data-Pulse-2 `main` @ `62d0906`, verified against committed state:
+  `git show HEAD:apps/api/src/catalog/reconciliation/reconciliation.controller.ts`
+  carries both `POST /api/v1/catalog/unknown-items/:id/link`
+  (`tenantAdminLinkUnknownItem`) and `.../create-product`
+  (`tenantAdminCreateProductFromUnknownItem`), Zod-validated, role-gated,
+  `@Auditable`. **FR-012 note:** FR-012 gates the move *to `stable`*, not
+  `blocked` → `draft` (both are inside its permitted band), so this move needs
+  no owner ceremony — the merge supersedes the 2026-05-25 "deferred" rationale.
+  Rows held at **`draft`, not `stable`**, precisely because FR-012's
+  stable-confirmation is **unmet**: there is no upstream `sc-verification.md`
+  for the catalog/unknown-items surface (same ceiling as RF-4a; FR-005
+  re-verify-before-impl still applies). **SD-1 (spec.md §11) remains
+  deferred** — RF-4b stays out of the first-pass plan until a separate owner
+  amendment closes SD-1. `spec.md` §6 RF-4b row updated in the same edit.
+- **RF-6 POS-originated event surface `unknown` → `draft` (OQ-5 resolved).**
+  Dual-repo verification completed:
+  - *Ingestion (Data-Pulse-2 `main` @ `62d0906`):* `pos-audit-events.openapi.yaml`
+    (`posAuditEventsSync`, `POST /api/pos/v1/audit-events`) persists to the same
+    `audit_events` table `listAuditEvents` reads; closed catalogue =
+    `shift.open` / `shift.close` / `shift.forced_close` /
+    `operator.session.takeover` / `cashier.pin.reset` / `cashier.pin.unlock`;
+    payload redaction enforced (PR-1/FR-027 forbidden keys).
+  - *Emission (POS-Pulse `main` @ `c9fd404`):*
+    `specs/004-operator-session/contracts/backend-endpoints.md` Endpoint 5
+    declares the identical catalogue over the same endpoint.
+  - *Retention:* single `audit_events` table ⇒ foundation SC-7 365-day
+    mark-only retention applies uniformly (no POS carve-out). *Visibility:*
+    tenant+store scoped (`branch_id`→`store_id`), RLS-enforced (SC-1/SC-2).
+  - `draft` not `stable`: `pos-audit-events.openapi.yaml` is `v1.0.0-draft`, no
+    sc-verification, append-only catalogue (evolution signal). Console stays
+    read-only over these events (FR-003). `spec.md` §6 RF-6 row updated in sync.
+- **OQ-002-1 input recorded (Cross-cutting generated-client row).** Verified
+  Data-Pulse-2 `packages/contracts/README.md` @ `62d0906` states generated
+  client types are "intentionally deferred" — DP2 publishes no client package.
+  Recorded as input for slice 002's `/speckit-clarify` (D-2/D-7 = generate +
+  vendor locally). The toolchain *choice* stays gated by FR-006 (`deferred`).
+  Also recorded: C-4 pin refresh recommendation (`b5142fe` → `62d0906`) for
+  slice 002's spec.
+- **No `unknown` rows remain in this file** after this entry.
+- Confirmer: Ahmed Shaaban.
+
+### 2026-05-30 — RF-2 / RF-3 / RF-4 / RF-5 / RF-6 / RF-7 cross-repo re-verification
+
+Verified against Data-Pulse-2 `main` @ `62d0906` (PR #406) and POS-Pulse
+`main` @ `c9fd404`. Foundation `specs/001-foundation-auth-tenant-store/sc-verification.md`
+(SC-1..SC-9 Verified at SHA `602ae5c`) is the corroborating SC-verification
+artifact for the tenant/store/membership/audit promotions, per the §Status
+legend Version-suffix convention rule (the same basis already used for RF-1).
+
+- **RF-2 Tenant / store management** — all five rows `unknown` → `stable`.
+  `tenants.openapi.yaml` (`listTenants`, `readTenant`, `createTenant`,
+  `updateTenant`, `softDeleteTenant`), `stores.openapi.yaml` (`listStores`,
+  `readStore`, `createStore`, `updateStore`, `softDeleteStore`),
+  `context.openapi.yaml` membership graph. OQ-3 + OQ-4 (matrix-shape row)
+  closed.
+- **RF-3 Catalog management** — all three rows `unknown` → `blocked`
+  (verified-absent). No standalone catalog-management contract exists on
+  `main`; `catalog/` holds only `unknown-items.yaml`; `specs/003-catalog-foundation`
+  is specification-only. NOT promoted to `stable` — catalog foundation/spec
+  material is not an implementation-ready API. OQ-3 resolved.
+- **RF-4a Unknown items — list / dismiss / inspect / filter / sort / group** —
+  evidence refreshed; status stays `draft`. `catalog/unknown-items.yaml` is now
+  **v1.2.0-draft** (was v1.0.0-draft on 2026-05-25). 007 Wave 1 P1-MVP runtime
+  merged on `main` (PR #405 `0c1bec7` + #406 `62d0906`): `tenantAdminListUnknownItems`,
+  `tenantAdminDismissUnknownItem`, `tenantAdminInspectUnknownItem`,
+  `source_system`/`sort`/`group_by` list params, `ReviewQueueItem` projection,
+  `forbidden` 8th error category. Review-safe list/filter/sort/group/inspect
+  is verified on `main`. NOT promoted to `stable`: the catalog/unknown-items
+  surface has no upstream `sc-verification.md`. Two new gated rows added for
+  **reopen** and **bulk-dismiss** — those operationIds are contract-defined on
+  `main` but their runtime (007 Phase 6/7) is still `proposed`, not merged; kept
+  `draft` and explicitly gated so contract presence is not read as runtime
+  readiness.
+- **RF-4b Unknown items — link / create-new reconciliation** — **status kept
+  `blocked`, but the SD-1 re-evaluation trigger has FIRED.** The 2026-05-25
+  rationale ("Wave 2 requires gated approval / not in `main`") is now stale:
+  `tenantAdminLinkUnknownItem` and `tenantAdminCreateProductFromUnknownItem`
+  are present in the committed contract (`unknown-items.yaml` v1.2.0-draft @
+  `62d0906`, verified via `git show HEAD:`) **and** the 005 Wave 2 reconciliation
+  runtime is merged on `main` (`ReconciliationController` mounted; PRs
+  #355/#357/#359/#364/#367 per 005 wave-status). Per **FR-012**, RF-4b promotion
+  is reserved to the human owner — this verification records the changed
+  evidence and surfaces the decision but does **not** promote the rows or
+  close SD-1. spec.md §11 SD-1's re-evaluation trigger condition
+  ("Data-Pulse-2 promotes the Wave 2 reconciliation contract out of 'requires
+  gated approval' … by merging the Wave 2 spec into `main`") is met. Owner
+  action required (see §RF-4b notes + the final report's RF-4b decision item).
+  **[Superseded later the same day — see the "Follow-up resolutions" entry
+  above: these rows moved `blocked` → `draft` on the verified contract+runtime
+  (FR-012 does not gate that move; the move *to `stable`* stays gated on an
+  unmet FR-012 stable-confirmation); SD-1 remains deferred.]**
+- **RF-5 Operator / admin management** — all four rows `unknown` → `stable`.
+  `tenants.openapi.yaml` (`listMembers`), `memberships.openapi.yaml`
+  (`createInvitation`, `updateMembership`, `revokeMembership`,
+  `acceptInvitation`). Boundary check confirmed **clean**: the A6 POS-operator
+  surface is the separate `pos-operators.openapi.yaml` (`/api/pos/v1/operators/*`,
+  Clerk JWT) — not exposed via the A1–A5 console endpoints. POS operator
+  management remains POS-Pulse / DP2-POS-namespace scope, **not** the console's
+  (FR-003). OQ-3 + OQ-4 boundary check closed.
+- **RF-6 Audit / search** — audit-query and operational-event-search rows
+  `unknown` → `stable` (`audit.openapi.yaml` `listAuditEvents`; sc-verification
+  SC-7 auditability Verified). The **POS-originated event surface** row is kept
+  `unknown` (OQ-5): the generic audit query does not document which POS-Pulse
+  event types reach it or POS-side emission/retention/visibility semantics, and
+  the required dual-repo (Data-Pulse-2 + POS-Pulse) corroboration has not been
+  completed. Gated per FR-011. **[Superseded later the same day — see the
+  "Follow-up resolutions" entry above: the dual-repo corroboration was
+  completed and this row moved `unknown` → `draft`.]**
+- **RF-7 Settings / system management** — all three rows `unknown` → `blocked`
+  (verified-absent). No settings/system-configuration contract on `main`.
+  OQ-3 resolved.
+- **Cross-cutting** — actor→route-family matrix-shape row and POS-Pulse
+  boundary-integrity row both `unknown` → `stable` (context/membership response
+  + SC-3; POS namespace isolation confirmed).
+- **Integrity note.** The Data-Pulse-2 working tree carried *uncommitted*
+  modifications to `specs/005-…/` and `specs/007-…/` wave-status / execution-map
+  files at verification time. All load-bearing claims above are cited against
+  the **committed** contract YAML (clean at `62d0906`) and `git show HEAD:`
+  / `git log` PR evidence — never the dirty working-tree copy.
+- Confirmer: Ahmed Shaaban.
+- `spec.md` §6 updated in the same edit (sync rule).
 
 ### 2026-05-25 — Initial creation
 
