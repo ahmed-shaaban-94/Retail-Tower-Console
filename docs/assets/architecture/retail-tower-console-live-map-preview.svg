@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" role="img" aria-labelledby="title desc" fill="none" font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+  <title id="title">Retail Tower Console live control map preview</title>
+  <desc id="desc">A GitHub-safe preview of the Retail Tower Console planning topology.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#101826"/>
+      <stop offset="0.5" stop-color="#0b1320"/>
+      <stop offset="1" stop-color="#191226"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffe8a3"/>
+      <stop offset="1" stop-color="#b88922"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#a8f4fb"/>
+      <stop offset="1" stop-color="#22d6f6"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-40%" width="160%" height="190%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.52"/>
+    </filter>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <style>
+      .kicker { fill: #22d6f6; font-size: 12px; font-weight: 850; letter-spacing: 2.4px; }
+      .title { fill: #f8fafc; font-size: 34px; font-weight: 850; }
+      .copy { fill: #a7b0c0; font-size: 15px; }
+      .label { fill: #f8fafc; font-size: 14px; font-weight: 850; }
+      .sub { fill: #a7b0c0; font-size: 11px; font-weight: 650; }
+      .rail { stroke: #22d6f6; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 7 13; opacity: .72; }
+      .goldrail { stroke: #d4ad55; }
+      .grid { stroke: #263449; stroke-width: 1; opacity: .55; }
+      @keyframes drift {
+        0% { transform: translateX(-70px); opacity: 0; }
+        12%, 88% { opacity: 1; }
+        100% { transform: translateX(70px); opacity: 0; }
+      }
+      .moving { animation: drift 5.4s ease-in-out infinite; }
+    </style>
+  </defs>
+  <rect width="1280" height="600" fill="url(#bg)"/>
+  <g opacity=".48">
+    <path class="grid" d="M80 500 H1190 M150 448 H1120 M220 396 H1050 M290 344 H980 M360 292 H910"/>
+    <path class="grid" d="M170 530 L590 230 M430 530 L700 230 M710 530 L810 230 M990 530 L925 230"/>
+  </g>
+  <text x="58" y="68" class="kicker">FRONTEND-ONLY COMMAND CONSOLE</text>
+  <text x="58" y="108" class="title">Retail Tower Console control surface</text>
+  <text x="58" y="138" class="copy">Planning topology for generated-client consumption, route families, and repo boundaries.</text>
+
+  <g transform="translate(90 188)">
+    <path d="M0 248 L420 68 L930 208 L488 392 Z" fill="#0c1422" stroke="#314159"/>
+    <path class="rail" d="M150 245 C286 126 414 120 540 186 C650 244 752 244 850 184"/>
+    <path class="rail goldrail" d="M300 310 C422 232 500 230 610 274 C708 312 785 286 890 242"/>
+    <g class="moving">
+      <circle cx="544" cy="186" r="16" fill="#22d6f6" opacity=".28" filter="url(#glow)"/>
+      <circle cx="544" cy="186" r="6" fill="#a8f4fb"/>
+    </g>
+    <g filter="url(#shadow)" transform="translate(392 94)">
+      <path d="M80 0 L176 36 L176 190 L80 232 L0 190 L0 36 Z" fill="#172033" stroke="#d4ad55" stroke-width="2"/>
+      <path d="M0 36 L80 72 L176 36 L80 0 Z" fill="url(#gold)"/>
+      <rect x="35" y="104" width="108" height="38" rx="5" fill="#0b1320" stroke="#22d6f6"/>
+      <text x="89" y="128" text-anchor="middle" class="label">Console</text>
+    </g>
+    <g filter="url(#shadow)" transform="translate(36 206)">
+      <path d="M0 32 L114 0 L228 32 L228 112 L114 150 L0 112 Z" fill="#132238" stroke="#22d6f6"/>
+      <text x="114" y="84" text-anchor="middle" class="label">Admin browser</text>
+      <text x="114" y="103" text-anchor="middle" class="sub">planned UI</text>
+    </g>
+    <g filter="url(#shadow)" transform="translate(670 100)">
+      <path d="M0 32 L118 0 L236 32 L236 124 L118 164 L0 124 Z" fill="#151b31" stroke="#8b5cf6"/>
+      <text x="118" y="90" text-anchor="middle" class="label">Generated client</text>
+      <text x="118" y="109" text-anchor="middle" class="sub">gated contract consumer</text>
+    </g>
+    <g filter="url(#shadow)" transform="translate(790 282)">
+      <path d="M0 34 L126 0 L252 34 L252 122 L126 168 L0 122 Z" fill="#12251f" stroke="#22c55e"/>
+      <text x="126" y="92" text-anchor="middle" class="label">Data-Pulse-2</text>
+      <text x="126" y="111" text-anchor="middle" class="sub">backend authority</text>
+    </g>
+    <g filter="url(#shadow)" transform="translate(238 326)">
+      <path d="M0 30 L94 0 L188 30 L188 96 L94 130 L0 96 Z" fill="#241828" stroke="#f97316"/>
+      <text x="94" y="76" text-anchor="middle" class="label">Agent OS gates</text>
+    </g>
+  </g>
+</svg>
