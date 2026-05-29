@@ -1,0 +1,117 @@
+{
+  "title": "Retail Tower Console Live Control Map",
+  "version": "2026-05-29",
+  "summary": "Planning-first admin web frontend topology for Retail Tower OS.",
+  "nodes": [
+    {
+      "id": "browser",
+      "label": "Browser console",
+      "kind": "surface",
+      "status": "planned",
+      "path": "README.md",
+      "description": "Future admin web frontend for tenant, store, catalog, unknown-item, operator, and audit workflows."
+    },
+    {
+      "id": "generated-client",
+      "label": "Generated client",
+      "kind": "contract",
+      "status": "gated",
+      "path": "specs/001-console-foundation/contracts",
+      "description": "The console consumes generated clients from Data-Pulse-2 OpenAPI contracts. No handwritten API client code."
+    },
+    {
+      "id": "dp2",
+      "label": "Data-Pulse-2 API",
+      "kind": "upstream",
+      "status": "authority",
+      "path": "specs/001-console-foundation/api-readiness.md",
+      "description": "Backend authority for APIs, authorization, OpenAPI contracts, database schema, and business rules."
+    },
+    {
+      "id": "pos",
+      "label": "POS-Pulse",
+      "kind": "boundary",
+      "status": "external",
+      "path": "docs/product/repo-boundaries.md",
+      "description": "POS terminal behavior is owned by POS-Pulse. Console surfaces POS-originated data only through Data-Pulse-2."
+    },
+    {
+      "id": "rf1",
+      "label": "RF-1 Auth shell",
+      "kind": "route",
+      "status": "first",
+      "path": "specs/001-console-foundation/plan.md",
+      "description": "Auth shell and active context are the first route family after implementation gates clear."
+    },
+    {
+      "id": "rf2",
+      "label": "RF-2 Tenant/store",
+      "kind": "route",
+      "status": "planned",
+      "path": "specs/001-console-foundation/plan.md",
+      "description": "Tenant and store management UI, backed by upstream authorization and generated client contracts."
+    },
+    {
+      "id": "rf3",
+      "label": "RF-3 Catalog",
+      "kind": "route",
+      "status": "planned",
+      "path": "specs/001-console-foundation/plan.md",
+      "description": "Catalog management UI. Data-Pulse-2 remains the source of truth."
+    },
+    {
+      "id": "rf4a",
+      "label": "RF-4a Unknown items",
+      "kind": "route",
+      "status": "planned",
+      "path": "specs/001-console-foundation/plan.md",
+      "description": "Unknown item review queue UI. POS terminal behavior remains outside this repo."
+    },
+    {
+      "id": "rf5",
+      "label": "RF-5 Audit search",
+      "kind": "route",
+      "status": "planned",
+      "path": "specs/001-console-foundation/plan.md",
+      "description": "Audit and operational search surface rendered from backend-authorized responses."
+    },
+    {
+      "id": "rf6",
+      "label": "RF-6 Operators",
+      "kind": "route",
+      "status": "planned",
+      "path": "specs/001-console-foundation/plan.md",
+      "description": "Operator/admin management UI through generated Data-Pulse-2 clients."
+    },
+    {
+      "id": "agent-os",
+      "label": "Agent OS gates",
+      "kind": "governance",
+      "status": "binding",
+      "path": "docs/agent-os/maestro-playbook.md",
+      "description": "Spec-first gates, allowed files, approval boundaries, and validation discipline."
+    },
+    {
+      "id": "constitution",
+      "label": "Constitution",
+      "kind": "governance",
+      "status": "binding",
+      "path": ".specify/memory/constitution.md",
+      "description": "Frontend-only ownership, no backend/schema/OpenAPI ownership, no secrets, and no ungated package changes."
+    }
+  ],
+  "edges": [
+    { "from": "browser", "to": "generated-client", "label": "consumes" },
+    { "from": "generated-client", "to": "dp2", "label": "contract-backed calls" },
+    { "from": "dp2", "to": "pos", "label": "POS-originated data only" },
+    { "from": "browser", "to": "rf1", "label": "route family" },
+    { "from": "browser", "to": "rf2", "label": "route family" },
+    { "from": "browser", "to": "rf3", "label": "route family" },
+    { "from": "browser", "to": "rf4a", "label": "route family" },
+    { "from": "browser", "to": "rf5", "label": "route family" },
+    { "from": "browser", "to": "rf6", "label": "route family" },
+    { "from": "agent-os", "to": "browser", "label": "gates implementation" },
+    { "from": "constitution", "to": "generated-client", "label": "consumption-only rule" },
+    { "from": "constitution", "to": "dp2", "label": "backend authority" }
+  ]
+}
