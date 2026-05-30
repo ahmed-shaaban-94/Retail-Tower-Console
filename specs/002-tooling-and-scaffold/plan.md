@@ -257,6 +257,16 @@ satisfying the constraints); the *trace* is fixed here.
 | `@vitest/coverage-v8` | dev | D-3 | Coverage reporter (supports the per-slice coverage gate). |
 | `@playwright/test` | dev | D-4 | E2E runner; browsers cached in CI (D-6). |
 | `@biomejs/biome` | dev | D-5 | Single lint + format tool. |
+| `jsdom` | dev | D-3 | DOM environment for Vitest unit tests (renders the React shell headlessly). |
+| `@testing-library/react` | dev | D-3 | `render`/`screen` helpers the unit smoke test uses. |
+| `@types/node` | dev | D-1+D-8 | Node type declarations for `process` / `node:url` referenced in the build + tooling config files (vite/vitest/playwright/openapi-ts configs). |
+
+> **Trace amendment (2026-05-30, implementation):** the three rows above
+> (`jsdom`, `@testing-library/react`, `@types/node`) were added during
+> implementation when the toolchain required them, and recorded here per
+> FR-002-006 so no installed dependency lacks a D-N. They are test/build
+> *infrastructure* for already-decided tools (D-3 test runner, D-1/D-8
+> build+TS), not new product decisions — no D-N was invented.
 
 > No dependency in this table lacks a D-N. If the implementation needs a
 > dependency not listed here (e.g. a router or state lib), that is a
