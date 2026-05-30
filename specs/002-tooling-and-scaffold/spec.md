@@ -26,6 +26,88 @@
 
 ---
 
+## Clarifications
+
+This section records the resolution of every open decision D-1..D-8
+(§5) via `/speckit-clarify`, satisfying FR-002-003 (clarify-not-default)
+and AC-002-10 (every D-N has a Clarifications entry). The decisions
+D-1..D-8 and the package-manager choice (pnpm) were each **explicitly
+confirmed by the human owner** before being recorded. The OQ-002-3
+workspace-structure answer was likewise confirmed by the owner; the
+OQ-002-4 browser-breadth bullet **records retention of the existing
+foundation C-1 default** (no new owner decision — see that bullet). They
+are the authoritative inputs to `/speckit-plan`; `/speckit-plan` records
+them in its Technical Context and traces every `package.json` dependency
+to its D-N (FR-002-006).
+
+### Session 2026-05-30
+
+- Q: D-1 — Which frontend framework + build tool? → A: **React 19 +
+  Vite 6, SPA mode (no SSR).** Package manager: **pnpm**
+  (`pnpm-lock.yaml` is the single authorized lockfile per G-2). Rationale:
+  admin console needs no SSR/SEO (foundation R-1 permits a plain SPA); a
+  plain SPA carries zero server code, so no `backend/` temptation
+  (C-7, Principle 1); Vite pairs natively with Vitest (D-3); same-origin
+  deployment lets the browser auto-send the `dp2_session` cookie with no
+  token plumbing (C-2). Next.js rejected: its Node server is friction
+  against the frontend-only rule and tempts `app/api/` routes.
+- Q: D-2 — Which generated OpenAPI client toolchain? → A:
+  **openapi-typescript** (emits types) **+ openapi-fetch** (~6 KB
+  fetch wrapper). Rationale: OQ-002-1 (resolved) foreclosed consuming an
+  upstream Data-Pulse-2 package — none is published — so generation is
+  local. `openapi-fetch` is fetch-based, so it auto-sends the
+  `dp2_session` cookie and needs no `Authorization: Bearer` plumbing
+  (C-2, C-3). Type-only output is the lightest option and is
+  framework-agnostic. orval rejected here: it bundles React Query / Zod
+  hooks, which pre-empts the state/data-fetching decision foundation R-4
+  reserves for slice 003.
+- Q: D-3 — Which unit/integration test framework? → A: **Vitest.**
+  Rationale: shares Vite's transform pipeline (D-1), so no separate
+  transpile step; ESM-first and TS-native (C-5, satisfies the
+  "no live Data-Pulse-2" isolation requirement via mockable client).
+- Q: D-4 — Which E2E framework, and does it run in CI? → A:
+  **Playwright**, **running in CI** with browser binaries cached.
+  Rationale: foundation R-3 names it the likely E2E choice; drives real
+  evergreen browsers (C-1); runs without a live Data-Pulse-2 (C-5) by
+  driving the SPA against a mocked client.
+- Q: D-5 — Lint + format toolchain? → A: **Biome** (single tool for
+  both lint and format). Rationale: one binary, one config, fast,
+  understands TS + React (D-1, D-8); avoids the two-tool ESLint+Prettier
+  config surface for a greenfield repo.
+- Q: D-6 — CI workflow shape, including Node/OS version? → A:
+  **GitHub Actions** at `.github/workflows/ci.yml`; **Node 22 LTS**
+  pinned to a single version (not a matrix); **`ubuntu-latest`** runner;
+  per-PR-against-`main` steps run **install → build → lint → test →
+  E2E**. Rationale: D-6 constraint requires install+build+test+lint per
+  PR; Node 22 is the active LTS; an admin console does not need
+  multi-Node matrix coverage. Per FR-002-005 this CI runtime is NOT a
+  deployment-runtime decision (that remains out of scope).
+- Q: D-7 — Where is the generated client output stored? → A: **vendored
+  in this repo at `src/generated/`**, **committed (NOT `.gitignore`d)**.
+  Rationale: forced by OQ-002-1 (no upstream package to consume) + the
+  D-7 constraint that the output be committed so CI is reproducible
+  without running the generator; `src/generated/` is clearly separable
+  from hand-written `src/` code (AC-002-5).
+- Q: D-8 — TypeScript or plain JavaScript? → A: **TypeScript, strict
+  mode** (`"strict": true`). Rationale: the D-8 constraint states plain
+  JS "loses ~70% of the value of the generated client"; strict mode
+  enforces the most at the API boundary, where the generated client (D-2)
+  delivers its value.
+- Q: OQ-002-3 — Single-package repo or a workspace/monorepo? → A:
+  **single-package repo** (no pnpm workspace / Turborepo / Nx) —
+  owner-confirmed 2026-05-30. Rationale: frontend-only with one app; a
+  workspace adds structure with no current second consumer and would
+  conflict with G-1's "one `package.json`" semantics. Keeps D-7's
+  `src/generated/` location unambiguous. Migration to a workspace remains
+  possible in a future slice if a real second package appears.
+- Q: OQ-002-4 — Browser support breadth? → A: **desktop evergreen only —
+  the existing foundation C-1 default is retained, not changed.** No new
+  owner decision was made here; mobile-browser support remains a
+  per-family slice decision per the foundation. Recorded for completeness
+  so `/speckit-plan` does not re-raise it.
+
+---
+
 ## 1. Background and why
 
 The foundation slice ([`001-console-foundation`](../001-console-foundation/))
@@ -246,7 +328,8 @@ defaults belong in the foundation plan, not in this slice's plan.
 - **Coupling note.** Build tool is bundled with framework choice
   because the practical pairing is rarely separable (Next.js with
   webpack/Turbopack; SvelteKit with Vite; Vue with Vite; etc.).
-- **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
+- **RESOLVED** (2026-05-30, §Clarifications): **React 19 + Vite 6, SPA
+  mode (no SSR).** Package manager **pnpm** (`pnpm-lock.yaml`, G-2).
 
 ### D-2 — Generated OpenAPI client toolchain
 
@@ -268,7 +351,9 @@ defaults belong in the foundation plan, not in this slice's plan.
     is no package to consume).
 - **Pin policy.** Slice 002 records the *initial* pin (`62d0906`).
   Cadence/automation for re-pinning is out of scope (§3 non-goals).
-- **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
+- **RESOLVED** (2026-05-30, §Clarifications): **openapi-typescript
+  (types) + openapi-fetch (runtime).** Local generation against pin
+  `62d0906`; output vendored per D-7.
 
 ### D-3 — Test framework (unit/integration)
 
@@ -280,7 +365,8 @@ defaults belong in the foundation plan, not in this slice's plan.
   - **Vitest** — fast, framework-agnostic, ESM-first.
   - **Jest** — older, widely known, slower.
   - **Node native test runner** — minimal, no dependencies.
-- **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
+- **RESOLVED** (2026-05-30, §Clarifications): **Vitest** (shares Vite's
+  transform with D-1; ESM- and TS-native).
 
 ### D-4 — E2E test framework
 
@@ -289,7 +375,8 @@ defaults belong in the foundation plan, not in this slice's plan.
 - **Alternatives already considered** (foundation `research.md` R-3):
   - **Playwright** — likely choice if any E2E is in scope.
   - **Cypress** — alternative E2E.
-- **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
+- **RESOLVED** (2026-05-30, §Clarifications): **Playwright**, running in
+  CI with browser binaries cached (D-6).
 
 ### D-5 — Lint + format toolchain
 
@@ -306,7 +393,8 @@ defaults belong in the foundation plan, not in this slice's plan.
 - **Coupling note.** Lint and formatter MAY be the same tool (Biome
   example). If `/speckit-clarify` consolidates this into a single
   question, that's the skill's call.
-- **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
+- **RESOLVED** (2026-05-30, §Clarifications): **Biome** — single tool
+  for both lint and format.
 
 ### D-6 — CI workflow shape (including Node/OS version)
 
@@ -324,7 +412,11 @@ defaults belong in the foundation plan, not in this slice's plan.
     others are possible but unusual for a frontend repo).
   - Whether E2E (D-4) runs in CI or only locally, and if in CI,
     whether browser binaries are part of CI cache.
-- **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
+- **RESOLVED** (2026-05-30, §Clarifications): **GitHub Actions
+  `.github/workflows/ci.yml`**; **Node 22 LTS** (single pinned version,
+  not a matrix); **`ubuntu-latest`**; per-PR steps **install → build →
+  lint → test → E2E** (E2E in CI, browsers cached). CI runtime ≠
+  deployment runtime (FR-002-005).
 
 ### D-7 — Generated client storage location
 
@@ -338,7 +430,9 @@ defaults belong in the foundation plan, not in this slice's plan.
   - **Vendored in this repo** at `src/generated/` (or similar).
   - **Published from Data-Pulse-2** as a package this repo
     consumes — depends on OQ-002-1.
-- **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
+- **RESOLVED** (2026-05-30, §Clarifications): **vendored at
+  `src/generated/`, committed (not `.gitignore`d).** The "published
+  package" branch is foreclosed by OQ-002-1 (no upstream package).
 
 ### D-8 — TypeScript-or-not
 
@@ -350,7 +444,8 @@ defaults belong in the foundation plan, not in this slice's plan.
   - TypeScript (non-strict / `noImplicitAny: false`).
   - Plain JavaScript with JSDoc types.
   - Plain JavaScript, no type annotations.
-- **Decided in:** `/speckit-clarify` → spec.md §Clarifications.
+- **RESOLVED** (2026-05-30, §Clarifications): **TypeScript, strict mode**
+  (`"strict": true`).
 
 ---
 
