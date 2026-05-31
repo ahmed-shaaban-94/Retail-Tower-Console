@@ -12,8 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="specs/001-console-foundation/plan.md"><img alt="Posture: planning-only" src="https://img.shields.io/badge/posture-planning--only-7c3aed?style=flat-square"></a>
-  <a href="specs/002-tooling-and-scaffold"><img alt="Scaffold: gated" src="https://img.shields.io/badge/scaffold-gated-f97316?style=flat-square"></a>
+  <a href="specs/001-console-foundation/plan.md"><img alt="Posture: scaffolded" src="https://img.shields.io/badge/posture-scaffolded-2563eb?style=flat-square"></a>
+  <a href="specs/002-tooling-and-scaffold"><img alt="Scaffold: slice 002 merged" src="https://img.shields.io/badge/scaffold-slice%20002%20merged-059669?style=flat-square"></a>
   <a href="specs/001-console-foundation/contracts"><img alt="API: generated client only" src="https://img.shields.io/badge/API-generated%20client%20only-2563eb?style=flat-square"></a>
   <a href="docs/agent-os/maestro-playbook.md"><img alt="Agent OS: gate governed" src="https://img.shields.io/badge/Agent%20OS-gate%20governed-111827?style=flat-square"></a>
 </p>
@@ -41,14 +41,15 @@ Open the [interactive Three.js console map](docs/architecture/retail-tower-conso
 
 ## Current implementation status
 
-This repository is still planning-first. The foundation plan exists; application scaffold, package manifests, generated clients, CI, and deployment files remain gated.
+This repository is planning-first with the slice 002 frontend scaffold now merged. The Vite/React shell, package manifest, lockfile, CI workflow, and generated-client storage location exist; RF-1 through RF-7 product UI remains gated by per-slice approvals.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
 | Console foundation | Planned | [`specs/001-console-foundation`](specs/001-console-foundation) |
 | API readiness map | Partial and explicit by route family | [`specs/001-console-foundation/api-readiness.md`](specs/001-console-foundation/api-readiness.md) |
-| Tooling and scaffold | Gated follow-up slice | [`specs/002-tooling-and-scaffold`](specs/002-tooling-and-scaffold) |
-| Runtime application code | Not present | [Constitution](.specify/memory/constitution.md) |
+| Tooling and scaffold | Merged slice 002 scaffold | [`package.json`](package.json) · [`specs/002-tooling-and-scaffold`](specs/002-tooling-and-scaffold) |
+| Runtime application code | Placeholder shell only; no RF UI | [`src/App.tsx`](src/App.tsx) |
+| Generated API client | Generated from pinned Data-Pulse-2 auth/context contracts | [`src/generated/schema.d.ts`](src/generated/schema.d.ts) · [`openapi-ts.config.ts`](openapi-ts.config.ts) |
 | Backend contracts | Owned upstream by Data-Pulse-2 | [`specs/001-console-foundation/contracts`](specs/001-console-foundation/contracts) |
 | POS terminal behavior | Owned by POS-Pulse | [Constitution](.specify/memory/constitution.md) |
 
@@ -61,8 +62,8 @@ This repository is still planning-first. The foundation plan exists; application
 | The console is frontend-only | [Constitution principle 1](.specify/memory/constitution.md) |
 | Data-Pulse-2 owns backend contracts | [Constitution principle 2](.specify/memory/constitution.md) · [contract boundary docs](specs/001-console-foundation/contracts) |
 | POS-Pulse owns terminal behavior | [Constitution principle 3](.specify/memory/constitution.md) |
-| UI implementation is gated | [Foundation plan](specs/001-console-foundation/plan.md) · [Maestro playbook](docs/agent-os/maestro-playbook.md) |
-| No package, lockfile, or CI changes are allowed without approval | [Constitution principle 9](.specify/memory/constitution.md) |
+| RF UI implementation is gated | [Foundation plan](specs/001-console-foundation/plan.md) · [Maestro playbook](docs/agent-os/maestro-playbook.md) |
+| Package, lockfile, dependency, and CI changes remain approval-gated | [Constitution principle 9](.specify/memory/constitution.md) |
 | No secrets or deployment assumptions belong here | [Constitution principle 10](.specify/memory/constitution.md) |
 
 ---
@@ -75,9 +76,9 @@ This repository is still planning-first. The foundation plan exists; application
 | RF-2 | Tenant and store management | Depends on upstream API readiness |
 | RF-3 | Catalog management | Depends on Data-Pulse-2 contract coverage |
 | RF-4a | Unknown items review UI | Read/write console workflow, POS behavior remains indirect |
-| RF-5 | Audit and operational search | Backend-authorized read surface |
-| RF-6 | Operator/admin management | Generated-client consumer only |
-| RF-7 | Generated API client consumption | No handwritten API client code |
+| RF-5 | Operator/admin management | A1-A5 identity and membership surfaces |
+| RF-6 | Audit and operational search | Backend-authorized read surface |
+| RF-7 | Settings/system management | Depends on Data-Pulse-2 contract coverage |
 
 ---
 
@@ -86,7 +87,9 @@ This repository is still planning-first. The foundation plan exists; application
 | Path | Purpose |
 | --- | --- |
 | `specs/001-console-foundation` | Foundation spec, plan, API readiness, read-side model, and contract-consumption boundaries |
-| `specs/002-tooling-and-scaffold` | Gated future scaffold/tooling slice |
+| `specs/002-tooling-and-scaffold` | Merged scaffold/tooling slice and its gate record |
+| `src` | Placeholder SPA shell and generated-client storage location |
+| `tests` | Slice 002 smoke tests for the scaffold |
 | `docs/agent-os` | Agent OS workflow and gate discipline |
 | `docs/product` | Product brief and console positioning |
 | `.specify/memory/constitution.md` | Binding project boundary and implementation rules |
@@ -99,17 +102,21 @@ Admin web frontend planning, browser UX boundaries, frontend route-family sequen
 
 ### What this repo does not own
 
-Backend APIs, OpenAPI source contracts, database schema, SQL migrations, POS terminal code, worker jobs, secrets, deployment infrastructure, package manifests, lockfiles, or CI until an explicitly approved slice authorizes them.
+Backend APIs, OpenAPI source contracts, database schema, SQL migrations, POS terminal code, worker jobs, secrets, or deployment infrastructure. Package, lockfile, dependency, and CI changes are owned only inside explicitly approved slices.
 
 ---
 
 ## Getting started
 
-There is no application to run yet. Start with the planning artifacts:
+The scaffold exists, but product UI is still gate-governed. Start with the local state and scaffold checks:
 
 ```bash
 git status --short
 git branch --show-current
+pnpm install
+pnpm build
+pnpm lint
+pnpm test
 ```
 
 Then review:
@@ -120,7 +127,8 @@ Then review:
 | Governance | [Constitution](.specify/memory/constitution.md) |
 | Foundation plan | [`specs/001-console-foundation/plan.md`](specs/001-console-foundation/plan.md) |
 | API dependency posture | [`specs/001-console-foundation/api-readiness.md`](specs/001-console-foundation/api-readiness.md) |
-| Future scaffold gate | [`specs/002-tooling-and-scaffold`](specs/002-tooling-and-scaffold) |
+| Merged scaffold gate | [`specs/002-tooling-and-scaffold`](specs/002-tooling-and-scaffold) |
+| Next implementation slice | [`specs/001-console-foundation/plan.md`](specs/001-console-foundation/plan.md) slice sequence |
 
 ---
 

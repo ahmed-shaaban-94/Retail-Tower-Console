@@ -2,7 +2,7 @@
 
 ## Status
 
-Retail-Tower-Console is in planning-first mode. The repository exists to plan and later implement the Retail Tower OS admin web console, but implementation remains gated by approved specs and stable backend contracts.
+Retail-Tower-Console is in planning-first mode with the slice 002 frontend scaffold merged. Product UI implementation remains gated by approved specs, stable backend contracts, and per-slice validation gates.
 
 ## Source-of-truth order
 
@@ -61,7 +61,7 @@ Known backend readiness gates include:
 - Prefer small, reviewable slices.
 - One concern per slice.
 - Do not expand scope silently.
-- Do not introduce package files, lockfiles, generated clients, CI, or deployment files without explicit approval.
+- Do not introduce or modify package files, lockfiles, generated clients, CI, or deployment files outside an explicitly approved slice.
 - Do not create or edit OpenAPI source contracts in this repository.
 - Do not duplicate backend DTOs or schema by hand.
 - Do not move Data-Pulse-2 or POS-Pulse responsibilities into this repository.
@@ -69,7 +69,7 @@ Known backend readiness gates include:
 
 ## Current allowed work
 
-Until specs are approved, allowed work is documentation and planning only:
+Without a currently approved implementation slice, allowed work is documentation, planning, and maintenance of already-approved scaffold artifacts only:
 
 - Product charter updates
 - Repository boundary updates
@@ -79,16 +79,17 @@ Until specs are approved, allowed work is documentation and planning only:
 - Route maps
 - Acceptance criteria
 - Non-goals and implementation gates
+- Slice 002 scaffold verification and documented generated-client caveat tracking
 
 ## Stop rules
 
 Stop and ask for approval before:
 
-- Creating a framework scaffold
-- Adding package manager files
-- Adding dependencies
-- Adding CI workflows
-- Adding generated clients
+- Creating or replacing a framework scaffold
+- Adding or changing package manager files
+- Adding, removing, or upgrading dependencies
+- Adding or changing CI workflows
+- Adding or changing generated clients
 - Adding deployment configuration
 - Implementing UI screens
 - Creating backend logic or contracts

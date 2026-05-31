@@ -36,10 +36,10 @@ the third repository in a three-repo product split:
   Data-Pulse-2 contracts via a generated API client. Does not own backend,
   schema, POS, infrastructure, or analytics.
 
-Today, Retail-Tower-Console is planning-only. No application code, framework
-scaffold, package files, generated clients, CI, or deployment configuration
-exists. Before any UI is implemented, the product needs a single foundational
-specification that:
+At the time this foundation spec opened, Retail-Tower-Console was
+planning-only: no application code, framework scaffold, package files,
+generated clients, CI, or deployment configuration existed. Before any UI is
+implemented, the product needs a single foundational specification that:
 
 1. Names every admin route family the console will eventually own.
 2. Names every actor that will interact with each family.

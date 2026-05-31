@@ -1,17 +1,14 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change:        (unversioned) → 1.0.0
-Bump rationale:        Initial formal ratification. The 10 principles below were
-                       established in commit a4629a6 (2026-05-25) but the file
-                       lacked the spec-kit governance footer (version, ratified,
-                       last-amended). This commit attaches that metadata without
-                       changing any principle content; the body is materially
-                       identical to the previously committed version.
+Version change:        1.0.0 → 1.0.1
+Bump rationale:        Patch-level status synchronization after the slice 002
+                       scaffold merged. No ownership boundary, source-of-truth
+                       order, principle, or readiness-gate behavior changed.
 
 Modified principles:   None (no content changes to principles 1–10)
 Renamed principles:    None
-Added sections:        Governance footer (Version / Ratified / Last Amended)
+Added sections:        None
 Removed sections:      None
 Deferred placeholders: None
 
@@ -39,8 +36,9 @@ Follow-up TODOs:       None.
 
 ## Current status
 
-Planning-only. No application code, framework scaffold, package files, generated
-clients, CI, or deployment configuration exists yet. Implementation is gated.
+Planning-first. The slice 002 frontend scaffold, package manifest, lockfile,
+generated-client storage location, smoke tests, and CI workflow now exist after
+explicit slice approval. Product UI implementation remains gated per slice.
 
 ---
 
@@ -180,4 +178,4 @@ A plan that violates any principle MUST be rejected at the Constitution Check
 gate; the violation may only proceed if documented in the plan's Complexity
 Tracking section with explicit human approval recorded in the spec.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-25 | **Last Amended**: 2026-05-25
+**Version**: 1.0.1 | **Ratified**: 2026-05-25 | **Last Amended**: 2026-05-31
