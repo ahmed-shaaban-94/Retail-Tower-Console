@@ -22,9 +22,9 @@ Slice 002 is the **scaffold-authorization plan**. The foundation plan
 future approved slice; this slice is that slice. Its `/speckit-clarify`
 resolved the eight coupled decisions D-1..D-8. This `plan.md` records
 the concrete technical picks, the concrete frontend-only source tree the
-scaffold will create, the per-decision dependency trace required by
+scaffold created, the per-decision dependency trace required by
 FR-002-006, and the validation gates (the fifth readiness gate) that the
-eventual implementation PR must clear.
+implementation PR cleared.
 
 **Primary requirement** (spec §2 Goals G-1..G-9): authorize exactly
 *one* of each of the eight tightly-coupled artifacts — one
@@ -41,11 +41,10 @@ single-package SPA**, **TypeScript strict**, consuming Data-Pulse-2 via a
 Actions** CI workflow on **Node 22 LTS / ubuntu-latest**. Package manager
 **pnpm**. No SSR server, no `backend/`, no secrets, no deployment config.
 
-**Mode** (unchanged from spec §Mode contract): **planning-only**. This
-plan does NOT authorize implementation work. Per FR-002-007, the actual
-creation of `package.json`, the lockfile, `.github/workflows/ci.yml`,
-`src/`, and the vendored client happens only after the full five-gate
-approval for this slice clears (see §Implementation readiness gates).
+**Mode**: **historical plan for the merged scaffold slice**. This plan
+authorized slice 002 only after the full five-gate approval cleared (see
+§Implementation readiness gates). The implemented scaffold now exists;
+this plan still does not authorize RF-1 through RF-7 product UI.
 
 ---
 
@@ -129,19 +128,19 @@ approval for this slice clears (see §Implementation readiness gates).
 
 **GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.**
 
-Anchored to `.specify/memory/constitution.md` (v1.0.0).
+Anchored to `.specify/memory/constitution.md` (v1.0.1).
 
 | # | Principle | Pre-research check | Post-design check |
 | --- | --- | --- | --- |
 | 1 | Frontend-only ownership | ✅ Single frontend `src/` tree; no `backend/`/`apps/api/`. | ✅ Phase 1 source tree is frontend-only; data-model.md owns no backend semantics. |
 | 2 | Data-Pulse-2 contract authority | ✅ D-2 consumes Data-Pulse-2 OpenAPI from pinned SHA `62d0906`; copies no contract. | ✅ contracts/ folder references upstream paths only; generated output is a *derivation*, not a contract source. |
 | 3 | POS-Pulse boundary | ✅ No Electron, SQLite, pairing, terminal logic (C-6). | ✅ No POS artifacts in the proposed tree. |
-| 4 | Spec-first implementation | ✅ Gated by approved spec + this plan; clarify complete. | ✅ Phase 1 outputs authorize no UI; implementation deferred to gate clearance. |
+| 4 | Spec-first implementation | ✅ Gated by approved spec + this plan; clarify complete. | ✅ Phase 1 outputs authorize scaffold only; RF UI remains gated by later slices. |
 | 5 | No hidden scope expansion | ✅ Plan covers only the eight G-1..G-9 artifacts. | ✅ Every dependency traces to a D-N (FR-002-006); a ninth artifact would need re-scope. |
 | 6 | No backend/schema/OpenAPI ownership | ✅ Plan adds none. | ✅ Tree has no backend paths; generated client is consumption-only. |
 | 7 | Tenant/store safety backend-enforced | ✅ No frontend authorization logic introduced. | ✅ The scaffold carries no scope/authz opinion. |
 | 8 | Generated client consumption only | ✅ D-2 = generated client; no hand-written API code (C-3). | ✅ AC-002-5 forbids hand-written `fetch(` to DP2 paths in `src/`. |
-| 9 | No package/lockfile/CI changes without approval | ✅ **Satisfied — slice 002 IS the approval mechanism** (spec §2 Background). It does not *violate* P9; it is the slice that *obtains* the per-artifact approvals P9 requires. The files are created only at implement-time, under the five-gate clearance. | ✅ Plan authorizes the artifacts but creates none; FR-002-007 holds — `/speckit-plan` output is not implementation. |
+| 9 | No package/lockfile/CI changes without approval | ✅ **Satisfied — slice 002 IS the approval mechanism** (spec §2 Background). It does not *violate* P9; it is the slice that *obtains* the per-artifact approvals P9 requires. | ✅ The approved implementation created only the authorized scaffold artifacts; later package/lockfile/CI changes remain approval-gated. |
 | 10 | No secrets or deployment assumptions | ✅ No secrets, no deployment files (C-8). | ✅ CI runtime (D-6, Node 22/ubuntu) is explicitly *not* deployment runtime (FR-002-005). No `.env*`. |
 
 **Pre-research gate: PASS.** No principle is violated. Principle 9 is
@@ -154,20 +153,18 @@ These five gates clear **per-slice**, with explicit human approval. For
 slice 002 specifically:
 
 - [x] **Spec approved** — PR #6 merged to `main`.
-- [ ] **Plan approved** — **this document**; pending owner review + merge.
-- [ ] **Task list approved** — `/speckit-tasks` produces; pending.
+- [x] **Plan approved** — this document was reviewed and merged before
+  implementation.
+- [x] **Task list approved** — `/speckit-tasks` produced `tasks.md`.
 - [x] **API dependency map approved** — `api-readiness.md` (refreshed @
   `62d0906`, PR #8) verifies the consumed surfaces; the §Cross-cutting
-  generated-client row is `deferred` and is promoted *in the
-  implementation commit* per AC-002-7 (recorded as a task, not done
-  here). The dependency *map* itself is approved; the row *sync* is an
-  implementation deliverable.
-- [ ] **Validation gates defined and approved** — **defined in
-  §Validation gates below** (AC-002-1..10); pending owner approval.
+  generated-client row was later promoted after schema generation.
+- [x] **Validation gates defined and approved** — defined in
+  §Validation gates below (AC-002-1..10).
 
-**The implementation gate is NOT cleared by this plan.** Creating the
-authorized files is forbidden until all five boxes above are checked for
-this slice (FR-002-007, Principle 9).
+**The implementation gate cleared for slice 002.** This does not clear
+any RF-specific implementation gate; RF-1 through RF-7 still require
+their own five-gate approval.
 
 ---
 
@@ -181,20 +178,19 @@ specs/002-tooling-and-scaffold/
 ├── checklists/
 │   └── requirements.md      # spec quality checklist (merged)
 ├── plan.md                  # THIS FILE
-├── research.md              # Phase 0 output (this plan): records picks vs alternatives
+├── research.md              # Phase 0 output: records picks vs alternatives
 ├── data-model.md            # Phase 1 output: scaffold "entities" (config artifacts)
 ├── contracts/
 │   └── README.md            # Phase 1 output: the consumption contract the CI enforces
-├── quickstart.md            # Phase 1 output: planning workflow (NOT a runtime runbook yet)
-└── tasks.md                 # /speckit-tasks output (NOT created by /speckit-plan)
+├── quickstart.md            # Historical planning workflow
+└── tasks.md                 # /speckit-tasks output
 ```
 
-### Source code (repository root) — AUTHORIZED, not yet created
+### Source code (repository root) — created by slice 002
 
-> Per Principle 9 + FR-007 + FR-002-007, the tree below is **authorized
-> by this plan** but **created only at implement-time** after the
-> five-gate clearance. It is the frontend-only, single-package layout
-> (OQ-002-3) — the only structure the constitution permits.
+> Per Principle 9 + FR-007 + FR-002-007, the tree below was created only
+> after the five-gate clearance. It is the frontend-only, single-package
+> layout (OQ-002-3) -- the only structure the constitution permits.
 
 ```text
 # Repository root after slice 002 implementation
@@ -333,8 +329,8 @@ After writing `research.md`, `data-model.md`, `contracts/README.md`, and
 artifacts (see Pre/Post columns above). All ten remain satisfied: no
 artifact creates backend semantics, the generated-client design consumes
 (does not author) Data-Pulse-2 contracts, the CI runtime is scoped away
-from deployment runtime, and no file forbidden by Principle 9 is created
-by this plan (only authorized for implement-time).
+from deployment runtime, and the Principle 9 files were authorized only
+for the slice 002 implementation.
 
 **Post-design gate: PASS.**
 
@@ -342,7 +338,7 @@ by this plan (only authorized for implement-time).
 
 ## Cross-reference index
 
-- Constitution: `.specify/memory/constitution.md` (v1.0.0)
+- Constitution: `.specify/memory/constitution.md` (v1.0.1)
 - Spec: [`spec.md`](./spec.md) (+ §Clarifications, `e766a76`)
 - Spec quality checklist: [`checklists/requirements.md`](./checklists/requirements.md)
 - Phase 0 research: [`research.md`](./research.md)

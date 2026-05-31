@@ -1,4 +1,4 @@
-# Quickstart: Tooling and Scaffold (planning workflow)
+# Quickstart: Tooling and Scaffold (historical planning workflow)
 
 **Feature**: 002-tooling-and-scaffold
 **Phase**: 1 — Design
@@ -6,16 +6,19 @@
 
 ---
 
+> **Current status (2026-05-31):** slice 002 implementation is merged on
+> `origin/main` in `7ac4dfb` (PR #11). This file is retained as the historical
+> planning/approval workflow. For current scaffold commands, use the root
+> `README.md`. The generated schema is produced from Data-Pulse-2 @ `62d0906`.
+
 ## What this is
 
 This quickstart describes the **planning + approval workflow** for slice
-002 — not a runtime setup runbook (no app exists yet; this slice is
-planning-only until the implementation gate clears). It mirrors the
-foundation slice's quickstart posture.
+002. It mirrors the foundation slice's quickstart posture.
 
-When the implementation gate eventually clears, this file's "After gate
-clearance" section becomes the developer runbook. Until then it documents
-the path from here to there.
+The implementation gate has since cleared for slice 002, so the "After gate
+clearance" section is a record of the planned runbook, not the current source
+of truth for local setup.
 
 ---
 
@@ -24,13 +27,13 @@ the path from here to there.
 ```text
 [x] spec.md            merged (PR #6)
 [x] §Clarifications    committed e766a76 — D-1..D-8 + OQ-002-3/4 resolved
-[x] plan.md            written (this slice) — pending owner review + merge
+[x] plan.md            merged
 [x] research.md        written (records picks vs alternatives)
 [x] data-model.md      written (config-artifact inventory)
 [x] contracts/README   written (consumption contract)
 [x] quickstart.md      THIS FILE
-[ ] tasks.md           /speckit-tasks — next
-[ ] implementation     GATED — needs all five readiness gates
+[x] tasks.md           produced by /speckit-tasks
+[x] implementation     merged in PR #11; schema regenerated from `62d0906`
 ```
 
 ## The five readiness gates (constitution §Implementation readiness gates)
@@ -39,13 +42,13 @@ Implementation may begin only when ALL are owner-approved **for this
 slice**:
 
 1. [x] Spec approved — PR #6.
-2. [ ] Plan approved — this plan, pending review/merge.
-3. [ ] Task list approved — `/speckit-tasks`, pending.
+2. [x] Plan approved — merged before implementation.
+3. [x] Task list approved — produced by `/speckit-tasks`.
 4. [x] API dependency map approved — api-readiness @ `62d0906`; the
    generated-client row is promoted in the implementation commit
    (AC-002-7).
-5. [ ] Validation gates defined and approved — defined in plan
-   §Validation gates; pending approval.
+5. [x] Validation gates defined and approved — defined in plan
+   §Validation gates.
 
 ## Planning workflow (the path forward)
 
@@ -63,10 +66,10 @@ slice**:
 /speckit-implement ── only after all five gates checked for this slice
 ```
 
-## After gate clearance (future runbook — not active yet)
+## After gate clearance (historical runbook)
 
-Once approved, the implementation slice will (per plan §Project Structure
-and §Dependency trace):
+Once approved, the implementation slice was expected to (per plan
+§Project Structure and §Dependency trace):
 
 ```bash
 # 1. Scaffold (creates the eight authorized artifacts — Principle 9 files)
@@ -83,8 +86,9 @@ pnpm install && pnpm build && pnpm lint && pnpm test && pnpm test:e2e
 #    (AC-002-7) — the only permitted foundation-doc change.
 ```
 
-> Do not run any of the above until the five gates are checked. This
-> block is documentation of the *plan*, not an instruction to execute.
+> The five gates are now checked for slice 002. This block remains
+> documentation of the plan; use the root `README.md` for current local
+> commands.
 
 ---
 

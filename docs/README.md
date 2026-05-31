@@ -1,6 +1,6 @@
 # Retail Tower Console documentation
 
-Documentation index for Retail Tower Console, the planned browser admin frontend
+Documentation index for Retail Tower Console, the scaffolded browser admin frontend
 for Retail Tower OS. The [root README](../README.md) is the canonical entry
 point; this page is the deep-dive map.
 
@@ -24,8 +24,10 @@ point; this page is the deep-dive map.
 
 ## Documentation rules
 
-- Keep wording truthful to the current planning-only state.
-- Do not imply package manifests, app scaffold, generated clients, CI, or
-  deployment files exist before their approved slices.
+- Keep wording truthful to the current planning-first, scaffold-merged state.
+- Do not imply product UI, deployment files, or future dependency changes exist
+  before their approved slices.
+- When referencing the slice 002 generated client, cite the Data-Pulse-2 pin
+  and preserve the generated-client-only boundary.
 - Treat Data-Pulse-2 as the backend and OpenAPI authority.
 - Treat POS-Pulse as the terminal runtime authority.

@@ -11,10 +11,9 @@
  * JavaScript never reads the cookie; no `Authorization: Bearer` header is
  * attached (the bearer scheme is for POS-Pulse / server-to-server).
  *
- * `paths` is imported from ./schema.d.ts, which is currently a STUB
- * (see that file). `pnpm generate:client` replaces the stub with the real
- * openapi-typescript output pinned to Data-Pulse-2 @ 62d0906 — this file
- * is unchanged by that regeneration.
+ * `paths` is imported from ./schema.d.ts, which is generated from the
+ * Data-Pulse-2 auth/context OpenAPI contracts pinned to 62d0906.
+ * This file is unchanged by regeneration.
  */
 import createClient from "openapi-fetch";
 import type { paths } from "./schema";

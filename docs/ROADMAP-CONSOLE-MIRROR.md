@@ -1,6 +1,6 @@
 # Roadmap: Console Mirror — Retail Tower Console
 
-> **Planning / roadmap document. Advisory only.** This is a durable sequencing artifact, not an approval to implement, and **not a green light to scaffold**. See the critical accuracy note in §1 before doing anything.
+> **Planning / roadmap document. Advisory only.** This is a durable sequencing artifact, not an approval to implement RF product UI. See the critical accuracy note in §1 before doing anything.
 
 The admin console (`Retail-Tower-Console`) is the UI for **Retail Tower OS**. It owns **no** business logic. Under Constitution Principle IV (contract-first), every console screen is a **shadow** of a backend OpenAPI contract: a screen can only be built once the matching `[GATED]` contract is merged in the backend (`Data-Pulse-2`). This roadmap therefore mirrors the backend spec sequence one-to-one.
 
@@ -8,13 +8,13 @@ The admin console (`Retail-Tower-Console`) is the UI for **Retail Tower OS**. It
 
 ---
 
-## 1. CRITICAL accuracy note — the console is NOT green-lit to implement
+## 1. CRITICAL accuracy note — RF product UI is NOT green-lit to implement
 
-The 002 console scaffold (`002-tooling-and-scaffold`, stack: React 19 · Vite 6 · TypeScript · Vitest · Playwright · Biome · GitHub Actions · pnpm) and **all** screens below are unblocked **only to be taken *through* the FR-008 five-checkbox approval gate** — they are **not** authorized for implementation.
+The 002 console scaffold (`002-tooling-and-scaffold`, stack: React 19 · Vite 6 · TypeScript · Vitest · Playwright · Biome · GitHub Actions · pnpm) is now merged on `origin/main` in `7ac4dfb` (PR #11). It authorizes only the frontend tooling scaffold, placeholder shell, smoke tests, CI workflow, and generated-client storage location.
 
-Quoting the gate state from the 002 `plan.md` (FR-008, plan.md:151-170): the five-checkbox scaffold-authorization gate is **2 of 5 checked, 3 unchecked** (Spec ✓, API-dependency-map ✓; Plan, Task-list, Validation-gates ✗), and **file-creation is forbidden until all five clear** (plan.md:168-170).
+It does **not** authorize RF-1 through RF-7 product UI. Each RF slice still needs its own approved spec, plan, task list, API dependency map, and validation gates before RF-specific source code is created.
 
-> **⚠ Out-of-process deviation — disclose, do not paper over.** The scaffold is **absent on `origin/main`** (the top-level tree carries only docs/specs/config — no `package.json`, no `src/`), but it is **NOT merely "planning-only": a built scaffold is already COMMITTED on the unmerged branch `002-impl-tooling-scaffold`** (commit `215cb7b` — *"feat(002): scaffold tooling + framework (RF-1 client stubbed)"* — carrying `package.json` and `src/` as tracked blobs). That commit creates the very files the FR-008 gate authorizes — while the gate stands at **2/5 with "Plan approved" unchecked** (plan.md:157). So the accurate state is: **planning-only on `main`; an unmerged scaffold branch exists ahead of the gate.** This tension (committed-files vs ungated-plan) should be **reconciled before merge** — either by clearing the three open FR-008 boxes (Plan/Tasks/Validation approvals) so the commit becomes in-process, or by treating `215cb7b` as a deviation to remediate. Do not describe the console as "nothing built."
+> **Generated-client note.** The committed `src/generated/schema.d.ts` is generated from Data-Pulse-2 `auth.openapi.yaml` and `context.openapi.yaml` pinned to `62d0906`. RF implementation slices should re-run `pnpm generate:client` before relying on newly changed upstream contracts.
 
 > **Naming-collision warning.** Console **FR-008** (this scaffold-authorization gate) is **unrelated** to backend spec **008 Sales / Transaction Capture**. Same number, different meaning. "Not green-lit" here refers to the FR-008 gate — it is **not** a statement that the console is waiting on backend Sales 008.
 
@@ -39,7 +39,7 @@ Source: `Retail-Tower-Console/specs/001-console-foundation/api-readiness.md` (li
 
 ## 3. Build now (through the gates) vs blocked-on-backend
 
-**Eligible to take *through* the FR-008 gate** (stable backend contracts already merged) — still subject to the 3 unchecked FR-008 boxes before any file is created:
+**Eligible for the next RF-specific gate process** (stable backend contracts already merged where noted) — still subject to per-slice approvals before RF-specific source code is created:
 
 - **RF-1** auth / session / context — stable.
 - **RF-2** tenant / store — stable.
@@ -77,4 +77,4 @@ Notes on the chain (detail lives in the backend doc, not here):
 
 ## 5. Operating rule
 
-Do not create console source files for any RF — including the otherwise-ready RF-1/2/5/6 — until the **FR-008 five-checkbox gate is fully cleared** (currently 3 of 5 unchecked, creation forbidden). Track gate state in the 002 `plan.md`, not in chat memory. **Note the §1 deviation:** an unmerged scaffold branch (`002-impl-tooling-scaffold` @ `215cb7b`) already created the gated files — reconcile that against the open gate before any merge, rather than letting it normalize ungated file creation.
+Do not create RF-specific product UI, route guards, context-provider behavior, or feature logic — including the otherwise-ready RF-1/2/5/6 surfaces — until that RF slice clears the five readiness gates. The slice 002 scaffold is already merged; the next implementation slice in the foundation plan is `003-rf1-auth-shell`, and it should re-run client generation before relying on generated types.

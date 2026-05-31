@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Retail-Tower-Console is the future admin web console for Retail Tower OS.
+Retail-Tower-Console is the admin web console for Retail Tower OS.
 
 It exists to provide browser-based administration surfaces for tenants, stores,
 catalog, unknown items, operators/admins, audit search, and system settings.
@@ -59,5 +59,7 @@ Required backend readiness includes:
 
 ## Current status
 
-Planning-only. No framework scaffold, package files, generated clients, CI, or
-deployment configuration yet.
+Planning-first with the slice 002 frontend scaffold merged. The repository now
+contains the Vite/React shell, package files, generated-client storage location,
+smoke tests, and CI workflow. Product UI remains gated per route-family slice;
+deployment configuration is not present.
