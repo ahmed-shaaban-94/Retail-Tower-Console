@@ -295,7 +295,7 @@ owns backend semantics; the `contracts/` directory holds consumption
 
 ## Cross-reference index
 
-- Constitution: `.specify/memory/constitution.md` (v1.0.0)
+- Constitution: `.specify/memory/constitution.md` (v1.0.1)
 - Charter: `docs/product/retail-tower-console-charter.md`
 - Repo boundaries: `docs/product/repo-boundaries.md`
 - Agent OS standing rules: `docs/agent-os/standing-rules.md`

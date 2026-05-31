@@ -5,18 +5,18 @@
 | Feature ID | 002 |
 | Short name | tooling-and-scaffold |
 | Branch | `002-tooling-and-scaffold` |
-| Status | Draft |
+| Status | Merged |
 | Owner | Ahmed Shaaban |
-| Mode | Planning-only-for-spec |
+| Mode | Historical spec for merged scaffold slice |
 | Created | 2026-05-25 |
-| Spec Kit phase | `/speckit-specify` (this document) |
+| Spec Kit phase | Completed through implementation |
 | Foundation slice | [`specs/001-console-foundation`](../001-console-foundation/) (merged) |
 
-> **Mode contract.** Spec phase is planning-only. This document does not
-> authorize implementation. Slice 002 progresses through
-> `/speckit-clarify` → `/speckit-plan` → `/speckit-tasks` → implementation
-> per spec.md FR-008. Implementation gate clears only after the full
-> five-gate approval for this slice.
+> **Mode contract.** This document is the historical specification for
+> the merged slice 002 scaffold. It authorized only the scaffold/tooling
+> surface after `/speckit-clarify` -> `/speckit-plan` -> `/speckit-tasks`
+> and full five-gate approval. It does not authorize RF-1 through RF-7
+> product UI.
 >
 > **Constitution posture.** This slice does **NOT** lift or weaken any
 > constitution principle. It operates **within** Constitution Principle 9
@@ -677,7 +677,7 @@ they remain blockers for specific decisions.
 For traceability when reviewing this slice against repository
 governance and prior planning:
 
-- **Constitution:** `.specify/memory/constitution.md` (v1.0.0)
+- **Constitution:** `.specify/memory/constitution.md` (v1.0.1)
 - **Foundation spec:** [`specs/001-console-foundation/spec.md`](../001-console-foundation/spec.md)
 - **Foundation plan:** [`specs/001-console-foundation/plan.md`](../001-console-foundation/plan.md)
   (§Technical Context, §Per-family slice ordering row 1)
