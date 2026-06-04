@@ -31,6 +31,25 @@ Retail Tower Console is the planned admin web frontend for Retail Tower OS. It c
 
 ---
 
+## 🔗 Synchronization with Retail Tower OS
+
+The Console is a **contract-only** admin surface — it reads catalog, inventory, and sales from
+`Data-Pulse-2` and never touches ERPNext directly. Data flows **down** into management screens;
+operations and settings rise **up** to Data-Pulse-2.
+
+<p align="center">
+  <img src="docs/assets/architecture/retail-tower-sync-flow.svg" alt="Animated Retail Tower OS synchronization diagram, console focus" width="100%"/>
+</p>
+
+```text
+Retail-Tower-Console ──▶ Data-Pulse-2 ──▶ ERPNext Connector ──▶ ERPNext / Frappe
+```
+
+Full detail: [docs/architecture/sync-overview.md](docs/architecture/sync-overview.md) ·
+Program control plane: [Retail-Tower-Orchestrator](https://github.com/ahmed-shaaban-94/Retail-Tower-Orchestrator).
+
+---
+
 ## Live console control map
 
 [![Retail Tower Console live control map preview](docs/assets/architecture/retail-tower-console-live-map-preview.svg)](docs/architecture/retail-tower-console-live-map.html)
