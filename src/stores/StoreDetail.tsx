@@ -1,0 +1,128 @@
+import { Banner } from "@/components/Banner";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { ListState } from "@/components/ListState";
+import { useActiveContextValue } from "@/context/ActiveContextProvider";
+import { type Rf2ErrorRender, mapRf2Error } from "@/lib/rf2-queries";
+/**
+ * SF-S2 — Store detail (T027). Read-first field rows + active-state badge; edit
+ * and soft-delete rendered for all (no role pre-hide, OQ-3). 404 renders
+ * uniformly (FR-004-008). Soft-delete (T029) is behind the shared inline
+ * ConfirmDelete, then re-fetches the store list and routes back (S8). Reads the
+ * active tenant from RF-1's provider only to scope the delete invalidation.
+ */
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
+import { ScopePrompt } from "./ScopePrompt";
+import { useStoreDelete, useStoreDetail } from "./useStoreQueries";
+import "../shell/surface.css";
+
+export function StoreDetail(): React.JSX.Element {
+  const { storeId } = useParams();
+  const navigate = useNavigate();
+  const { context } = useActiveContextValue();
+  const activeTenant = context?.active_tenant ?? null;
+  const { result, isLoading } = useStoreDetail(storeId);
+  const del = useStoreDelete(activeTenant?.id ?? null);
+  const [confirming, setConfirming] = useState(false);
+  const [deleteError, setDeleteError] = useState<Rf2ErrorRender | undefined>();
+
+  if (isLoading) {
+    return (
+      <div className="surface">
+        <ListState state="loading" label="store" />
+      </div>
+    );
+  }
+
+  if (result?.kind === "error") {
+    if (result.render.kind === "scope-required") {
+      return <ScopePrompt />;
+    }
+    return (
+      <div className="surface">
+        <Banner
+          variant="danger"
+          message={result.render.message}
+          requestId={result.render.kind === "banner" ? result.render.requestId : undefined}
+        />
+        <Link to="/stores" className="surface__back">
+          ← Back to stores
+        </Link>
+      </div>
+    );
+  }
+
+  const store = result?.kind === "store" ? result.store : undefined;
+  if (!store) {
+    return <div className="surface" />;
+  }
+  const storeIdLocal = store.id;
+
+  async function onConfirmDelete(): Promise<void> {
+    setDeleteError(undefined);
+    const res = await del.mutateAsync(storeIdLocal);
+    if (res.status >= 400) {
+      setDeleteError(mapRf2Error({ ...res, context: "store" }));
+      setConfirming(false);
+      return;
+    }
+    navigate("/stores");
+  }
+
+  return (
+    <div className="surface">
+      <Link to="/stores" className="surface__back">
+        ← Back to stores
+      </Link>
+      <header className="surface__head">
+        <h1 className="content__title">{store.name}</h1>
+      </header>
+
+      {deleteError && deleteError.kind === "banner" ? (
+        <Banner variant="danger" message={deleteError.message} requestId={deleteError.requestId} />
+      ) : null}
+
+      <dl className="surface__detail">
+        <div className="field-row">
+          <dt className="field-row__label">Code</dt>
+          <dd className="field-row__value field-row__value--mono">{store.code}</dd>
+        </div>
+        <div className="field-row">
+          <dt className="field-row__label">State</dt>
+          <dd className="field-row__value">
+            <span
+              className={
+                store.is_active === false ? "badge badge--suspended" : "badge badge--active"
+              }
+            >
+              {store.is_active === false ? "inactive" : "active"}
+            </span>
+          </dd>
+        </div>
+        <div className="field-row">
+          <dt className="field-row__label">Store ID</dt>
+          <dd className="field-row__value field-row__value--mono">{store.id}</dd>
+        </div>
+      </dl>
+
+      {confirming ? (
+        <ConfirmDelete
+          resourceName={store.name}
+          confirmLabel="Soft-delete"
+          pending={del.isPending}
+          onConfirm={onConfirmDelete}
+          onCancel={() => setConfirming(false)}
+        />
+      ) : (
+        <div className="surface__actions">
+          <Link to={`/stores/${store.id}/edit`} className="btn-secondary">
+            Edit
+          </Link>
+          <button type="button" className="btn-destructive" onClick={() => setConfirming(true)}>
+            Soft-delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

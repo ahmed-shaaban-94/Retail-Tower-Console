@@ -72,6 +72,14 @@
 .surface__form .field {
   gap: var(--space-2);
 }
+.field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--text-body);
+  cursor: pointer;
+}
 .surface__scope-line {
   padding: var(--space-3) var(--space-4);
   background: var(--color-surface-raised);
@@ -83,4 +91,17 @@
 .surface__scope-line strong {
   color: var(--color-text);
   font-weight: 600;
+}
+
+/* Scope prompt: the store surfaces' no-active-tenant state. A precondition,
+ * not an error (OQ-4) — quiet, points at the scope bar, no danger styling. */
+.scope-prompt {
+  max-width: 60ch;
+  margin: 0;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text-muted);
+  line-height: 1.6;
 }
