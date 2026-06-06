@@ -214,8 +214,13 @@ This spec **does not**:
   **flag**, for the implementation slice, that the RF-1 app shell's gated
   "Stores" nav entry and the router config are the shared files RF-2 will touch —
   see §5 and `tasks.md`. Flagging is not editing.)
-- Regenerate, edit, or re-pin `src/generated/schema.d.ts`. The generated client
-  is consumed as-is from slice 002's pin (`62d0906`).
+- Regenerate, edit, or re-pin `src/generated/schema.d.ts` **as a spec/plan
+  action**. (RF-2's tenant/store operations are not in the slice-002 auth+context
+  client; adding `tenants.openapi.yaml` + `stores.openapi.yaml` to
+  `openapi-ts.config.ts` and re-running `pnpm generate:client` **at the same pin
+  `62d0906`** is a gated *implementation* task — regeneration at the pinned SHA,
+  not a re-pin, not a spec action. Per foundation `api-readiness.md`: slices
+  re-run `pnpm generate:client` when their consumed contracts change.)
 - Define, copy, paraphrase, or vendor any byte of Data-Pulse-2's
   `tenants.openapi.yaml`, `stores.openapi.yaml`, or `context.openapi.yaml`.
   Request/response shapes (field names, slug patterns, status enums, validation
