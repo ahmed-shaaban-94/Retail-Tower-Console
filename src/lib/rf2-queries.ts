@@ -1,0 +1,200 @@
+/**
+ * RF-2 data layer (T005): typed wrappers over the generated `apiClient` for the
+ * ten tenant/store operations, stable query keys, and the typed-error mapping
+ * the surfaces branch on.
+ *
+ * Reuse posture (research R4-1..R4-5): this builds ON TOP of RF-1's primitives —
+ * the same generated client (the ONLY DP2 call surface, Principle 8), the same
+ * TanStack Query, the same Banner/InlineError surface. It adds NO new dependency
+ * and NO new context operation; scope (active tenant) is read from RF-1's
+ * `ActiveContextProvider`, not fetched here.
+ *
+ * Error mapping covers exactly the statuses the tenant/store contracts document
+ * at pin 62d0906 (FR-004-007/008): 403→banner, 404→uniform not-found,
+ * 409→inline conflict (tenant slug | store code, OQ-9), store 401→scope prompt
+ * (distinct from session-expiry, OQ-4), 5xx→retry-able banner. The contracts
+ * document NO 422/429 on these ops, so none is asserted (AS-5, Principle 2).
+ */
+import { apiClient } from "@/generated/client";
+
+// --- Typed operation wrappers -------------------------------------------------
+// Each returns `{ status, data?, error? }` so callers branch on `status`
+// uniformly, mirroring src/lib/client.ts (RF-1). No hand-rolled fetch
+// (FR-004-002); cookie transport is already on the generated client.
+
+export interface TenantCreateBody {
+  slug: string;
+  name: string;
+}
+export interface TenantUpdateBody {
+  name?: string;
+  status?: "active" | "suspended";
+}
+export interface StoreCreateBody {
+  code: string;
+  name: string;
+}
+export interface StoreUpdateBody {
+  name?: string;
+  is_active?: boolean;
+}
+
+/** GET /api/v1/tenants */
+export async function listTenants() {
+  const { data, error, response } = await apiClient.GET("/api/v1/tenants", {});
+  return { status: response.status, data, error };
+}
+
+/** GET /api/v1/tenants/{tenant_id} */
+export async function readTenant(tenantId: string) {
+  const { data, error, response } = await apiClient.GET("/api/v1/tenants/{tenant_id}", {
+    params: { path: { tenant_id: tenantId } },
+  });
+  return { status: response.status, data, error };
+}
+
+/** POST /api/v1/tenants */
+export async function createTenant(body: TenantCreateBody) {
+  const { data, error, response } = await apiClient.POST("/api/v1/tenants", { body });
+  return { status: response.status, data, error };
+}
+
+/** PATCH /api/v1/tenants/{tenant_id} */
+export async function updateTenant(tenantId: string, body: TenantUpdateBody) {
+  const { data, error, response } = await apiClient.PATCH("/api/v1/tenants/{tenant_id}", {
+    params: { path: { tenant_id: tenantId } },
+    body,
+  });
+  return { status: response.status, data, error };
+}
+
+/** DELETE /api/v1/tenants/{tenant_id} */
+export async function softDeleteTenant(tenantId: string) {
+  const { data, error, response } = await apiClient.DELETE("/api/v1/tenants/{tenant_id}", {
+    params: { path: { tenant_id: tenantId } },
+  });
+  return { status: response.status, data, error };
+}
+
+/** GET /api/v1/stores */
+export async function listStores() {
+  const { data, error, response } = await apiClient.GET("/api/v1/stores", {});
+  return { status: response.status, data, error };
+}
+
+/** GET /api/v1/stores/{store_id} */
+export async function readStore(storeId: string) {
+  const { data, error, response } = await apiClient.GET("/api/v1/stores/{store_id}", {
+    params: { path: { store_id: storeId } },
+  });
+  return { status: response.status, data, error };
+}
+
+/** POST /api/v1/stores */
+export async function createStore(body: StoreCreateBody) {
+  const { data, error, response } = await apiClient.POST("/api/v1/stores", { body });
+  return { status: response.status, data, error };
+}
+
+/** PATCH /api/v1/stores/{store_id} */
+export async function updateStore(storeId: string, body: StoreUpdateBody) {
+  const { data, error, response } = await apiClient.PATCH("/api/v1/stores/{store_id}", {
+    params: { path: { store_id: storeId } },
+    body,
+  });
+  return { status: response.status, data, error };
+}
+
+/** DELETE /api/v1/stores/{store_id} */
+export async function softDeleteStore(storeId: string) {
+  const { data, error, response } = await apiClient.DELETE("/api/v1/stores/{store_id}", {
+    params: { path: { store_id: storeId } },
+  });
+  return { status: response.status, data, error };
+}
+
+// --- Query keys ---------------------------------------------------------------
+// Store keys are scoped by the active tenant id so a tenant switch re-scopes the
+// cache (S7); RF-2 holds no authoritative scope (OQ-5) — the id comes from the
+// RF-1 provider at call sites.
+
+export const rf2QueryKeys = {
+  tenants: ["rf2", "tenants"] as const,
+  tenant: (tenantId: string) => ["rf2", "tenant", tenantId] as const,
+  stores: (tenantId: string | null) => ["rf2", "stores", tenantId] as const,
+  store: (storeId: string) => ["rf2", "store", storeId] as const,
+} as const;
+
+// --- Typed error mapping ------------------------------------------------------
+
+/** Backend error envelope: { error: { code, message, request_id } } (schema Error). */
+interface BackendError {
+  error?: { code?: string; message?: string; request_id?: string };
+}
+
+/** Which resource family raised the error — disambiguates 409 field + 401 meaning. */
+export type Rf2Resource = "tenant" | "store";
+
+export interface Rf2ErrorContext {
+  status: number;
+  error?: BackendError;
+  context: Rf2Resource;
+}
+
+export type Rf2ErrorRender =
+  /** Persistent banner (403 permission, or retryable 5xx). Surfaces request_id. */
+  | { kind: "banner"; message: string; requestId?: string; retryable: boolean }
+  /** Uniform 404 — absent vs no-access indistinguishable (FR-004-008). */
+  | { kind: "not-found"; message: string }
+  /** 409 conflict, rendered inline on the named field (slug | code, OQ-9). */
+  | { kind: "conflict"; field: "slug" | "code"; message: string }
+  /** Store 401 "No active tenant" — scope precondition, NOT session expiry (OQ-4). */
+  | { kind: "scope-required"; message: string }
+  /** Anything else (incl. an undocumented tenant 401) — generic banner copy. */
+  | { kind: "generic"; message: string; requestId?: string };
+
+const COPY = {
+  forbidden403: "You do not have permission to perform this action.",
+  notFound: "This resource is not available.",
+  slugConflict: "That slug is already in use. Choose a different one.",
+  codeConflict: "That store code is already in use in this tenant. Choose a different one.",
+  scopeRequired: "Select a tenant before managing stores.",
+  serverError: "Something went wrong. Try again.",
+  generic: "The request could not be completed.",
+} as const;
+
+function requestIdOf(input: Rf2ErrorContext): string | undefined {
+  return input.error?.error?.request_id;
+}
+
+/**
+ * Map an RF-2 operation's failure to a render decision. Pure; no React, no
+ * fetch. The store 401 → `scope-required` is deliberately distinct from a
+ * session-expiry 401: it must NOT trigger a refresh or sign-out, because RF-2's
+ * calls do not run through RF-1's per-call context interceptor (OQ-4/OQ-10).
+ */
+export function mapRf2Error(input: Rf2ErrorContext): Rf2ErrorRender {
+  const requestId = requestIdOf(input);
+  switch (input.status) {
+    case 401:
+      // Only the store ops document a 401 (scope precondition). A 401 on a
+      // tenant op is undocumented — do not invent scope handling; fall through.
+      if (input.context === "store") {
+        return { kind: "scope-required", message: COPY.scopeRequired };
+      }
+      return { kind: "generic", message: COPY.generic, requestId };
+    case 403:
+      return { kind: "banner", message: COPY.forbidden403, requestId, retryable: false };
+    case 404:
+      return { kind: "not-found", message: COPY.notFound };
+    case 409:
+      return input.context === "tenant"
+        ? { kind: "conflict", field: "slug", message: COPY.slugConflict }
+        : { kind: "conflict", field: "code", message: COPY.codeConflict };
+    default:
+      if (input.status >= 500) {
+        return { kind: "banner", message: COPY.serverError, requestId, retryable: true };
+      }
+      return { kind: "generic", message: COPY.generic, requestId };
+  }
+}

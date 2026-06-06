@@ -1,16 +1,24 @@
 import { TowerMark } from "@/components/TowerMark";
 /**
- * SF-2 authenticated app shell (T027). top-bar + persistent gold scope header
- * + sidebar + content (DESIGN.md layout). The frame every RF-2..RF-7 family
- * attaches to. Sidebar entries beyond RF-1 are shown gated to mark scope, not
- * to claim they are built.
+ * SF-2 authenticated app shell (T027; RF-2 T009/T010). top-bar + persistent gold
+ * scope header + sidebar + content (DESIGN.md layout). The frame every RF-2..RF-7
+ * family attaches to. The content area renders `children` — the routed surface
+ * (an <Outlet/> from the layout route). Sidebar entries beyond what is built are
+ * shown gated to mark scope, not to claim they are built.
  */
 import { useActiveContextValue } from "@/context/ActiveContextProvider";
+import { NavLink } from "react-router";
 import { ScopeHeader } from "./ScopeHeader";
 import "./app-shell.css";
 
+/** Live nav destinations. RF-2 un-gates both Tenants and Stores (T010). */
+const LIVE_NAV = [
+  { label: "Tenants", to: "/tenants" },
+  { label: "Stores", to: "/stores" },
+];
+
+/** Families not yet built — shown gated to mark scope, not to claim built. */
 const GATED_NAV = [
-  { label: "Stores", gate: "RF-2" },
   { label: "Catalog", gate: "RF-3" },
   { label: "Unknown items", gate: "RF-4" },
   { label: "Operators", gate: "RF-5" },
@@ -55,10 +63,27 @@ export function AppShell({ onSignOut, children }: AppShellProps): React.JSX.Elem
       <ScopeHeader />
 
       <nav className="sidebar" aria-label="Primary">
-        <span className="nav-entry nav-entry--active" aria-current="page">
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            isActive ? "nav-entry nav-entry--active" : "nav-entry nav-entry--link"
+          }
+        >
           Overview
-        </span>
+        </NavLink>
         <div className="nav-section">Management</div>
+        {LIVE_NAV.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              isActive ? "nav-entry nav-entry--active" : "nav-entry nav-entry--link"
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
         {GATED_NAV.map((item) => (
           <span key={item.gate} className="nav-entry nav-entry--disabled" aria-disabled="true">
             {item.label}
@@ -71,17 +96,7 @@ export function AppShell({ onSignOut, children }: AppShellProps): React.JSX.Elem
         </button>
       </nav>
 
-      <main className="content">
-        {children ?? (
-          <>
-            <h1 className="content__title">Overview</h1>
-            <p className="content__sub">
-              {context?.active_tenant?.name}
-              {context?.active_store ? ` · ${context.active_store.name}` : ""}
-            </p>
-          </>
-        )}
-      </main>
+      <main className="content">{children}</main>
     </div>
   );
 }

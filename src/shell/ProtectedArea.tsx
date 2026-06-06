@@ -16,7 +16,7 @@ import { useActiveContextValue } from "@/context/ActiveContextProvider";
  * 401 (not signed in / expired) is distinct from a 200 with zero memberships
  * (signed in, no access).
  */
-import { Navigate } from "react-router";
+import { Navigate, Outlet } from "react-router";
 import { AppShell } from "./AppShell";
 import { ScopeGate } from "./ScopeGate";
 import { useSignOut } from "./useSignOut";
@@ -38,5 +38,11 @@ export function ProtectedArea(): React.JSX.Element | null {
   if (!context.active_tenant) {
     return <ScopeGate />;
   }
-  return <AppShell onSignOut={signOut} />;
+  // Authenticated + scope resolved: the shell wraps the routed surface (T009).
+  // The nested route (Overview index, /tenants, /stores) renders into <Outlet/>.
+  return (
+    <AppShell onSignOut={signOut}>
+      <Outlet />
+    </AppShell>
+  );
 }

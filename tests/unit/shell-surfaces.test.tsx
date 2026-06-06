@@ -1,7 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, test, vi } from "vitest";
 
 // Stub the network boundary so the shell surfaces render from fixed context.
@@ -17,15 +17,21 @@ vi.mock("@/lib/client", () => ({
 
 import { ActiveContextProvider } from "@/context/ActiveContextProvider";
 import { createQueryClient } from "@/lib/query";
+import { Overview } from "@/shell/Overview";
 import { ProtectedArea } from "@/shell/ProtectedArea";
 
+// ProtectedArea is now the protected LAYOUT route element (RF-2 T009): on the
+// authenticated path it renders <AppShell> wrapping <Outlet/>, so the Overview
+// index mounts inside the shell. The gating cases (scope-gate / no-access /
+// redirect) short-circuit before the Outlet. Render the real route tree so the
+// authenticated assertion exercises the layout-route composition.
 function renderProtected(ctx: unknown): void {
   getActiveContext.mockResolvedValue({ status: 200, data: ctx });
   const qc = createQueryClient();
   function Tree({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={qc}>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={["/"]}>
           <ActiveContextProvider>{children}</ActiveContextProvider>
         </MemoryRouter>
       </QueryClientProvider>
@@ -33,7 +39,11 @@ function renderProtected(ctx: unknown): void {
   }
   render(
     <Tree>
-      <ProtectedArea />
+      <Routes>
+        <Route path="/" element={<ProtectedArea />}>
+          <Route index element={<Overview />} />
+        </Route>
+      </Routes>
     </Tree>,
   );
 }

@@ -12,13 +12,20 @@ export interface BannerProps {
   message: string;
   /** Backend request_id from a 4xx response (VD-4). Rendered when present. */
   requestId?: string;
+  /**
+   * Optional inline action (e.g. a Retry button for a retryable 5xx). Rendered
+   * at the end of the banner. RF-1 callers omit it; RF-2 list surfaces pass a
+   * retry that refetches the query (design-brief §6 "Retry").
+   */
+  action?: React.ReactNode;
 }
 
-export function Banner({ variant, message, requestId }: BannerProps): React.JSX.Element {
+export function Banner({ variant, message, requestId, action }: BannerProps): React.JSX.Element {
   return (
     <div className={`rtc-alert rtc-alert--${variant}`} role="alert">
       <span className="rtc-alert__msg">{message}</span>
       {requestId ? <span className="rtc-alert__req">request_id: {requestId}</span> : null}
+      {action ? <span className="rtc-alert__action">{action}</span> : null}
     </div>
   );
 }

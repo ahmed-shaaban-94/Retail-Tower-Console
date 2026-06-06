@@ -19,6 +19,10 @@
   opacity: 0.75;
 }
 
+.rtc-alert__action {
+  margin-top: var(--space-2);
+}
+
 .rtc-alert--danger {
   background: var(--color-danger-surface);
   color: var(--color-danger-on-dark);

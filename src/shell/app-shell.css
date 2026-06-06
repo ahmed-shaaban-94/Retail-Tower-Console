@@ -81,9 +81,17 @@
   border: none;
   cursor: pointer;
 }
+.nav-entry--link {
+  text-decoration: none;
+}
+.nav-entry--link:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
 .nav-entry--active {
   background: var(--color-primary-subtle);
   color: var(--color-text);
+  text-decoration: none;
 }
 .nav-entry--active::before {
   content: "";
