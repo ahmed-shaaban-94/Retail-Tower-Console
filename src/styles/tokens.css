@@ -1,0 +1,124 @@
+/* RF-1 design tokens — production source.
+ *
+ * Promoted from docs/design/rf1-auth-shell/tokens.css (the confirmed shape
+ * brief) and DESIGN.md v0.1. This is the committed token layer the RF-1
+ * surfaces consume. Values are verbatim from DESIGN.md; the mockup chrome and
+ * the gallery-only primitives are not carried over.
+ */
+
+:root {
+  /* Surfaces */
+  --color-bg: #0d1520;
+  --color-surface: #131e2e;
+  --color-surface-raised: #1a2840;
+  --color-surface-sunken: #0a1018;
+  --color-surface-overlay: #1e2d42;
+  --color-border: #2a3d55;
+  --color-border-strong: #3a5270;
+
+  /* Text */
+  --color-text: #e8eef5;
+  --color-text-muted: #8a9db5;
+  --color-text-disabled: #4a5e78;
+  --color-text-inverse: #0f1d2e;
+
+  /* Brand — gold is authority, scope-only */
+  --color-gold: #c8a24a;
+  --color-gold-soft: #2a2010;
+  --color-gold-muted: #8a6a2a;
+
+  /* Interactive — navy/teal drive actions */
+  --color-primary: #1f4e7a;
+  --color-primary-hover: #163d61;
+  --color-primary-subtle: #0e1e30;
+  --color-accent: #2e7da3;
+
+  /* Semantic */
+  --color-success: #1f8a5b;
+  --color-success-surface: #0a1f16;
+  --color-warning: #b87600;
+  --color-warning-surface: #1e1500;
+  --color-danger: #b32e36;
+  --color-danger-surface: #1f0a0c;
+  --color-info: #1e6f8c;
+  --color-info-surface: #061520;
+
+  /* Status badge/banner text — mid-ramp for AA on dark */
+  --color-success-on-dark: #52b986;
+  --color-warning-on-dark: #d49030;
+  --color-danger-on-dark: #c84d55;
+  --color-info-on-dark: #50a2c0;
+
+  /* Typography */
+  --font-sans: "Inter Variable", Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "Consolas", monospace;
+
+  --text-display: 1.875rem;
+  --text-headline: 1.25rem;
+  --text-title: 1rem;
+  --text-body: 0.875rem;
+  --text-label: 0.8125rem;
+  --text-caption: 0.75rem;
+  --text-mono: 0.8125rem;
+  --text-mono-lg: 0.875rem;
+
+  /* Shadows — tinted toward bg */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 2px 4px rgba(13, 21, 32, 0.4), 0 8px 24px rgba(13, 21, 32, 0.3);
+  --shadow-raised: 0 4px 12px rgba(13, 21, 32, 0.5), 0 1px 3px rgba(13, 21, 32, 0.3);
+  --shadow-pane: 0 20px 60px rgba(13, 21, 32, 0.7);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-gold-ring: 0 0 0 3px rgba(200, 162, 74, 0.25);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-dialog: 16px;
+  --radius-pill: 9999px;
+
+  /* Spacing — 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Motion */
+  --duration-1: 80ms;
+  --duration-2: 150ms;
+  --duration-3: 220ms;
+  --duration-4: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.25, 1);
+  --ease-in-out: cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-1: 0ms;
+    --duration-2: 0ms;
+    --duration-3: 0ms;
+    --duration-4: 0ms;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
