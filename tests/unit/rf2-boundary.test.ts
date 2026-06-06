@@ -41,6 +41,13 @@ describe("RF-2 boundary gates", () => {
   });
 
   test("VG-4: RF-2 calls no membership operation (those are RF-5)", () => {
+    // Scope to RF-2 files: RF-5 (src/operators/) legitimately uses these ops now
+    // that slice 005 is in the tree. The boundary RF-2 must respect is that ITS
+    // surfaces don't reach into the membership graph.
+    const rf2Files = files.filter(
+      (f) => /[\\/](tenants|stores)[\\/]/.test(f) || f.endsWith("rf2-queries.ts"),
+    );
+    const rf2Code = rf2Files.map((f) => stripComments(readFileSync(f, "utf8"))).join("\n");
     for (const op of [
       "listMembers",
       "createInvitation",
@@ -48,7 +55,7 @@ describe("RF-2 boundary gates", () => {
       "revokeMembership",
       "acceptInvitation",
     ]) {
-      expect(code).not.toContain(op);
+      expect(rf2Code).not.toContain(op);
     }
   });
 
