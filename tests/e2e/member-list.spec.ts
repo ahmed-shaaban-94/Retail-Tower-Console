@@ -84,3 +84,38 @@ test("S3: no active tenant → RF-1 scope gate; listMembers never called", async
   await expect(page.getByRole("heading", { name: /select your context/i })).toBeVisible();
   expect(called).toBe(false);
 });
+
+test("T031 a11y: a member row is keyboard-focusable and Enter opens the edit drawer", async ({
+  page,
+}) => {
+  await mockBase(page, {
+    user,
+    active_tenant: { id: "t1", name: "Northstar Retail" },
+    active_store: null,
+    active_role_code: "tenant_admin",
+    memberships: [{ tenant_id: "t1", tenant_name: "Northstar Retail", role_code: "tenant_admin" }],
+  });
+  await page.route("**/api/v1/tenants/t1/members", (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([
+        {
+          membership_id: "m2",
+          user: { id: "u2", email: "omar@northstar.eg", display_name: "Omar Khaled" },
+          role_code: "store_manager",
+          store_access_kind: "all",
+          accessible_store_ids: [],
+          revoked_at: null,
+        },
+      ]),
+    }),
+  );
+
+  await page.goto("/operators");
+  const row = page.getByRole("row").filter({ hasText: "Omar Khaled" });
+  await row.focus();
+  await expect(row).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: /edit member/i })).toBeVisible();
+});

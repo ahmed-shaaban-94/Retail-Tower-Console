@@ -1,7 +1,6 @@
 import { Banner } from "@/components/Banner";
 import { Drawer } from "@/components/Drawer";
 import { InlineError } from "@/components/InlineError";
-import { useActiveContextValue } from "@/context/ActiveContextProvider";
 import { type InvitationCreateBody, createInvitation, refreshSession } from "@/lib/client";
 import { useSignOut } from "@/shell/useSignOut";
 /**
@@ -39,7 +38,6 @@ export function InviteMember({
   onClose,
   onInvited,
 }: InviteMemberProps): React.JSX.Element {
-  const { switchTenant } = useActiveContextValue();
   const signOut = useSignOut();
   const [emailError, setEmailError] = useState<string | undefined>();
   const [banner, setBanner] = useState<BannerState | undefined>();
@@ -157,9 +155,6 @@ export function InviteMember({
       setPending(false);
     }
   }
-
-  // Avoid switchTenant unused-var when the precondition copy points at the bar.
-  void switchTenant;
 
   return (
     <Drawer title="Invite member" onClose={onClose}>
