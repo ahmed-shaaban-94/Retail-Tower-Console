@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/brand/console-logo.svg" alt="Retail Tower Console logo" width="120" height="120"/>
+
 # Retail Tower Console
 
 **The browser admin command center for Retail Tower OS.**
