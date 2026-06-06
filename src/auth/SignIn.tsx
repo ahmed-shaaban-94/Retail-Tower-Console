@@ -44,7 +44,7 @@ export function SignIn({ onResolved }: SignInProps): React.JSX.Element {
       status: res.status,
       data: res.data as { memberships?: Array<{ tenant_id: string }> } | undefined,
       error: res.error as { error?: { request_id?: string } } | undefined,
-      retryAfterSeconds: undefined,
+      retryAfterSeconds: res.retryAfterSeconds,
     });
 
     if (resolution.kind === "error") {

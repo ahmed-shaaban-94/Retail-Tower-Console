@@ -18,7 +18,15 @@ export interface SignInBody {
 /** POST /api/v1/auth/signin */
 export async function signIn(body: SignInBody) {
   const { data, error, response } = await apiClient.POST("/api/v1/auth/signin", { body });
-  return { status: response.status, data, error };
+  // Parse Retry-After (seconds) on 429 so SF-1 can show a real countdown.
+  const retryAfter = response.headers.get("retry-after");
+  const retryAfterSeconds = retryAfter ? Number.parseInt(retryAfter, 10) : undefined;
+  return {
+    status: response.status,
+    data,
+    error,
+    retryAfterSeconds: Number.isNaN(retryAfterSeconds) ? undefined : retryAfterSeconds,
+  };
 }
 
 /** POST /api/v1/auth/signout */
