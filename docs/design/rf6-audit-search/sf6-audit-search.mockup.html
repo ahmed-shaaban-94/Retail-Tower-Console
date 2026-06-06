@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RF-6 SF-6-1 — Audit Search (mockup)</title>
+<!--
+  PLANNING MOCKUP. Authorizes no src/ code. Token values verbatim from
+  src/styles/tokens.css (DESIGN.md v0.1). Shows the SF-6-1 state matrix:
+  pre-query, loading, rows (incl. POS events), empty-after-filter, 403, generic.
+  Gold is scope-only: the only gold here is the scope header + active-nav marker.
+-->
+<style>
+:root{
+  --color-bg:#0d1520;--color-surface:#131e2e;--color-surface-raised:#1a2840;
+  --color-surface-sunken:#0a1018;--color-surface-overlay:#1e2d42;
+  --color-border:#2a3d55;--color-border-strong:#3a5270;
+  --color-text:#e8eef5;--color-text-muted:#8a9db5;--color-text-disabled:#4a5e78;--color-text-inverse:#0f1d2e;
+  --color-gold:#c8a24a;--color-gold-soft:#2a2010;--color-gold-muted:#8a6a2a;
+  --color-primary:#1f4e7a;--color-primary-hover:#163d61;--color-primary-subtle:#0e1e30;--color-accent:#2e7da3;
+  --color-danger:#b32e36;--color-danger-surface:#1f0a0c;--color-danger-on-dark:#c84d55;
+  --color-warning:#b87600;--color-warning-surface:#1e1500;--color-warning-on-dark:#d49030;
+  --color-info-on-dark:#50a2c0;
+  --font-sans:"Inter Variable",Inter,"Segoe UI",system-ui,sans-serif;
+  --font-mono:ui-monospace,"Cascadia Code","JetBrains Mono","Consolas",monospace;
+  --text-display:1.875rem;--text-headline:1.25rem;--text-title:1rem;--text-body:.875rem;
+  --text-label:.8125rem;--text-caption:.75rem;--text-mono:.8125rem;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--space-7:48px;
+  --radius-sm:4px;--radius-md:6px;--radius-control:10px;--radius-card:12px;--radius-pill:9999px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--color-bg);color:var(--color-text);font:400 var(--text-body)/1.5 var(--font-sans);-webkit-font-smoothing:antialiased}
+.shell{min-height:100dvh;display:grid;grid-template-rows:56px auto 1fr;grid-template-columns:240px 1fr;
+  grid-template-areas:"topbar topbar""scope scope""sidebar content"}
+.topbar{grid-area:topbar;display:flex;align-items:center;gap:var(--space-4);padding:0 var(--space-5);
+  background:var(--color-surface);border-bottom:1px solid var(--color-border)}
+.brand{display:flex;align-items:center;gap:var(--space-2);font-weight:700}
+.brand .mark{width:18px;height:18px;border-radius:3px;background:var(--color-gold)}
+.spacer{flex:1}
+.user{font-size:var(--text-label);color:var(--color-text-muted)}
+/* scope header — the ONE gold bar */
+.scope{grid-area:scope;display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) var(--space-5);
+  background:var(--color-gold-soft);border-bottom:1px solid var(--color-gold-muted)}
+.scope__lead{font:600 var(--text-caption)/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-gold)}
+.scope__val{font-weight:600;color:var(--color-text)}
+.scope__sep{color:var(--color-gold-muted)}
+.sidebar{grid-area:sidebar;background:var(--color-surface-sunken);border-right:1px solid var(--color-border);
+  padding:var(--space-4) var(--space-3);display:flex;flex-direction:column;gap:2px}
+.nav-section{font:600 var(--text-caption)/1 var(--font-sans);color:var(--color-text-disabled);padding:var(--space-4) var(--space-3) var(--space-2);letter-spacing:.04em}
+.nav-entry{position:relative;display:flex;align-items:center;height:40px;padding:0 var(--space-3);border-radius:8px;color:var(--color-text-muted);text-align:left}
+.nav-entry--active{background:var(--color-primary-subtle);color:var(--color-text)}
+.nav-entry--active::before{content:"";position:absolute;top:50%;left:0;transform:translateY(-50%);width:3px;height:20px;border-radius:0 2px 2px 0;background:var(--color-gold)}
+.content{grid-area:content;padding:var(--space-6);overflow:auto}
+.title{margin:0 0 var(--space-1);font:700 var(--text-display)/1.25 var(--font-sans);letter-spacing:-.015em}
+.sub{margin:0 0 var(--space-5);color:var(--color-text-muted)}
+/* filter bar */
+.filters{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:end;padding:var(--space-3);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-card);margin-bottom:var(--space-4)}
+.field{display:flex;flex-direction:column;gap:var(--space-1)}
+.field label{font:600 var(--text-caption)/1 var(--font-sans);color:var(--color-text-muted)}
+.input{height:34px;padding:0 var(--space-3);background:var(--color-surface-sunken);border:1px solid var(--color-border);border-radius:var(--radius-control);color:var(--color-text);font:var(--text-body) var(--font-sans)}
+.input::placeholder{color:var(--color-text-disabled);font-family:var(--font-mono)}
+.btn{height:34px;padding:0 var(--space-4);border-radius:var(--radius-control);border:1px solid transparent;font:600 var(--text-label) var(--font-sans);cursor:pointer}
+.btn--primary{background:var(--color-primary);color:#fff}
+.btn--primary:hover{background:var(--color-primary-hover)}
+.btn--quiet{background:transparent;color:var(--color-text-muted);border-color:var(--color-border)}
+/* table */
+.tablewrap{border:1px solid var(--color-border);border-radius:var(--radius-card);overflow:hidden;background:var(--color-surface)}
+table{width:100%;border-collapse:collapse}
+thead th{font:600 var(--text-caption)/1 var(--font-sans);text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);text-align:left;padding:var(--space-3);background:var(--color-surface-raised);border-bottom:1px solid var(--color-border)}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody td{padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--color-border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--color-surface-raised)}
+.mono{font:var(--text-mono) var(--font-mono);color:var(--color-text)}
+.muted{color:var(--color-text-muted)}
+.rowbtn{background:none;border:none;color:var(--color-accent);font:600 var(--text-mono) var(--font-mono);cursor:pointer;padding:0}
+.badge{display:inline-block;font:600 var(--text-caption)/1.4 var(--font-sans);padding:1px 7px;border-radius:var(--radius-pill);border:1px solid}
+.badge--danger{color:var(--color-danger-on-dark);background:var(--color-danger-surface);border-color:var(--color-danger)}
+.badge--warning{color:var(--color-warning-on-dark);background:var(--color-warning-surface);border-color:var(--color-warning)}
+.pager{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;color:var(--color-text-muted);font-size:var(--text-label)}
+/* state blocks */
+.state{padding:var(--space-7) var(--space-5);text-align:center;color:var(--color-text-muted);border:1px dashed var(--color-border);border-radius:var(--radius-card);background:var(--color-surface)}
+.state strong{display:block;color:var(--color-text);font-size:var(--text-title);margin-bottom:var(--space-1)}
+.banner{display:flex;justify-content:space-between;gap:var(--space-4);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);border:1px solid;margin-bottom:var(--space-4)}
+.banner--danger{background:var(--color-danger-surface);border-color:var(--color-danger);color:var(--color-danger-on-dark)}
+.banner .req{font:var(--text-mono) var(--font-mono);color:var(--color-text-muted)}
+.skeleton{height:14px;border-radius:var(--radius-sm);background:linear-gradient(90deg,var(--color-surface-raised),var(--color-surface-overlay),var(--color-surface-raised));background-size:200% 100%;animation:sk 1.2s linear infinite}
+@keyframes sk{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.skeleton{animation:none}}
+.statecaption{margin:var(--space-6) 0 var(--space-2);font:600 var(--text-caption)/1 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--color-gold-muted)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <span class="brand"><span class="mark"></span>Retail Tower OS</span>
+    <span class="spacer"></span>
+    <span class="user">A. Shaaban · Store Manager</span>
+  </header>
+  <div class="scope">
+    <span class="scope__lead">Scope</span>
+    <span class="scope__val">Qanater Pharma</span>
+    <span class="scope__sep">/</span>
+    <span class="scope__val">Branch 04 — Maadi</span>
+  </div>
+  <nav class="sidebar">
+    <span class="nav-section">Management</span>
+    <span class="nav-entry">Stores</span>
+    <span class="nav-entry">Catalog</span>
+    <span class="nav-entry">Unknown items</span>
+    <span class="nav-entry">Operators</span>
+    <span class="nav-entry nav-entry--active">Audit</span>
+  </nav>
+  <main class="content">
+    <h1 class="title">Audit</h1>
+    <p class="sub">Activity for Qanater Pharma · Branch 04 — Maadi</p>
+
+    <div class="filters">
+      <div class="field"><label>Action</label><input class="input" placeholder="shift." style="width:150px"></div>
+      <div class="field"><label>Actor</label><input class="input" placeholder="user id" style="width:160px"></div>
+      <div class="field"><label>From</label><input class="input" type="datetime-local" style="width:190px"></div>
+      <div class="field"><label>To</label><input class="input" type="datetime-local" style="width:190px"></div>
+      <button class="btn btn--primary">Apply</button>
+      <button class="btn btn--quiet">Clear</button>
+    </div>
+
+    <!-- STATE: rows (incl. POS events, rendered generically; severity on badge only, no gold) -->
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th class="num">Time</th><th>Action</th><th>Actor</th><th>Target</th><th>Store</th><th>Req</th><th></th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="num mono">21:04:12</td><td class="mono">auth.signin</td><td class="muted">ops@qanater</td><td class="muted">session</td><td class="muted">Branch 04</td><td class="mono muted">a91f…3d</td><td><button class="rowbtn">inspect</button></td></tr>
+          <tr><td class="num mono">20:58:39</td><td class="mono">shift.forced_close <span class="badge badge--danger">forced</span></td><td class="muted">mgr@qanater</td><td class="muted">shift · 7b21</td><td class="muted">Branch 04</td><td class="mono muted">c2e0…11</td><td><button class="rowbtn">inspect</button></td></tr>
+          <tr><td class="num mono">20:55:02</td><td class="mono">operator.session.takeover <span class="badge badge--warning">POS</span></td><td class="muted">mgr@qanater</td><td class="muted">session · 4a9c</td><td class="muted">Branch 04</td><td class="mono muted">d7b1…90</td><td><button class="rowbtn">inspect</button></td></tr>
+          <tr><td class="num mono">20:41:55</td><td class="mono">cashier.pin.reset <span class="badge badge--warning">POS</span></td><td class="muted">sup@qanater</td><td class="muted">cashier · 22f0</td><td class="muted">Branch 04</td><td class="mono muted">f019…ab</td><td><button class="rowbtn">inspect</button></td></tr>
+          <tr><td class="num mono">19:30:18</td><td class="mono">shift.open</td><td class="muted">ops@qanater</td><td class="muted">shift · 7b21</td><td class="muted">Branch 04</td><td class="mono muted">8c34…07</td><td><button class="rowbtn">inspect</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pager"><button class="btn btn--primary">Load more</button><span>showing 5</span></div>
+
+    <p class="statecaption">— other states (one surface, switched by response) —</p>
+
+    <!-- STATE: pre-query -->
+    <div class="state"><strong>Search audit activity for this scope.</strong>Set filters above and press Apply. POS-originated events appear here read-only.</div>
+
+    <!-- STATE: loading -->
+    <div class="tablewrap" style="margin-top:var(--space-4)">
+      <table><thead><tr><th class="num">Time</th><th>Action</th><th>Actor</th><th>Target</th><th>Store</th><th>Req</th><th></th></tr></thead>
+      <tbody aria-busy="true">
+        <tr><td colspan="7"><div class="skeleton" style="width:80%"></div></td></tr>
+        <tr><td colspan="7"><div class="skeleton" style="width:65%"></div></td></tr>
+        <tr><td colspan="7"><div class="skeleton" style="width:72%"></div></td></tr>
+      </tbody></table>
+    </div>
+
+    <!-- STATE: empty-after-filter -->
+    <div class="state" style="margin-top:var(--space-4)"><strong>No audit events match these filters.</strong><button class="btn btn--quiet" style="margin-top:var(--space-3)">Clear filters</button></div>
+
+    <!-- STATE: 403 not-permitted -->
+    <div style="margin-top:var(--space-4)">
+      <div class="banner banner--danger"><span>You do not have permission to view audit for this scope.</span><span class="req">request_id: 7e21-aa90-4c</span></div>
+      <div class="state">Nothing to display.</div>
+    </div>
+
+    <!-- STATE: generic error -->
+    <div style="margin-top:var(--space-4)">
+      <div class="banner banner--danger"><span>Audit search failed. <button class="btn btn--quiet" style="height:26px;margin-left:8px">Retry</button></span><span class="req">request_id: 0b14-ff02-19</span></div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

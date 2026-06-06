@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RF-6 SF-6-2 — Row Inspect Drawer (mockup)</title>
+<!--
+  PLANNING MOCKUP. Authorizes no src/ code. Token values verbatim from
+  src/styles/tokens.css (DESIGN.md v0.1). SF-6-2 = right drawer (not modal),
+  read-only, data from the already-fetched row (OQ-2: no single-event read op).
+  No action buttons (RF-6 is read-mostly, FR-006-009). Gold: none here.
+-->
+<style>
+:root{
+  --color-bg:#0d1520;--color-surface:#131e2e;--color-surface-raised:#1a2840;
+  --color-surface-sunken:#0a1018;--color-surface-overlay:#1e2d42;
+  --color-border:#2a3d55;--color-border-strong:#3a5270;
+  --color-text:#e8eef5;--color-text-muted:#8a9db5;--color-text-disabled:#4a5e78;
+  --color-accent:#2e7da3;--color-warning-on-dark:#d49030;--color-warning:#b87600;--color-warning-surface:#1e1500;
+  --color-primary:#1f4e7a;
+  --font-sans:"Inter Variable",Inter,"Segoe UI",system-ui,sans-serif;
+  --font-mono:ui-monospace,"Cascadia Code","JetBrains Mono","Consolas",monospace;
+  --text-display:1.875rem;--text-headline:1.25rem;--text-title:1rem;--text-body:.875rem;
+  --text-label:.8125rem;--text-caption:.75rem;--text-mono:.8125rem;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;
+  --radius-sm:4px;--radius-md:6px;--radius-control:10px;--radius-card:12px;--radius-pill:9999px;
+  --shadow-pane:0 20px 60px rgba(13,21,32,.7);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--color-bg);color:var(--color-text);font:400 var(--text-body)/1.5 var(--font-sans);-webkit-font-smoothing:antialiased}
+.stage{position:relative;min-height:100dvh}
+.backdrop{position:fixed;inset:0;background:rgba(7,12,20,.55)}
+.behind{padding:var(--space-6);filter:saturate(.8)}
+.behind .title{font:700 var(--text-display)/1.25 var(--font-sans);letter-spacing:-.015em;margin:0 0 var(--space-4)}
+.behind .ghostrow{height:34px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;color:var(--color-text-disabled);font:var(--text-mono) var(--font-mono)}
+/* drawer */
+.drawer{position:fixed;top:0;right:0;height:100dvh;width:440px;background:var(--color-surface-overlay);
+  border-left:1px solid var(--color-border-strong);box-shadow:var(--shadow-pane);display:flex;flex-direction:column}
+.drawer__head{display:flex;align-items:center;justify-content:space-between;padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--color-border)}
+.drawer__title{font:600 var(--text-headline)/1.3 var(--font-sans);letter-spacing:-.01em;margin:0}
+.close{background:none;border:1px solid var(--color-border);color:var(--color-text-muted);border-radius:var(--radius-control);width:30px;height:30px;cursor:pointer;font-size:16px}
+.drawer__body{padding:var(--space-5);overflow:auto}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:var(--space-2) var(--space-4);align-items:start;margin-bottom:var(--space-5)}
+.kv dt{color:var(--color-text-muted);font:600 var(--text-label) var(--font-sans)}
+.kv dd{margin:0;font:var(--text-mono) var(--font-mono);color:var(--color-text);word-break:break-all}
+.badge{display:inline-block;font:600 var(--text-caption)/1.4 var(--font-sans);padding:1px 7px;border-radius:var(--radius-pill);border:1px solid;color:var(--color-warning-on-dark);background:var(--color-warning-surface);border-color:var(--color-warning)}
+.copy{background:none;border:none;color:var(--color-accent);font:600 var(--text-caption) var(--font-sans);cursor:pointer;margin-left:var(--space-2)}
+.sectlabel{font:600 var(--text-caption)/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin:0 0 var(--space-2)}
+.metabox{background:var(--color-surface-sunken);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);font:var(--text-mono)/1.6 var(--font-mono);white-space:pre-wrap;color:var(--color-text)}
+.metakey{color:var(--color-text-muted)}
+.readonly-note{margin-top:var(--space-5);color:var(--color-text-disabled);font-size:var(--text-caption)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="behind">
+    <h1 class="title">Audit</h1>
+    <div class="ghostrow">20:58:39 · shift.forced_close · mgr@qanater · …</div>
+    <div class="ghostrow">20:55:02 · operator.session.takeover · mgr@qanater · …</div>
+    <div class="ghostrow">20:41:55 · cashier.pin.reset · sup@qanater · …</div>
+  </div>
+  <div class="backdrop"></div>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dt">
+    <div class="drawer__head">
+      <h2 class="drawer__title" id="dt">shift.forced_close <span class="badge">POS</span></h2>
+      <button class="close" aria-label="Close">&times;</button>
+    </div>
+    <div class="drawer__body">
+      <dl class="kv">
+        <dt>Occurred</dt><dd>2026-06-06 20:58:39.214 UTC</dd>
+        <dt>Action</dt><dd>shift.forced_close</dd>
+        <dt>Actor</dt><dd>mgr@qanater <span class="muted">(8f2a-...-d1)</span></dd>
+        <dt>Target</dt><dd>shift · 7b21c9a4-...-0f</dd>
+        <dt>Store</dt><dd>Branch 04 — Maadi</dd>
+        <dt>Request</dt><dd>c2e0a7f1-9b22-4c10-...-11<button class="copy">copy</button></dd>
+      </dl>
+      <p class="sectlabel">Metadata</p>
+      <div class="metabox"><span class="metakey">shift_id</span>: "7b21c9a4-…-0f"
+<span class="metakey">shift_owner_id</span>: "op_5521"
+<span class="metakey">forced_close_actor_id</span>: "mgr_0091"
+<span class="metakey">forced_close_reason</span>: "till_discrepancy"
+<span class="metakey">annotation</span>: "drawer short 42.50, manager override"
+<span class="metakey">originating_terminal_id</span>: "term_04b"</div>
+      <p class="readonly-note">Read-only. Audit events are emitted by the backend (POS-originated events by a paired terminal) and cannot be edited, acknowledged, or exported here.</p>
+    </div>
+  </aside>
+</div>
+</body>
+</html>
