@@ -80,7 +80,9 @@ test("empty roster renders a successful zero-row state with a create entry point
   await expect(page.getByRole("link", { name: /new tenant/i })).toBeVisible();
 });
 
-test("T034 a11y: a table row is keyboard-focusable and Enter opens its detail", async ({ page }) => {
+test("T034 a11y: a table row is keyboard-focusable and Enter opens its detail", async ({
+  page,
+}) => {
   await mockBase(page);
   await page.route("**/api/v1/tenants", (r) =>
     r.fulfill({
@@ -93,7 +95,12 @@ test("T034 a11y: a table row is keyboard-focusable and Enter opens its detail", 
     r.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ id: "t1", slug: "northstar", name: "Northstar Retail", status: "active" }),
+      body: JSON.stringify({
+        id: "t1",
+        slug: "northstar",
+        name: "Northstar Retail",
+        status: "active",
+      }),
     }),
   );
 
