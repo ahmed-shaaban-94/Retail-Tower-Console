@@ -34,7 +34,7 @@ never live DP2 (FR-004-012, slice 002 C-5).
 - Source root: `src/`. RF-2 areas: `src/tenants/` (SF-T1/T2/T3), `src/stores/`
   (SF-S1/S2/S3), shared list/table/form bits in `src/components/`.
 - **Reused (do not re-derive):** `src/lib/client.ts` + `src/lib/query.ts`
-  (client/query), `src/lib/router.tsx` (router), `src/context/`
+  (client/query), `src/App.tsx` (router), `src/context/`
   (`ActiveContextProvider`), `src/components/Banner.tsx` +
   `src/components/InlineError.tsx`, `src/shell/AppShell.tsx` + `ScopeHeader.tsx`,
   `src/styles/tokens.css`. Generated client `src/generated/` — never edited.
@@ -65,7 +65,7 @@ never live DP2 (FR-004-012, slice 002 C-5).
 - [ ] T006 [P] Implement the shared list-table presenter in `src/components/DataTable.tsx` using the DESIGN.md `.data-table` from `src/styles` tokens (tables-over-cards; row→detail; 36px touch floor; AA contrast). No table library (research R4-4).
 - [ ] T007 [P] Implement the shared empty-state + loading-skeleton presenters in `src/components/ListState.tsx` (default/empty/loading distinct; empty is a successful zero-row state, not an error — spec OQ-8, design-brief §6). Reuse Banner for error state.
 - [ ] T008 [P] Implement the shared destructive-confirm affordance in `src/components/ConfirmDelete.tsx` (`.btn-destructive` + confirm step; names the resource; single-primary rule). Used by SF-T3/SF-S3 soft-delete (design-brief §7).
-- [ ] T009 🔗 SHARED-FILE Register the RF-2 routes in `src/lib/router.tsx` inside RF-1's existing protected boundary (no new public route; RF-2 is behind the RF-1 401→sign-in guard). Sequence this; do not parallelize with another slice touching the router (plan.md §Shared-file touches).
+- [ ] T009 🔗 SHARED-FILE Register the RF-2 routes in `src/App.tsx` inside RF-1's existing protected boundary (no new public route; RF-2 is behind the RF-1 401→sign-in guard). Sequence this; do not parallelize with another slice touching the router (plan.md §Shared-file touches).
 - [ ] T010 🔗 SHARED-FILE Un-gate the "Stores" entry in `src/shell/AppShell.tsx` `GATED_NAV` (promote to an active nav link to SF-S1; leave Catalog/Unknown items/Operators/Audit gated). Sequence this; do not parallelize with another slice touching AppShell (plan.md §Shared-file touches).
 
 **Checkpoint**: RF-2 query/error mapping, shared table/list/confirm presenters, routes registered, "Stores" nav un-gated.
@@ -193,7 +193,7 @@ stores reuse.
   design-brief.md state matrix; UI tasks reuse `src/styles` tokens + RF-1
   components rather than re-deriving them.
 - RF-2 adds **no** new runtime dependency (reuse of RF-1's).
-- The two 🔗 SHARED-FILE touches (`src/lib/router.tsx`, `src/shell/AppShell.tsx`)
+- The two 🔗 SHARED-FILE touches (`src/App.tsx`, `src/shell/AppShell.tsx`)
   are sequenced for implement, not parallelized.
 - Tests use an approved `disposable: true` mock only; never live DP2 (FR-004-012).
 - Commit after each task or logical group.

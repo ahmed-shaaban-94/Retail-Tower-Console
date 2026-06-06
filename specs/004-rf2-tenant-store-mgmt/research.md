@@ -56,24 +56,25 @@ discipline, but resolves to *reuse* rather than *new selection*.
   `openapi-fetch` client** (`src/lib/client.ts`, `src/lib/query.ts`). Lists and
   details are queries; create/update/soft-delete are mutations that invalidate +
   re-fetch the relevant list/detail. **No dependency added.**
-- **401-disambiguation note (added after reading the stores contract @ `62d0906`).**
-  `listStores`/`createStore` return **`401` ("No active tenant")** as a
-  scope-precondition — but RF-1's interceptor (`src/lib/auth-interceptor.ts`)
-  currently treats **every** `401` as session-expiry (refresh-once, then
-  clear-cache + redirect to sign-in if refresh fails). A store no-active-tenant
-  `401` would therefore be misrendered as a sign-out. RF-2 MUST disambiguate.
-  Constraint: the disambiguation must not weaken RF-1's session-expiry behavior.
-  **Options (resolve in the gated build):** (a) **pre-gate the store calls on the
-  active tenant** read from RF-1's `ActiveContextProvider` — if no active tenant,
-  route to the scope chooser and never issue the store call (so the `401` is
-  avoided, not interpreted); (b) extend the interceptor to distinguish the store
-  no-active-tenant `401` (e.g. by response body/code) from a session-expiry `401`.
-  **Recommended: (a)** — it needs **no** edit to RF-1's interceptor (preferred:
-  zero shared-interceptor change), is the cleaner "scope before action"
-  realization, and keeps RF-1's session semantics untouched. If (b) is ever
-  needed, it is a **third shared-file touch** (`src/lib/auth-interceptor.ts`) and
-  is flagged as such. This is recorded as design-brief/plan open item, resolved
-  at implementation. **No dependency added.**
+- **401-disambiguation note / OQ-10 (added after reading the stores contract @
+  `62d0906` AND RF-1's merged code).** `listStores`/`createStore` return **`401`
+  ("No active tenant")** as a scope-precondition — a *second meaning* of `401`
+  that RF-1 never had to handle. **Verified, not assumed:** RF-1's
+  `createAuthRetry` (`src/lib/auth-interceptor.ts`) is **not** global middleware —
+  it is a `useRef`-local in `src/context/useActiveContext.ts:48` wrapping **only**
+  the `getActiveContext` query. RF-1's "every 401 → refresh-then-maybe-sign-out"
+  therefore applies to the **context fetch only**; a `401` from a *new* RF-2
+  operation does **not** automatically flow through sign-out. So this is a design
+  decision about how RF-2 wires *its own* data layer, not a misrender RF-1 forces.
+  **Options (resolve in `/speckit-clarify` / the gated build):** (a) **pre-gate
+  store calls on the active tenant** read from `ActiveContextProvider` — no active
+  tenant → scope chooser, never issue the call (the `401` is avoided); RF-2 renders
+  any residual scope-`401` as a prompt directly, since RF-1's interceptor isn't in
+  that path. (b) RF-2 routes its calls through a shared `createAuthRetry` instance
+  — then honoring "scope-`401` → prompt, never sign-out" requires extending the
+  interceptor to split the two `401`s, a real shared-file touch on
+  `src/lib/auth-interceptor.ts`. **Recommended: (a)** — cleaner "scope before
+  action", no shared-interceptor change. **No dependency added.**
 
 ## R4-3 — Create/edit form handling + error surface
 

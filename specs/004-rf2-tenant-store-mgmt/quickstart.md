@@ -81,7 +81,7 @@ RF-2 implementation begins only after **all five** are approved for slice 004:
 While this PR is open, in this repository do NOT:
 
 - Create any `src/` file, route, component, hook, or test for RF-2.
-- Edit `src/shell/AppShell.tsx` (GATED_NAV "Stores") or `src/lib/router.tsx` —
+- Edit `src/shell/AppShell.tsx` (GATED_NAV "Stores") or `src/App.tsx` —
   those are the implementation slice's tracked shared-file touches, not planning
   edits.
 - Re-pick RF-2's router/state/data-fetching/form/table/error primitives — they

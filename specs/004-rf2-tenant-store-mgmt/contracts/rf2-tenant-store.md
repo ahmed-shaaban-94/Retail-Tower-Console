@@ -145,7 +145,7 @@ resulting AUTHENTICATED (context resolved) state.
   `stores.openapi.yaml` / `context.openapi.yaml`.
 - ❌ Regenerating or re-pinning `src/generated/schema.d.ts`.
 - ❌ Building a mock server (requires explicit approval; spec FR-004-012).
-- ❌ Editing `src/shell/AppShell.tsx` / `src/lib/router.tsx` at planning time
+- ❌ Editing `src/shell/AppShell.tsx` / `src/App.tsx` at planning time
   (the gated-nav un-gate + route registration are tracked implementation tasks).
 
 ---

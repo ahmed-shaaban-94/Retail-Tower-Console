@@ -63,7 +63,7 @@ define, including a no-frontend-authorization assertion gate.
 | Unit/integration tests | Vitest | Slice 002 D-3 |
 | E2E tests | Playwright (in CI) | Slice 002 D-4/D-6 |
 | Lint/format | Biome | Slice 002 D-5 |
-| Router | react-router (data-router) — **reused from RF-1** (`src/lib/router.tsx`) | RF-1 R3-1; RF-2 registers RF-2 routes inside RF-1's protected boundary |
+| Router | react-router (data-router) — **reused from RF-1** (`src/App.tsx`) | RF-1 R3-1; RF-2 registers RF-2 routes inside RF-1's protected boundary |
 | Data fetching | TanStack Query over `openapi-fetch` — **reused from RF-1** (`src/lib/query.ts`, `src/lib/client.ts`) | RF-1 R3-3; RF-2 R4-2 |
 | Active-tenant/store scope | RF-1 `ActiveContextProvider` (`src/context/`) — **reused; RF-2 adds no new context op** | RF-1 R3-2; spec OQ-5; RF-2 R4-1 |
 | List query / pagination | TanStack Query lists over the generated client — **reused pattern** | research R4-5 |
@@ -130,23 +130,39 @@ smuggled edit. **No edit happens at planning time** (spec FR-004-010):
   un-gates it: the entry becomes an active route link to the store list (SF-S1),
   removed from `GATED_NAV` (or promoted to an enabled nav entry). The remaining
   gated entries (Catalog / Unknown items / Operators / Audit) stay gated.
-- **`src/lib/router.tsx` — register the RF-2 routes** inside RF-1's existing
+- **`src/App.tsx` — register the RF-2 routes** inside RF-1's existing
   protected boundary (no new public route; RF-2 is entirely behind the RF-1
   401 → sign-in guard).
 
 Both are recorded as explicit tasks in [`tasks.md`](./tasks.md) with the
 shared-file flag.
 
-**Conditional third touch — RF-1's 401 interceptor.** The stores contract returns
-`401` ("No active tenant") as a *scope precondition*, but RF-1's
-`src/lib/auth-interceptor.ts` treats every `401` as session-expiry (research
-R4-2). The **recommended** resolution avoids touching the interceptor: RF-2
-**pre-gates** store calls on the active tenant read from RF-1's
-`ActiveContextProvider` (no active tenant → route to the scope chooser, never
-issue the store call), so the scope `401` is *avoided*, not interpreted. Only if
-that proves insufficient does RF-2 extend `src/lib/auth-interceptor.ts` to
-distinguish the two `401`s — a **third** shared-file touch, flagged then. The
-default plan adds no interceptor change.
+**Open question — the second meaning of `401` (OQ-10).** The stores contract
+returns `401` ("No active tenant") as a *scope precondition* — a meaning RF-1
+never had to distinguish. **Verified against RF-1's merged code** (not assumed):
+`createAuthRetry` (`src/lib/auth-interceptor.ts`) is **not** global middleware —
+it is a `useRef`-local in `src/context/useActiveContext.ts:48` that wraps
+**only** the `getActiveContext` query. So a `401` from a *new* RF-2 operation
+(`listStores`/`createStore`) does **not** automatically flow through RF-1's
+refresh-then-sign-out path; it flows through whatever RF-2 wires for its own
+calls. RF-1's sign-out-on-401 applies to the context fetch, not to RF-2's
+operations.
+
+This makes the resolution a genuine design decision, not a mechanical touch:
+- **Recommended:** RF-2 **pre-gates** store calls on the active tenant read from
+  `ActiveContextProvider` (no active tenant → route to the scope chooser, never
+  issue the store call). Because RF-2 wires its own data layer, it can also
+  render a residual scope-`401` (stale/suspended tenant) as a scope prompt
+  directly — RF-1's interceptor is not in that path, so there is no sign-out to
+  override.
+- **If RF-2 chooses to route its calls through a shared `createAuthRetry`
+  instance**, then honoring "scope-`401` → prompt, never sign-out" *does* require
+  distinguishing the two `401`s — and that would be a real shared-file touch on
+  `src/lib/auth-interceptor.ts`. That is a `/speckit-clarify` / implementation
+  decision (OQ-10), not asserted here.
+
+The default plan adds no interceptor change and does not assume RF-1's interceptor
+sees RF-2's calls.
 
 ---
 
@@ -237,7 +253,7 @@ does not run them (no code exists yet).
   **reuses** them (research R4-1..R4-5).
 - Does not add any new runtime dependency (reuse of RF-1's; spec FR-004-009).
 - Does not create `src/` files, route files, components, hooks, or tests.
-- Does not edit `src/shell/AppShell.tsx` or `src/lib/router.tsx` at plan time —
+- Does not edit `src/shell/AppShell.tsx` or `src/App.tsx` at plan time —
   it **flags** them as the implementation slice's shared-file touches.
 - Does not consume `listMembers`, `memberships.openapi.yaml`, or any new context
   operation (spec FR-004-001, OQ-5).
