@@ -79,3 +79,29 @@ test("empty roster renders a successful zero-row state with a create entry point
   await expect(page.getByText(/no tenants yet/i)).toBeVisible();
   await expect(page.getByRole("link", { name: /new tenant/i })).toBeVisible();
 });
+
+test("T034 a11y: a table row is keyboard-focusable and Enter opens its detail", async ({ page }) => {
+  await mockBase(page);
+  await page.route("**/api/v1/tenants", (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([{ id: "t1", slug: "northstar", name: "Northstar Retail" }]),
+    }),
+  );
+  await page.route("**/api/v1/tenants/t1", (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "t1", slug: "northstar", name: "Northstar Retail", status: "active" }),
+    }),
+  );
+
+  await page.goto("/tenants");
+  const row = page.getByRole("row").filter({ hasText: "northstar" });
+  await row.focus();
+  await expect(row).toBeFocused();
+  // Keyboard activation (no hover-only functionality): Enter opens the detail.
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Northstar Retail" })).toBeVisible();
+});
