@@ -1,25 +1,35 @@
-import type { ApiClient } from "./generated/client";
-import { apiClient } from "./generated/client";
-
+import { ActiveContextProvider } from "@/context/ActiveContextProvider";
+import { createQueryClient } from "@/lib/query";
+import { ProtectedArea } from "@/shell/ProtectedArea";
+import { SignInRoute } from "@/shell/SignInRoute";
 /**
- * Placeholder app shell.
+ * RF-1 application root. Composes the providers and the public/protected route
+ * boundary (R3-1): `/signin` is public (SF-1); everything else is protected and
+ * renders the gate-or-shell from the server-resolved context (SF-2/SF-3).
  *
- * Slice 002 (tooling-and-scaffold) is NOT authorized to build any RF-1..RF-7
- * UI — that belongs to slices 003..009. This component only proves the
- * toolchain renders and that the generated client (D-2/D-7) is importable
- * and typed. The auth shell, route guards, and context provider arrive in
- * slice 003-rf1-auth-shell.
+ * The route guard reacts to backend truth only (FR-003-004): a 401 anywhere is
+ * caught by the auth interceptor, which clears the cache and redirects to
+ * /signin (S5). The console carries no authorization opinion about routes.
  */
-export function App(): React.JSX.Element {
-  // Reference the typed client so the build proves it is consumable.
-  // No call is made here — calls live in per-family slices.
-  const client: ApiClient = apiClient;
-  void client;
+import { QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import "@/styles/tokens.css";
+import "@/styles/controls.css";
 
+const queryClient = createQueryClient();
+
+export function App(): React.JSX.Element {
   return (
-    <main>
-      <h1>Retail Tower Console</h1>
-      <p>Scaffold ready. Auth shell arrives in slice 003.</p>
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <ActiveContextProvider>
+          <Routes>
+            <Route path="/signin" element={<SignInRoute />} />
+            <Route path="/" element={<ProtectedArea />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ActiveContextProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }

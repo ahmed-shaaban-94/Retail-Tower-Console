@@ -1,0 +1,78 @@
+/* Gold scope header (DESIGN.md Scope Header Bar). */
+.scope {
+  grid-area: scope;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-6);
+  background-color: var(--color-gold-soft);
+  border-bottom: 1px solid rgba(200, 162, 74, 0.18);
+}
+.scope__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-gold);
+  font: 600 var(--text-label) / 1 var(--font-sans);
+}
+.scope__btn:hover {
+  background: rgba(200, 162, 74, 0.1);
+}
+.scope__crumb {
+  opacity: 0.7;
+}
+.scope__sep {
+  opacity: 0.4;
+  padding: 0 var(--space-1);
+}
+.scope__caret {
+  width: 14px;
+  height: 14px;
+  opacity: 0.8;
+}
+
+.scope-menu {
+  position: absolute;
+  top: 44px;
+  left: var(--space-5);
+  z-index: 20;
+  min-width: 280px;
+  background: var(--color-surface-overlay);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-pane);
+  padding: var(--space-3);
+}
+.scope-menu__group {
+  font: 600 var(--text-caption) / 1 var(--font-sans);
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-2) var(--space-1);
+}
+.scope-menu__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-text);
+  font-size: var(--text-body);
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+.scope-menu__item:hover {
+  background: var(--color-surface-raised);
+}
+.scope-menu__item--active {
+  background: var(--color-gold-soft);
+  color: var(--color-gold);
+}

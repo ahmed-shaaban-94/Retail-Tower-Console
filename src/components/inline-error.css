@@ -1,0 +1,8 @@
+/* Inline field-level error text. */
+.rtc-inline-error {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-danger-on-dark);
+  font-size: var(--text-caption);
+  font-weight: 500;
+}
