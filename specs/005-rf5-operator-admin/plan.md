@@ -129,6 +129,14 @@ chooser when `active_tenant` is null.) Therefore:
   the 401 body's error semantics. Option (a) needs no RF-1 change (the deps are
   injected per-instance); RF-5 owns its own instance. This is a `plan.md`/impl
   design note, not an RF-1 modification (FR-005-011).
+- **Retry-layer composition note.** `createInvitation` carries two retry layers:
+  the §6.3 idempotency `425 Too Early` retry (same key + body) and the RF-1
+  auth-retry refresh-once. They compose safely because both re-issue the **same
+  request thunk** (the `Idempotency-Key` is captured in the thunk, so a re-issue
+  replays the same key) and neither double-fires: `createAuthRetry` fires the
+  refresh at most once per 401 burst (coalesced, `auth-interceptor.ts:33-42`), and
+  the 425 retry is a separate, post-success backoff. Confirm no double-submit at
+  implementation.
 
 ---
 

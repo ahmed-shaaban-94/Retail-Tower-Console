@@ -77,7 +77,9 @@ shape), not optional. Tests against an approved mock only; never live DP2
 ### Tests for SF5-1
 
 - [ ] T009 [P] [US1] Unit test the member-list reduction + state matrix (default/empty/loading/error/success) in `tests/unit/member-list.test.tsx` (VG-1; design-brief SF5-1 matrix).
+- [ ] T009b [P] [US1] E2E view-membership-graph happy path: active tenant → table renders identity/role/store-access/state, in `tests/e2e/member-list.spec.ts` (VG-2, S1).
 - [ ] T010 [P] [US3] Unit test the `createInvitation` 401-disambiguation: refresh-fails → sign-out; refresh-ok-but-401 → scope chooser, in `tests/unit/invite-401-disambiguation.test.ts` (VG-1, FR-005-007). Also assert `listMembers` routes to the scope chooser via the pre-call active-tenant guard (not via a 401).
+- [ ] T010b [P] [US6] E2E session-expiry mid-management: 401 → reactive refresh fails → full redirect to SF-1 (sign-in), in `tests/e2e/members-session-expiry.spec.ts` (VG-2, S6). Distinct from T011 (precondition) — here the refresh itself fails.
 - [ ] T011 [P] [US3] E2E no-active-tenant (pre-call guard on `listMembers`; precondition-401 on `createInvitation`) → RF-1 scope chooser, in `tests/e2e/members-no-active-tenant.spec.ts` (VG-2, S3).
 
 ### Implementation for SF5-1
