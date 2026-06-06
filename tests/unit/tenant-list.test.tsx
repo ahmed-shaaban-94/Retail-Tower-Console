@@ -1,0 +1,90 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { MemoryRouter } from "react-router";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+
+// Mock the RF-2 data layer at the wrapper boundary (no live DP2; FR-004-012).
+const listTenants = vi.fn();
+vi.mock("@/lib/rf2-queries", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/rf2-queries")>();
+  return { ...actual, listTenants: (...a: unknown[]) => listTenants(...a) };
+});
+
+import { createQueryClient } from "@/lib/query";
+import { TenantList } from "@/tenants/TenantList";
+
+function renderList(): void {
+  const qc = createQueryClient();
+  function Tree({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
+  }
+  render(
+    <Tree>
+      <TenantList />
+    </Tree>,
+  );
+}
+
+/**
+ * Tenant list state matrix (T011, VG-1). Renders the BACKEND-SCOPED set with no
+ * client filter (OQ-2); zero rows is a successful empty state distinct from
+ * loading/error (OQ-8); 403 renders via the persistent banner (no pre-hide,
+ * OQ-3); the "New tenant" primary is always rendered (never role-hidden).
+ */
+describe("TenantList state matrix", () => {
+  beforeEach(() => {
+    listTenants.mockReset();
+  });
+
+  test("loading -> shows a loading affordance, distinct from empty", async () => {
+    listTenants.mockReturnValue(new Promise(() => {})); // never resolves
+    renderList();
+    expect(await screen.findByText(/loading tenants/i)).toBeDefined();
+  });
+
+  test("success -> renders the backend-scoped rows as a table (no client filter)", async () => {
+    listTenants.mockResolvedValue({
+      status: 200,
+      data: [
+        { id: "t1", slug: "northstar", name: "Northstar Retail" },
+        { id: "t2", slug: "helios", name: "Helios Markets" },
+      ],
+    });
+    renderList();
+    expect(await screen.findByText("Northstar Retail")).toBeDefined();
+    expect(screen.getByText("Helios Markets")).toBeDefined();
+    expect(screen.getByText("northstar")).toBeDefined();
+    // create entry point always present (never role-hidden, OQ-3)
+    expect(screen.getByRole("link", { name: /new tenant/i })).toBeDefined();
+  });
+
+  test("empty -> successful zero-row state with create entry point", async () => {
+    listTenants.mockResolvedValue({ status: 200, data: [] });
+    renderList();
+    expect(await screen.findByText(/no tenants yet/i)).toBeDefined();
+    expect(screen.getByRole("link", { name: /new tenant/i })).toBeDefined();
+  });
+
+  test("403 -> persistent banner with request_id (action attempted, not pre-blocked)", async () => {
+    listTenants.mockResolvedValue({
+      status: 403,
+      error: { error: { request_id: "req-403" } },
+    });
+    renderList();
+    await waitFor(() => expect(screen.getByRole("alert")).toBeDefined());
+    expect(screen.getByText(/permission/i)).toBeDefined();
+    expect(screen.getByText(/req-403/)).toBeDefined();
+  });
+
+  test("5xx -> retryable banner", async () => {
+    listTenants.mockResolvedValue({ status: 503, error: { error: { request_id: "req-503" } } });
+    renderList();
+    await waitFor(() => expect(screen.getByRole("alert")).toBeDefined());
+    expect(screen.getByText(/try again/i)).toBeDefined();
+  });
+});

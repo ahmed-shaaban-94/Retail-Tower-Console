@@ -11,14 +11,13 @@ import { NavLink } from "react-router";
 import { ScopeHeader } from "./ScopeHeader";
 import "./app-shell.css";
 
-/** Live nav destinations (RF-2 un-gates Tenants + Stores; T010). */
-const LIVE_NAV = [
-  { label: "Tenants", to: "/tenants" },
-  { label: "Stores", to: "/stores" },
-];
+/** Live nav destinations. RF-2 un-gates Tenants (Phase 3); Stores follows in
+ *  Phase 4 (T010) once the store surfaces land. */
+const LIVE_NAV = [{ label: "Tenants", to: "/tenants" }];
 
-/** Families not yet built — shown gated to mark scope (FR-2..RF-7). */
+/** Families not yet built — shown gated to mark scope, not to claim built. */
 const GATED_NAV = [
+  { label: "Stores", gate: "RF-2" },
   { label: "Catalog", gate: "RF-3" },
   { label: "Unknown items", gate: "RF-4" },
   { label: "Operators", gate: "RF-5" },

@@ -1,0 +1,86 @@
+/* Shared RF-2 surface frame (Phase 3/4). The content-area composition every
+ * tenant/store surface uses: a page header (display title + subtitle + a single
+ * right-aligned primary), then the body. Varied spacing per DESIGN.md (no
+ * uniform padding). The shell already supplies the workspace padding. */
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.surface__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.surface__head .content__sub {
+  margin-top: var(--space-1);
+}
+
+/* Detail layout: read-first field rows in a single column, max measure. */
+.surface__detail {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 60ch;
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: var(--space-4);
+  align-items: baseline;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.field-row__label {
+  color: var(--color-text-muted);
+  font: 600 var(--text-label) / 1.4 var(--font-sans);
+}
+.field-row__value {
+  color: var(--color-text);
+}
+.field-row__value--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  color: var(--color-text-muted);
+}
+.surface__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+/* Back link above a detail/form title. */
+.surface__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--text-label);
+}
+.surface__back:hover {
+  color: var(--color-text);
+}
+
+/* Create/edit form: single column, capped measure. */
+.surface__form {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 65ch;
+}
+.surface__form .field {
+  gap: var(--space-2);
+}
+.surface__scope-line {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--text-label);
+}
+.surface__scope-line strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
