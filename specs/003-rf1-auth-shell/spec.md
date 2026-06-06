@@ -406,15 +406,15 @@ acceptance of this spec as a `/speckit-specify` output.
   Reconciled into Scenario S5; recorded in Clarifications. Does not change the
   AUTHENTICATED-state semantics (foundation `data-model.md` ST-1).
 
-- **OQ-3 — CSRF posture on the six POSTs + one DELETE.** Foundation
-  `contracts/rf1-auth-context.md` flags a MUST-re-verify: does Data-Pulse-2
-  expect a CSRF token (e.g., double-submit) on `signin` / `signout` / `refresh`
-  and the three context-mutating endpoints? Slice 002 OQ-002-2 found no
-  `X-CSRF-Token` header on any console-facing contract at pin `62d0906`, but the
-  upstream auth plan reserves "double-submit token where needed." This MUST be
-  re-confirmed against the pinned contract before the RF-1 implementation gate
-  clears; if a token is required, the resolution is recorded in this slice's
-  `api-readiness.md`.
+- **OQ-3 — CSRF posture on the six POSTs + one DELETE.** **RESOLVED
+  (2026-06-06): no CSRF token required.** Re-verified directly against
+  Data-Pulse-2 `auth.openapi.yaml` + `context.openapi.yaml` @ `62d0906`: the
+  sole console-facing security scheme is `cookieAuth` (apiKey in cookie
+  `dp2_session`); no `X-CSRF-Token`/`X-XSRF` header or parameter on any of the
+  six POSTs or the one DELETE. Slice 002 OQ-002-2 prior holds at this pin. RF-1
+  wires cookie transport with `credentials: "include"` and no CSRF-header
+  plumbing (FR-003-003). Recorded in this slice's `api-readiness.md`
+  (Verification log 2026-06-06).
 
 - **OQ-4 — Auto-select-on-single-membership behavior.** **RESOLVED (Session
   2026-06-06):** auto-select when `memberships.length === 1` (silently

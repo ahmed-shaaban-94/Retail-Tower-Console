@@ -68,11 +68,11 @@ until the OQ-3 residual below is re-confirmed (FR-005).
 
 | Residual | Status | Verified against | Notes |
 | --- | --- | --- | --- |
-| CSRF posture on `signin` / `signout` / `refresh` + `context/tenant` / `context/store` (POST) / `context/store` (DELETE) | **needs verification** | To be confirmed against Data-Pulse-2 `main` @ `62d0906` before the RF-1 impl gate | Foundation `contracts/rf1-auth-context.md` flags a MUST-re-verify here. Slice 002 OQ-002-2 found **no** `X-CSRF-Token`/`X-XSRF-Token` header on any console-facing contract at `62d0906`, but the upstream auth plan reserves "double-submit token where needed." Net: RF-1 may plan for `SameSite=Lax` cookie transport with no CSRF-header plumbing against the current contract, but MUST re-confirm before the impl gate. If a token is required, record the resolution here (and in `spec.md` OQ-3) in the same edit. |
+| CSRF posture on `signin` / `signout` / `refresh` + `context/tenant` / `context/store` (POST) / `context/store` (DELETE) | **RESOLVED — no CSRF token required** | Data-Pulse-2 `auth.openapi.yaml` + `context.openapi.yaml` @ `62d0906`, verified 2026-06-06 | Confirmed: the sole console-facing security scheme is `cookieAuth` (`type: apiKey, in: cookie, name: dp2_session`); global `security: [cookieAuth: []]`, auth endpoints `security: []`. **No** `X-CSRF-Token`/`X-XSRF-Token` parameter or header on any of the six POSTs or one DELETE. Slice-002 OQ-002-2 prior holds at this pin. `bearerAuth` exists but is POS/server-to-server only (FR-003-003 forbids console use). RF-1 wiring: rely on the browser auto-attaching the `dp2_session` cookie via `credentials: "include"`; **no CSRF-header plumbing**. Mirrored in `spec.md` OQ-3. |
 
-This is the only RF-1 residual. It does **not** demote any RF-1 row from
-`stable`; it is a transport-detail confirmation the foundation contract already
-reserved for this slice.
+This was the only RF-1 residual; it is now resolved. It did **not** demote any
+RF-1 row from `stable`; it was a transport-detail confirmation the foundation
+contract reserved for this slice.
 
 ---
 
@@ -99,6 +99,19 @@ RF-1 row is ever demoted, this carried-forward record must be re-checked.
 ## Verification log
 
 A dated, append-only journal. Most recent first.
+
+### 2026-06-06 — OQ-3 CSRF residual RESOLVED
+
+- Re-verified the CSRF posture directly against Data-Pulse-2
+  `auth.openapi.yaml` and `context.openapi.yaml` at pin `62d0906`.
+- Finding: **no CSRF token required.** Sole console-facing scheme is
+  `cookieAuth` (apiKey in cookie `dp2_session`); no `X-CSRF-Token`/`X-XSRF`
+  header or parameter on any of the six POSTs or one DELETE. Slice-002
+  OQ-002-2 prior confirmed still true at this pin.
+- Implication: RF-1 wires cookie transport with `credentials: "include"` and
+  **no** CSRF-header plumbing (FR-003-003). The single RF-1 residual is closed.
+- Mirrored in `spec.md` §10 OQ-3.
+- Confirmer: Ahmed Shaaban (owner); verified on branch `003-rf1-impl`.
 
 ### 2026-06-05 — Initial creation (RF-1 readiness carried forward)
 
