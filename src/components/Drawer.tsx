@@ -24,7 +24,11 @@ export function Drawer({ title, onClose, children }: DrawerProps): React.JSX.Ele
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Move focus in on open; restore it to the trigger (the row/button that
+    // opened the drawer) on close, so keyboard users keep their place.
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     panelRef.current?.focus();
+    return () => previouslyFocused?.focus?.();
   }, []);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>): void {

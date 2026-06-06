@@ -11,18 +11,18 @@ import { NavLink } from "react-router";
 import { ScopeHeader } from "./ScopeHeader";
 import "./app-shell.css";
 
-/** Live nav destinations. RF-2 un-gates Tenants + Stores; RF-5 un-gates Operators. */
+/** Live nav: RF-2 (Tenants/Stores), RF-5 (Operators), RF-6 (Audit). */
 const LIVE_NAV = [
   { label: "Tenants", to: "/tenants" },
   { label: "Stores", to: "/stores" },
   { label: "Operators", to: "/operators" },
+  { label: "Audit", to: "/audit" },
 ];
 
 /** Families not yet built — shown gated to mark scope, not to claim built. */
 const GATED_NAV = [
   { label: "Catalog", gate: "RF-3" },
   { label: "Unknown items", gate: "RF-4" },
-  { label: "Audit", gate: "RF-6" },
 ];
 
 export interface AppShellProps {

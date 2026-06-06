@@ -6,6 +6,7 @@ import { ProtectedArea } from "@/shell/ProtectedArea";
 import { SignInRoute } from "@/shell/SignInRoute";
 import { rf2Routes } from "@/shell/rf2Routes";
 import { rf5Routes } from "@/shell/rf5Routes";
+import { rf6Routes } from "@/shell/rf6Routes";
 /**
  * RF-1 application root, extended by RF-2 (T009). Composes the providers and the
  * public/protected boundary (R3-1): `/signin` is public (SF-1); everything else
@@ -39,6 +40,7 @@ export function App(): React.JSX.Element {
               <Route index element={<Overview />} />
               {rf2Routes}
               {rf5Routes}
+              {rf6Routes}
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
