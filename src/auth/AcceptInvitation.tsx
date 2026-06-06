@@ -59,9 +59,9 @@ export function AcceptInvitation(): React.JSX.Element {
             <TowerMark className="tower-mark" />
             <span className="tower-lockup__word">Retail Tower OS</span>
           </span>
-          <span className="signin-head__sub">
+          <h1 className="signin-head__sub">
             {invalidToken ? "Invitation" : "Accept your invitation"}
-          </span>
+          </h1>
         </div>
 
         {invalidToken ? (
