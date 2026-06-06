@@ -1,3 +1,6 @@
+import { Banner } from "@/components/Banner";
+import { TowerMark } from "@/components/TowerMark";
+import { signIn } from "@/lib/client";
 /**
  * SF-1 sign-in surface (T020/T023). Centered card on the command-room field
  * (confirmed shape brief). Uncontrolled native form (R3-4, no form library).
@@ -8,9 +11,6 @@
  * at submit and never persisted (FR-003-009).
  */
 import { type FormEvent, useState } from "react";
-import { Banner } from "@/components/Banner";
-import { TowerMark } from "@/components/TowerMark";
-import { signIn } from "@/lib/client";
 import { type SignInResolution, resolveSignIn } from "./signin-flow";
 import "./signin.css";
 
@@ -43,7 +43,7 @@ export function SignIn({ onResolved }: SignInProps): React.JSX.Element {
     const resolution = resolveSignIn({
       status: res.status,
       data: res.data as { memberships?: Array<{ tenant_id: string }> } | undefined,
-      error: res.error as { request_id?: string } | undefined,
+      error: res.error as { error?: { request_id?: string } } | undefined,
       retryAfterSeconds: undefined,
     });
 

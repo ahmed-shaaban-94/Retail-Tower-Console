@@ -19,7 +19,7 @@ describe("SignIn component", () => {
   test("on 401, shows the generic error banner with request_id and does not resolve", async () => {
     vi.mocked(client.signIn).mockResolvedValue({
       status: 401,
-      error: { request_id: "req-401" },
+      error: { error: { request_id: "req-401" } },
     } as never);
     const onResolved = vi.fn();
     render(<SignIn onResolved={onResolved} />);

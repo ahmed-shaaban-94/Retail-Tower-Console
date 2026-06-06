@@ -7,10 +7,9 @@
  *   0 → no-access (S7) · 1 → auto-select that tenant (OQ-4) · >1 → chooser (S2).
  */
 
+/** Backend error envelope: { error: { code, message, request_id } } (schema Error). */
 interface BackendError {
-  code?: string;
-  message?: string;
-  request_id?: string;
+  error?: { code?: string; message?: string; request_id?: string };
 }
 
 export interface SignInInput {
@@ -27,22 +26,25 @@ export type SignInResolution =
   | { kind: "rate-limited"; retryAfterSeconds: number; requestId?: string }
   | { kind: "error"; message: string; requestId?: string };
 
-const GENERIC_SIGNIN_ERROR =
-  "Sign-in failed. Check your email and password, then try again.";
+const GENERIC_SIGNIN_ERROR = "Sign-in failed. Check your email and password, then try again.";
 
 export function resolveSignIn(input: SignInInput): SignInResolution {
   if (input.status === 429) {
     return {
       kind: "rate-limited",
       retryAfterSeconds: input.retryAfterSeconds ?? 0,
-      requestId: input.error?.request_id,
+      requestId: input.error?.error?.request_id,
     };
   }
 
   if (input.status >= 400) {
     // 401 and 5xx alike render the SAME generic message (no account-existence
     // leak, FR-003-007). request_id is surfaced for support (VD-4).
-    return { kind: "error", message: GENERIC_SIGNIN_ERROR, requestId: input.error?.request_id };
+    return {
+      kind: "error",
+      message: GENERIC_SIGNIN_ERROR,
+      requestId: input.error?.error?.request_id,
+    };
   }
 
   const memberships = input.data?.memberships ?? [];

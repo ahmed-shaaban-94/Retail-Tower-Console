@@ -1,3 +1,5 @@
+import { TowerMark } from "@/components/TowerMark";
+import { useActiveContextValue } from "@/context/ActiveContextProvider";
 /**
  * Full-screen scope gate (SF-2, T029, Scenario S2). Multi-membership actors
  * pick a tenant here before any RF-2..RF-7 route is reachable (VD-2). Driven by
@@ -5,8 +7,6 @@
  * shell renders. Gold appears only on the selected row (scope = authority).
  */
 import { useMemo, useState } from "react";
-import { useActiveContextValue } from "@/context/ActiveContextProvider";
-import { TowerMark } from "@/components/TowerMark";
 import "./scope-gate.css";
 
 export function ScopeGate(): React.JSX.Element {

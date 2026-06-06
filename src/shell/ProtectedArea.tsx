@@ -1,3 +1,4 @@
+import { NoAccess } from "@/auth/NoAccess";
 /**
  * Protected area (SF-2/SF-3, T031). Renders the right surface based on the
  * server-resolved context — never a frontend authorization decision
@@ -12,7 +13,6 @@
  * clears the cache and (via the session-lost callback) redirects to SF-1 (S5).
  */
 import { useActiveContextValue } from "@/context/ActiveContextProvider";
-import { NoAccess } from "@/auth/NoAccess";
 import { AppShell } from "./AppShell";
 import { ScopeGate } from "./ScopeGate";
 import { useSignOut } from "./useSignOut";

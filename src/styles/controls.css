@@ -15,8 +15,8 @@
   font: 600 var(--text-label) / 1 var(--font-sans);
   letter-spacing: -0.005em;
   cursor: pointer;
-  transition: background-color var(--duration-2) var(--ease-out),
-    box-shadow var(--duration-2) var(--ease-out);
+  transition: background-color var(--duration-2) var(--ease-out), box-shadow var(--duration-2)
+    var(--ease-out);
 }
 .btn-primary:hover:not(:disabled) {
   background-color: var(--color-primary-hover);
@@ -43,8 +43,8 @@
   color: var(--color-text);
   font: 600 var(--text-label) / 1 var(--font-sans);
   cursor: pointer;
-  transition: border-color var(--duration-2) var(--ease-out),
-    background-color var(--duration-2) var(--ease-out);
+  transition: border-color var(--duration-2) var(--ease-out), background-color var(--duration-2)
+    var(--ease-out);
 }
 .btn-secondary:hover {
   border-color: var(--color-primary);
@@ -67,8 +67,8 @@
   border-radius: var(--radius-md);
   font: 600 var(--text-label) / 1 var(--font-sans);
   cursor: pointer;
-  transition: background-color var(--duration-2) var(--ease-out),
-    color var(--duration-2) var(--ease-out);
+  transition: background-color var(--duration-2) var(--ease-out), color var(--duration-2)
+    var(--ease-out);
 }
 .btn-ghost:hover {
   background-color: var(--color-surface-raised);
@@ -85,8 +85,8 @@
   border-radius: var(--radius-control);
   color: var(--color-text);
   font: 400 var(--text-body) / 1.5 var(--font-sans);
-  transition: border-color var(--duration-2) var(--ease-out),
-    box-shadow var(--duration-2) var(--ease-out);
+  transition: border-color var(--duration-2) var(--ease-out), box-shadow var(--duration-2)
+    var(--ease-out);
 }
 .input::placeholder {
   color: var(--color-text-disabled);

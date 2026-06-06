@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest";
 import { resolveSignOut } from "@/shell/sign-out";
+import { describe, expect, test } from "vitest";
 
 /**
  * Sign-out resolution (SF-2, T030, Scenario S6). Both a 204 (session cleared)

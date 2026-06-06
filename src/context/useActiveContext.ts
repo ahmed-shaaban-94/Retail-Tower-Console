@@ -1,3 +1,10 @@
+import {
+  clearActiveStore,
+  getActiveContext,
+  switchActiveStore,
+  switchActiveTenant,
+} from "@/lib/client";
+import { queryKeys } from "@/lib/query";
 /**
  * Active-context hook (SF-3, T014-T016). The read-only projection of the
  * server-resolved context (FR-003-005). `getActiveContext` is the source of
@@ -9,19 +16,9 @@
  * the next `getActiveContext` payload.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  clearActiveStore,
-  getActiveContext,
-  switchActiveStore,
-  switchActiveTenant,
-} from "@/lib/client";
-import { queryKeys } from "@/lib/query";
 
 export interface ActiveContextValue {
-  context:
-    | NonNullable<Awaited<ReturnType<typeof getActiveContext>>["data"]>
-    | null
-    | undefined;
+  context: NonNullable<Awaited<ReturnType<typeof getActiveContext>>["data"]> | null | undefined;
   isLoading: boolean;
   /** memberships.length === 0 → no-access (S7); used by SF-1/SF-2 branching. */
   membershipCount: number;

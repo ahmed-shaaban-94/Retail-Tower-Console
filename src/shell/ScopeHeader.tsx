@@ -1,3 +1,4 @@
+import { useActiveContextValue } from "@/context/ActiveContextProvider";
 /**
  * Persistent gold scope header (SF-2, T028). DESIGN.md signature: the only
  * persistent gold surface besides the active nav marker. Always visible
@@ -5,7 +6,6 @@
  * or store drives the SF-3 mutators (which re-fetch — no optimistic update).
  */
 import { useState } from "react";
-import { useActiveContextValue } from "@/context/ActiveContextProvider";
 import "./scope-header.css";
 
 export function ScopeHeader(): React.JSX.Element | null {

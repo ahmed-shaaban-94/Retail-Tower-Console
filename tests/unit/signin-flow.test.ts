@@ -1,5 +1,5 @@
-import { describe, expect, test } from "vitest";
 import { resolveSignIn } from "@/auth/signin-flow";
+import { describe, expect, test } from "vitest";
 
 /**
  * Sign-in response branching + post-sign-in resolution (SF-1, T021/T023).
@@ -16,7 +16,7 @@ describe("resolveSignIn", () => {
   test("401 -> generic error with request_id, no leak", () => {
     const r = resolveSignIn({
       status: 401,
-      error: { code: "invalid_credentials", message: "x", request_id: "req-1" },
+      error: { error: { code: "invalid_credentials", message: "x", request_id: "req-1" } },
     });
     expect(r.kind).toBe("error");
     if (r.kind === "error") {
@@ -29,7 +29,7 @@ describe("resolveSignIn", () => {
   test("429 -> retry-after with parsed seconds and disabled submit", () => {
     const r = resolveSignIn({
       status: 429,
-      error: { request_id: "req-2" },
+      error: { error: { request_id: "req-2" } },
       retryAfterSeconds: 27,
     });
     expect(r.kind).toBe("rate-limited");
@@ -69,7 +69,7 @@ describe("resolveSignIn", () => {
   });
 
   test("5xx -> generic error", () => {
-    const r = resolveSignIn({ status: 503, error: { request_id: "req-5" } });
+    const r = resolveSignIn({ status: 503, error: { error: { request_id: "req-5" } } });
     expect(r.kind).toBe("error");
   });
 });

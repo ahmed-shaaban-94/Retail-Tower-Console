@@ -11,7 +11,7 @@ export interface NoAccessProps {
 export function NoAccess({ onSignOut }: NoAccessProps): React.JSX.Element {
   return (
     <div className="signin-stage">
-      <div className="noaccess" role="status">
+      <div className="noaccess">
         <svg
           className="noaccess__icon"
           viewBox="0 0 24 24"

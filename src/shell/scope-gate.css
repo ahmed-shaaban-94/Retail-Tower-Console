@@ -4,8 +4,7 @@
   display: grid;
   place-items: center;
   padding: var(--space-8) var(--space-6);
-  background:
-    radial-gradient(120% 70% at 50% -10%, rgba(31, 78, 122, 0.12), transparent 55%),
+  background: radial-gradient(120% 70% at 50% -10%, rgba(31, 78, 122, 0.12), transparent 55%),
     var(--color-bg);
 }
 .gate {
@@ -57,8 +56,8 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   color: var(--color-text);
-  transition: border-color var(--duration-2) var(--ease-out),
-    background-color var(--duration-2) var(--ease-out);
+  transition: border-color var(--duration-2) var(--ease-out), background-color var(--duration-2)
+    var(--ease-out);
 }
 .pick:hover {
   border-color: var(--color-primary);

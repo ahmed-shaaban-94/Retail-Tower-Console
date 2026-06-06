@@ -1,6 +1,6 @@
+import { apiClient } from "@/generated/client";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { apiClient } from "@/generated/client";
 
 // Default route mounts ProtectedArea, which calls getActiveContext. Stub the
 // client so the smoke render is deterministic (C-5: no live backend).
@@ -28,8 +28,6 @@ describe("scaffold smoke", () => {
   it("mounts the RF-1 app root without throwing", async () => {
     render(<App />);
     // Default route resolves a zero-membership context -> no-access (S7).
-    await waitFor(() =>
-      expect(screen.getByText(/no assigned access/i)).toBeDefined(),
-    );
+    await waitFor(() => expect(screen.getByText(/no assigned access/i)).toBeDefined());
   });
 });

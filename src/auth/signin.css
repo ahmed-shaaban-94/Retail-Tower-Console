@@ -4,8 +4,7 @@
   display: grid;
   place-items: center;
   padding: var(--space-7) var(--space-5);
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba(31, 78, 122, 0.12), transparent 60%),
+  background: radial-gradient(120% 80% at 50% 0%, rgba(31, 78, 122, 0.12), transparent 60%),
     var(--color-bg);
 }
 

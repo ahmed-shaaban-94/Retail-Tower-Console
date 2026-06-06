@@ -1,3 +1,4 @@
+import { TowerMark } from "@/components/TowerMark";
 /**
  * SF-2 authenticated app shell (T027). top-bar + persistent gold scope header
  * + sidebar + content (DESIGN.md layout). The frame every RF-2..RF-7 family
@@ -5,7 +6,6 @@
  * to claim they are built.
  */
 import { useActiveContextValue } from "@/context/ActiveContextProvider";
-import { TowerMark } from "@/components/TowerMark";
 import { ScopeHeader } from "./ScopeHeader";
 import "./app-shell.css";
 
