@@ -75,6 +75,63 @@
   color: var(--color-text);
 }
 
+.btn-destructive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 36px;
+  padding: 0 14px;
+  background-color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-control);
+  color: #ffffff;
+  font: 600 var(--text-label) / 1 var(--font-sans);
+  cursor: pointer;
+  transition: background-color var(--duration-2) var(--ease-out);
+}
+.btn-destructive:hover:not(:disabled) {
+  background-color: #9a2730;
+}
+.btn-destructive:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(179, 46, 54, 0.4);
+}
+.btn-destructive:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Status pill (DESIGN.md .badge). Display-only; never a UI gate. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font: 600 var(--text-caption) / 1 var(--font-sans);
+  white-space: nowrap;
+}
+.badge--active {
+  border-color: var(--color-success);
+  color: var(--color-success-on-dark);
+}
+.badge--suspended {
+  border-color: var(--color-warning);
+  color: var(--color-warning-on-dark);
+}
+.badge--pending {
+  border-color: var(--color-info);
+  color: var(--color-info-on-dark);
+}
+.badge--gold {
+  border-color: var(--color-gold-muted);
+  color: var(--color-gold);
+}
+
 .input {
   display: block;
   width: 100%;

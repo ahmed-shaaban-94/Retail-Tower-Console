@@ -1,0 +1,23 @@
+/* Shared list non-table states (T007): loading + empty. No decorative empty
+ * illustration (DESIGN.md rule 7); the data is the content. */
+
+.list-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-7) 0;
+  color: var(--color-text-muted);
+}
+.list-state--loading {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+}
+.list-state__msg {
+  margin: 0;
+  font-size: var(--text-body);
+}
+.list-state__action {
+  display: flex;
+}

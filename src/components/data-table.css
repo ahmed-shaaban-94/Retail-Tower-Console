@@ -1,0 +1,47 @@
+/* Shared list-table (T006). DESIGN.md tables-over-cards (rule 7): dense,
+ * quiet rows, keyboard-first, AA contrast on the dark command-room surface. */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-body);
+}
+.data-table__caption {
+  text-align: left;
+  padding-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  font: 600 var(--text-caption) / 1 var(--font-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.data-table thead th {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font: 600 var(--text-label) / 1 var(--font-sans);
+  white-space: nowrap;
+}
+.data-table__row {
+  cursor: pointer;
+  transition: background-color var(--duration-2) var(--ease-out);
+}
+.data-table__row td {
+  padding: var(--space-4);
+  min-height: 36px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+.data-table__row:hover {
+  background-color: var(--color-surface-raised);
+}
+.data-table__row:focus-visible {
+  outline: none;
+  background-color: var(--color-surface-raised);
+  box-shadow: inset 3px 0 0 0 var(--color-gold);
+}
+.data-table__cell--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  color: var(--color-text-muted);
+}
