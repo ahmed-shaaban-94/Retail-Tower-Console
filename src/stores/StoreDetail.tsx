@@ -1,7 +1,6 @@
 import { Banner } from "@/components/Banner";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ListState } from "@/components/ListState";
-import { useActiveContextValue } from "@/context/ActiveContextProvider";
 import { type Rf2ErrorRender, mapRf2Error } from "@/lib/rf2-queries";
 /**
  * SF-S2 — Store detail (T027). Read-first field rows + active-state badge; edit
@@ -14,15 +13,15 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { ScopePrompt } from "./ScopePrompt";
 import { useStoreDelete, useStoreDetail } from "./useStoreQueries";
+import { useStoreScope } from "./useStoreScope";
 import "../shell/surface.css";
 
 export function StoreDetail(): React.JSX.Element {
   const { storeId } = useParams();
   const navigate = useNavigate();
-  const { context } = useActiveContextValue();
-  const activeTenant = context?.active_tenant ?? null;
+  const { activeTenantId } = useStoreScope();
   const { result, isLoading } = useStoreDetail(storeId);
-  const del = useStoreDelete(activeTenant?.id ?? null);
+  const del = useStoreDelete(activeTenantId);
   const [confirming, setConfirming] = useState(false);
   const [deleteError, setDeleteError] = useState<Rf2ErrorRender | undefined>();
 

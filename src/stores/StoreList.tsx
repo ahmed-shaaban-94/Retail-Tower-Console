@@ -1,7 +1,6 @@
 import { Banner } from "@/components/Banner";
 import { DataTable } from "@/components/DataTable";
 import { ListState } from "@/components/ListState";
-import { useActiveContextValue } from "@/context/ActiveContextProvider";
 /**
  * SF-S1 — Store roster (T026). Scoped to the ACTIVE TENANT read from RF-1's
  * provider. Pre-gate (OQ-4): with no active tenant we render the scope prompt
@@ -16,6 +15,7 @@ import { useActiveContextValue } from "@/context/ActiveContextProvider";
 import { Link, useNavigate } from "react-router";
 import { ScopePrompt } from "./ScopePrompt";
 import { useStoreList } from "./useStoreQueries";
+import { useStoreScope } from "./useStoreScope";
 import "../shell/surface.css";
 
 type StoreRow = { id: string; code: string; name: string; is_active?: boolean };
@@ -35,13 +35,12 @@ const COLUMNS = [
 ];
 
 export function StoreList(): React.JSX.Element {
-  const { context } = useActiveContextValue();
-  const activeTenant = context?.active_tenant ?? null;
-  const { result, isLoading } = useStoreList(activeTenant?.id ?? null);
+  const { activeTenantId, activeTenantName } = useStoreScope();
+  const { result, isLoading } = useStoreList(activeTenantId);
   const navigate = useNavigate();
 
   // Pre-gate: no active tenant -> scope prompt, no listStores issued (OQ-4).
-  if (!activeTenant) {
+  if (!activeTenantId) {
     return <ScopePrompt />;
   }
   // Residual scope-401 -> scope prompt, NOT a sign-out (OQ-4).
@@ -58,7 +57,7 @@ export function StoreList(): React.JSX.Element {
       <header className="surface__head">
         <div>
           <h1 className="content__title">Stores</h1>
-          <p className="content__sub">Stores in {activeTenant.name}.</p>
+          <p className="content__sub">Stores in {activeTenantName}.</p>
         </div>
         {!isLoading && !error && rows.length > 0 ? (
           <Link to="/stores/new" className="btn-primary">
@@ -76,7 +75,7 @@ export function StoreList(): React.JSX.Element {
       {!isLoading && !error && rows.length === 0 ? (
         <ListState
           state="empty"
-          emptyMessage={`No stores in ${activeTenant.name} yet.`}
+          emptyMessage={`No stores in ${activeTenantName} yet.`}
           action={
             <Link to="/stores/new" className="btn-primary">
               New store

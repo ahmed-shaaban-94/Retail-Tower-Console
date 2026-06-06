@@ -1,6 +1,5 @@
 import { Banner } from "@/components/Banner";
 import { InlineError } from "@/components/InlineError";
-import { useActiveContextValue } from "@/context/ActiveContextProvider";
 import { type Rf2ErrorRender, mapRf2Error } from "@/lib/rf2-queries";
 /**
  * SF-S3 — Store create/edit form (T028). Scoped to the ACTIVE TENANT: the form
@@ -20,6 +19,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ScopePrompt } from "./ScopePrompt";
 import { useStoreMutations } from "./useStoreQueries";
+import { useStoreScope } from "./useStoreScope";
 import "../shell/surface.css";
 
 export interface StoreFormProps {
@@ -32,9 +32,8 @@ export interface StoreFormProps {
 
 export function StoreForm({ mode, storeId, initial }: StoreFormProps): React.JSX.Element {
   const navigate = useNavigate();
-  const { context } = useActiveContextValue();
-  const activeTenant = context?.active_tenant ?? null;
-  const { create, update } = useStoreMutations(activeTenant?.id ?? null, storeId);
+  const { activeTenantId, activeTenantName } = useStoreScope();
+  const { create, update } = useStoreMutations(activeTenantId, storeId);
   const [codeError, setCodeError] = useState<string | undefined>();
   const [banner, setBanner] = useState<Rf2ErrorRender | undefined>();
   const [scopeLost, setScopeLost] = useState(false);
@@ -42,7 +41,7 @@ export function StoreForm({ mode, storeId, initial }: StoreFormProps): React.JSX
   const pending = create.isPending || update.isPending;
 
   // Pre-gate: no active tenant -> scope prompt, the form is not reachable (OQ-4).
-  if (!activeTenant || scopeLost) {
+  if (!activeTenantId || scopeLost) {
     return <ScopePrompt />;
   }
 
@@ -108,7 +107,7 @@ export function StoreForm({ mode, storeId, initial }: StoreFormProps): React.JSX
 
       {/* Scope is fixed to the active tenant — shown, not selectable (FR-004-005). */}
       <p className="surface__scope-line">
-        Creating in tenant <strong>{activeTenant.name}</strong>.
+        Creating in tenant <strong>{activeTenantName}</strong>.
       </p>
 
       <form className="surface__form" onSubmit={onSubmit} noValidate>
