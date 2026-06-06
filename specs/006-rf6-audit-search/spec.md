@@ -61,7 +61,12 @@ router/state/data primitive, or authorize any source file.
   upstream `sc-verification.md`). OQ-5 (foundation) was resolved via dual-repo
   verification. Planning of the `stable` surface is unblocked.
 - The generated client (slice 002, `src/generated/schema.d.ts`, pin `62d0906`)
-  exposes `listAuditEvents`' types. RF-6 is the slice that first consumes it.
+  was generated from the **auth + context** contracts only, so it does **not**
+  yet expose `listAuditEvents`' types. Making them available is a gated
+  implementation task: add `audit.openapi.yaml` to `openapi-ts.config.ts`
+  `OPENAPI_SOURCES` and re-run `pnpm generate:client` **at the same pin
+  `62d0906`** (regeneration at the pinned SHA, not a re-pin; see Non-goals +
+  tasks). RF-6 is the slice that first consumes the audit operation.
 - RF-6 is the **first content-bearing family to attach to the RF-1 app shell**.
   It surfaces a real shared-file pattern (route registration, nav un-gating, a
   new typed operation) that sibling RF-2..RF-7 slices will repeat — specifying
@@ -122,8 +127,13 @@ This spec **does not**:
   are RF-6 *plan/clarify* decisions, recorded in this slice's `plan.md` /
   `/speckit-clarify`, not invented here.
 - Create any `src/` file, route file, component, hook, test file, or mock.
-- Regenerate, edit, or re-pin `src/generated/schema.d.ts`. The generated client
-  is consumed as-is from slice 002's pin (`62d0906`).
+- Regenerate, edit, or re-pin `src/generated/schema.d.ts` **as a spec/plan
+  action**. (RF-6's operation `listAuditEvents` is not in the slice-002
+  auth+context client; adding `audit.openapi.yaml` to `openapi-ts.config.ts` and
+  re-running `pnpm generate:client` **at the same pin `62d0906`** is a gated
+  *implementation* task — regeneration at the pinned SHA, not a re-pin, not a
+  spec action. Per foundation `api-readiness.md`: slices re-run
+  `pnpm generate:client` when their consumed contracts change.)
 - Define, copy, paraphrase, or vendor any byte of Data-Pulse-2's
   `audit.openapi.yaml` or `pos-audit-events.openapi.yaml`. Request/response
   shapes are read from the generated client at implementation time.

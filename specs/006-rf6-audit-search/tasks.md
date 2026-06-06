@@ -50,7 +50,7 @@ shape), not optional. Tests against an approved mock only; never live DP2
 - [ ] T002 Resolve OQ-3 (actor → RF-6 permission matrix) against the pinned Data-Pulse-2 authorization model @ `62d0906`; record the result in `api-readiness.md` + `spec.md` OQ-3 (same edit). This sizes the 403 and empty states accurately (design-brief §4).
 - [ ] T003 If any POS-label-dependent feature is in scope, re-verify the POS sub-rows (OQ-5) against `pos-audit-events.openapi.yaml` @ `62d0906` + POS-Pulse emission semantics before that feature's gate (FR-006-007); record in `api-readiness.md`. (If POS rows render generically per research R6-6, this is a no-op for this slice.)
 - [ ] T004 Confirm zero new runtime dependency is needed (react-router + TanStack Query reused from RF-1; FR-006-010). If `/speckit-clarify` had surfaced one, it would be recorded in `plan.md` as *selected, pending Principle 9* — none was.
-- [ ] T005 [P] Confirm `src/generated/schema.d.ts` exposes `listAuditEvents` types at pin `62d0906`; do not edit the generated file (slice 002 D-7).
+- [ ] T005 🔗 SHARED-FILE Add `packages/contracts/openapi/audit.openapi.yaml` to `OPENAPI_SOURCES` in `openapi-ts.config.ts` and re-run `pnpm generate:client` **at the same pin `62d0906`** so `src/generated/schema.d.ts` exposes `listAuditEvents` types. This is regeneration at the pinned SHA (NOT a re-pin) and edits a slice-002 scaffold config — acknowledge at the FR-008 gate. Sequence vs sibling slices (each adds its own contract to the same config). Do not hand-edit the generated output.
 
 **Checkpoint**: Gate confirmed, actor matrix known, dependency posture confirmed (zero-new), client types present.
 
