@@ -12,6 +12,7 @@ vi.mock("@/lib/client", () => ({
   switchActiveStore: vi.fn(),
   clearActiveStore: vi.fn(),
   signOut: vi.fn(),
+  refreshSession: vi.fn(),
 }));
 
 import { ActiveContextProvider } from "@/context/ActiveContextProvider";

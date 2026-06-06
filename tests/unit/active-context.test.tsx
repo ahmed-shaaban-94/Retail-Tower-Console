@@ -9,6 +9,7 @@ vi.mock("@/lib/client", () => ({
   switchActiveTenant: vi.fn(),
   switchActiveStore: vi.fn(),
   clearActiveStore: vi.fn(),
+  refreshSession: vi.fn(),
 }));
 
 import { useActiveContext } from "@/context/useActiveContext";
@@ -44,6 +45,30 @@ describe("useActiveContext", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.context?.active_tenant?.name).toBe("Northstar Retail");
     expect(result.current.context?.active_store?.name).toBe("Cairo Festival City");
+    expect(result.current.sessionLost).toBe(false);
+  });
+
+  test("401 context + failed refresh -> sessionLost (S5), no context", async () => {
+    vi.mocked(client.getActiveContext).mockResolvedValue({ status: 401 } as never);
+    vi.mocked(client.refreshSession).mockResolvedValue({ status: 401 } as never);
+    const { result } = renderHook(() => useActiveContext(), { wrapper });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.sessionLost).toBe(true);
+    expect(result.current.context).toBeUndefined();
+    expect(client.refreshSession).toHaveBeenCalledTimes(1);
+  });
+
+  test("401 context + successful refresh -> retries, returns context", async () => {
+    vi.mocked(client.getActiveContext)
+      .mockResolvedValueOnce({ status: 401 } as never)
+      .mockResolvedValueOnce(ctx() as never);
+    vi.mocked(client.refreshSession).mockResolvedValue({ status: 200 } as never);
+    const { result } = renderHook(() => useActiveContext(), { wrapper });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.sessionLost).toBe(false);
+    expect(result.current.context?.active_tenant?.name).toBe("Northstar Retail");
   });
 
   test("switchTenant calls the mutator then re-fetches getActiveContext", async () => {

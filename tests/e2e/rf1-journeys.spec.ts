@@ -61,3 +61,20 @@ test("S7: zero memberships renders the no-access state with sign-out", async ({ 
   await expect(page.getByRole("heading", { name: /no assigned access/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /sign out/i })).toBeVisible();
 });
+
+test("S5/A7: a 401 on the protected route redirects to sign-in (refresh also fails)", async ({
+  page,
+}) => {
+  // No session: context (and the refresh retry) both 401. The guard must route
+  // to SF-1, NOT render no-access. Distinguishes 'not signed in' from 'no access'.
+  await page.route("**/api/v1/**", (r) =>
+    r.fulfill({
+      status: 401,
+      contentType: "application/json",
+      body: '{"error":{"code":"unauthenticated"}}',
+    }),
+  );
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/signin$/);
+  await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
+});
