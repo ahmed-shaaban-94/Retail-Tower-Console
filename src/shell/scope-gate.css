@@ -1,0 +1,96 @@
+/* Full-screen scope gate (shape brief). */
+.gate-stage {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-8) var(--space-6);
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(31, 78, 122, 0.12), transparent 55%),
+    var(--color-bg);
+}
+.gate {
+  width: 100%;
+  max-width: 540px;
+  display: grid;
+  gap: var(--space-5);
+}
+.gate__head {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  text-align: center;
+}
+.gate__head .tower-lockup__word {
+  font-size: var(--text-headline);
+}
+.gate__title {
+  margin: var(--space-3) 0 0;
+  font: 700 var(--text-headline) / 1.3 var(--font-sans);
+  letter-spacing: -0.01em;
+}
+.gate__sub {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+.gate__search {
+  position: relative;
+}
+
+.pick-list {
+  list-style: none;
+  margin: 0;
+  padding: 2px;
+  display: grid;
+  gap: var(--space-2);
+  max-height: 320px;
+  overflow: auto;
+}
+.pick {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  transition: border-color var(--duration-2) var(--ease-out),
+    background-color var(--duration-2) var(--ease-out);
+}
+.pick:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-raised);
+}
+.pick__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font: 700 var(--text-label) / 1 var(--font-sans);
+}
+.pick__body {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.pick__name {
+  font: 600 var(--text-body) / 1.3 var(--font-sans);
+}
+.pick__meta {
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+.pick__role {
+  font: 600 var(--text-caption) / 1 var(--font-sans);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
