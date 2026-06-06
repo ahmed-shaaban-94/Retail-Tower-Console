@@ -49,7 +49,7 @@ export function useTenantList() {
       return { kind: "rows", rows: (res.data as TenantSummary[] | undefined) ?? [] };
     },
   });
-  return { result: query.data, isLoading: query.isLoading };
+  return { result: query.data, isLoading: query.isLoading, refetch: () => void query.refetch() };
 }
 
 /** SF-T2 — one tenant by id. 404 renders uniformly (FR-004-008). */

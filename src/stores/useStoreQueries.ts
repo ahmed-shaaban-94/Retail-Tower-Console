@@ -60,7 +60,7 @@ export function useStoreList(activeTenantId: string | null) {
       return { kind: "rows", rows: (res.data as Store[] | undefined) ?? [] };
     },
   });
-  return { result: query.data, isLoading: query.isLoading };
+  return { result: query.data, isLoading: query.isLoading, refetch: () => void query.refetch() };
 }
 
 /** SF-S2 — one store by id. 404 renders uniformly (FR-004-008). */

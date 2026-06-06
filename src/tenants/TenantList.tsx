@@ -23,7 +23,7 @@ const COLUMNS = [
 ];
 
 export function TenantList(): React.JSX.Element {
-  const { result, isLoading } = useTenantList();
+  const { result, isLoading, refetch } = useTenantList();
   const navigate = useNavigate();
 
   const rows = result?.kind === "rows" ? result.rows : [];
@@ -46,7 +46,18 @@ export function TenantList(): React.JSX.Element {
       </header>
 
       {error && error.kind === "banner" ? (
-        <Banner variant="danger" message={error.message} requestId={error.requestId} />
+        <Banner
+          variant="danger"
+          message={error.message}
+          requestId={error.requestId}
+          action={
+            error.retryable ? (
+              <button type="button" className="btn-ghost" onClick={refetch}>
+                Retry
+              </button>
+            ) : undefined
+          }
+        />
       ) : null}
 
       {isLoading ? <ListState state="loading" label="tenants" /> : null}

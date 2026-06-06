@@ -36,7 +36,7 @@ const COLUMNS = [
 
 export function StoreList(): React.JSX.Element {
   const { activeTenantId, activeTenantName } = useStoreScope();
-  const { result, isLoading } = useStoreList(activeTenantId);
+  const { result, isLoading, refetch } = useStoreList(activeTenantId);
   const navigate = useNavigate();
 
   // Pre-gate: no active tenant -> scope prompt, no listStores issued (OQ-4).
@@ -67,7 +67,18 @@ export function StoreList(): React.JSX.Element {
       </header>
 
       {error ? (
-        <Banner variant="danger" message={error.message} requestId={error.requestId} />
+        <Banner
+          variant="danger"
+          message={error.message}
+          requestId={error.requestId}
+          action={
+            error.retryable ? (
+              <button type="button" className="btn-ghost" onClick={refetch}>
+                Retry
+              </button>
+            ) : undefined
+          }
+        />
       ) : null}
 
       {isLoading ? <ListState state="loading" label="stores" /> : null}

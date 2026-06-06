@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -86,5 +86,19 @@ describe("TenantList state matrix", () => {
     renderList();
     await waitFor(() => expect(screen.getByRole("alert")).toBeDefined());
     expect(screen.getByText(/try again/i)).toBeDefined();
+  });
+
+  test("5xx retry button refetches; success on retry renders the rows", async () => {
+    listTenants
+      .mockResolvedValueOnce({ status: 503, error: { error: { request_id: "req-503" } } })
+      .mockResolvedValueOnce({
+        status: 200,
+        data: [{ id: "t1", slug: "northstar", name: "Northstar Retail" }],
+      });
+    renderList();
+    const retry = await screen.findByRole("button", { name: /retry/i });
+    fireEvent.click(retry);
+    expect(await screen.findByText("Northstar Retail")).toBeDefined();
+    expect(listTenants).toHaveBeenCalledTimes(2);
   });
 });
