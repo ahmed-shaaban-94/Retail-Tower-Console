@@ -137,6 +137,17 @@ smuggled edit. **No edit happens at planning time** (spec FR-004-010):
 Both are recorded as explicit tasks in [`tasks.md`](./tasks.md) with the
 shared-file flag.
 
+**Conditional third touch — RF-1's 401 interceptor.** The stores contract returns
+`401` ("No active tenant") as a *scope precondition*, but RF-1's
+`src/lib/auth-interceptor.ts` treats every `401` as session-expiry (research
+R4-2). The **recommended** resolution avoids touching the interceptor: RF-2
+**pre-gates** store calls on the active tenant read from RF-1's
+`ActiveContextProvider` (no active tenant → route to the scope chooser, never
+issue the store call), so the scope `401` is *avoided*, not interpreted. Only if
+that proves insufficient does RF-2 extend `src/lib/auth-interceptor.ts` to
+distinguish the two `401`s — a **third** shared-file touch, flagged then. The
+default plan adds no interceptor change.
+
 ---
 
 ## Per-decision deferral / reuse discipline
@@ -169,10 +180,13 @@ the implementation traces to:
   `.btn-primary`/`.btn-secondary`/`.btn-destructive` / `.input` / `.badge` /
   `.alert` / `.card`.
 - **Full state matrix per surface** (default / empty / loading / error /
-  success), with errors first-class through the shared banner/inline surface:
-  403 permission (banner + `request_id`), 404 uniform, 409 slug-conflict inline
-  + 409 no-active-tenant as a scope prompt, 422 field-validation inline, 429
-  retry-after with disabled submit.
+  success), with errors first-class through the shared banner/inline surface,
+  mapped to the statuses the tenant/store contracts actually define @ `62d0906`:
+  403 permission (banner + `request_id`), 404 uniform, 409 tenant-slug-conflict
+  inline + 409 store-code-conflict inline (OQ-9), 401 no-active-tenant on store
+  ops as a scope prompt distinct from session-expiry 401 (OQ-4), 5xx retry-able
+  banner. The contracts document no 422/429 on these ten ops, so RF-2 asserts
+  none (Principle 2 / FR-011).
 - **No frontend authorization** (the brief's hard rule, matching spec
   FR-004-004): actions are rendered and the backend 403 is shown; roles are
   display-only badges; the list is backend-scoped; store forms have no tenant
@@ -190,13 +204,13 @@ RF-2's validation gates (to be ratified in `tasks.md` per spec OQ-7):
 
 - **VG-1 — Unit coverage.** Vitest unit coverage ≥ the repo threshold for the
   RF-2 list/detail/form state logic (the default/empty/loading/error/success
-  matrix per surface) and the error-mapping (403/404/409/422/429/5xx) logic.
+  matrix per surface) and the error-mapping (403/404/409/401-scope/5xx) logic.
 - **VG-2 — E2E journeys.** Playwright journeys covering: tenant roster + detail
   (S1), tenant onboard + 409 slug-conflict (S2), unpermitted action → 403 render
-  (S3), store list in active tenant (S4), store create with no active tenant →
-  scope prompt (S5), store edit + 422 inline (S6), tenant-switch re-scopes list
-  (S7), soft-delete + uniform 404 (S8). Driven against an approved mock
-  (FR-004-012), not live DP2.
+  (S3), store list in active tenant (S4), store list/create with no active tenant
+  → scope prompt via 401, not sign-out (S5), store edit + 409 store-code conflict
+  inline (S6), tenant-switch re-scopes list (S7), soft-delete + uniform 404 (S8).
+  Driven against an approved mock (FR-004-012), not live DP2.
 - **VG-3 — Boundary grep.** A check that no hand-written `fetch(`/XHR targets a
   Data-Pulse-2 path (only the generated client is used); no OpenAPI bytes (field
   names, slug pattern, status enum, validation rule) copied; no `Authorization:

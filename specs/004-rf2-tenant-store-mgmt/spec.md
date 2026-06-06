@@ -105,9 +105,20 @@ R4-1..R4-5. This section records only resolutions that name no library.
 - Q: OQ-4 — What does a store-management surface do when there is no active
   tenant? → A: It **requires an active tenant first.** Store list/detail/create
   are tenant-scoped; with no active tenant the surface routes the operator to
-  resolve scope (the RF-1 scope chooser) before any store call. A `createStore`
-  / `listStores` 409 ("no active tenant") is rendered as a scope prompt, mirroring
-  RF-1's `switchActiveStore` 409 rule. Applies to Scenarios S5/S7.
+  resolve scope (the RF-1 scope chooser) before any store call. The backend
+  signals "no active tenant" with **`401`** on `listStores` / `createStore` (per
+  the stores contract). RF-2 MUST distinguish this scope-precondition `401` from
+  a session-expiry `401`: a no-active-tenant `401` routes to the **scope chooser**
+  (resolve tenant), not through RF-1's session-expiry refresh-then-sign-out path.
+  Applies to Scenarios S5/S7. (Note: the store-write `409` is a **store-code
+  conflict**, a distinct case handled inline — see OQ-9.)
+- Q: OQ-9 — What is the `createStore` / `updateStore` conflict case, and how is
+  it rendered? → A: The store-write **`409` is a store-code conflict within the
+  tenant** (a duplicate `code`), per the stores contract — it is **not** a
+  "no active tenant" signal (that is `401`, OQ-4). RF-2 renders the store `409`
+  **inline** on the code field (parallel to the tenant `createTenant` `409`
+  slug-conflict), not as a scope prompt. Recorded so the store error matrix maps
+  `401`→scope and `409`→inline-code-conflict, distinctly. Applies to Scenario S6.
 - Q: OQ-5 — Does RF-2 add any context operation to read the membership graph
   (active tenant, `memberships[]`)? → A: **No.** RF-2 reads active tenant scope
   and `memberships[]` from RF-1's already-built active-context provider; it adds
@@ -127,7 +138,7 @@ R4-1..R4-5. This section records only resolutions that name no library.
 ### Headless clarify verification (Session 2026-06-06)
 
 Run headless (no human present); each question above was self-answered with the
-recommended option. Two consistency checks were performed and **passed**:
+recommended option. Three consistency checks were performed and **passed**:
 
 1. **AC-5 self-check.** Grepped `spec.md` for router/state/framework/table
    primitive names. The only hits are the slice-002 stack named as *fixed
@@ -140,12 +151,25 @@ recommended option. Two consistency checks were performed and **passed**:
      client filter. Consistent.
    - OQ-3 (no pre-hide; render → 403) ↔ S3/S6: write attempts reach the backend
      and 403s are rendered; no scenario pre-hides a control. Consistent.
-   - OQ-4 (require active tenant for store) ↔ S5/S7: store surfaces resolve scope
-     first; 409 renders as a scope prompt. Consistent.
+   - OQ-4 (no-active-tenant `401` → scope prompt) ↔ S5/S7: store surfaces resolve
+     scope first; the scope-precondition `401` renders as a scope prompt, not a
+     sign-out. Consistent.
    - OQ-5 (zero new context op) ↔ S7: scope read from RF-1's provider; RF-2 holds
      no authoritative scope. Consistent.
+   - OQ-9 (store `409` = code conflict, inline) ↔ S6: distinct from the `401`
+     scope case. Consistent.
    No OQ-vs-Scenario contradiction found (the 003 OQ-2-vs-S5 class is absent
    here).
+3. **Contract-fidelity reconciliation (added after reading
+   `tenants.openapi.yaml` + `stores.openapi.yaml` end-to-end @ pin `62d0906`).**
+   The error matrix was corrected to match the contracts exactly: store
+   no-active-tenant is **`401`** (not `409`); store-write `409` is a **store-code
+   conflict** (inline, OQ-9); `createTenant` `409` is a slug conflict; `404` is
+   uniform; the verbs are `PATCH` for both updates; and the contracts document
+   **no `422`/`429`** on these ten operations, so RF-2 does not assert them
+   (FR-004-007). This closed an optimistic-classification risk (Principle 2 /
+   foundation FR-011): the prior draft had read the store `409`/`401` from a
+   keyhole grep and conflated them.
 
 ---
 
@@ -163,9 +187,11 @@ recommended option. Two consistency checks were performed and **passed**:
 - **G4.** Enumerate the **exactly ten** Data-Pulse-2 operations RF-2 consumes,
   with no addition beyond the foundation RF-2 consumption boundary, and assert
   that RF-2 adds **zero** new context operation (reuses RF-1's provider).
-- **G5.** Specify the **error-rendering** behaviors for the status codes RF-2
-  encounters (400/403/404/409/422/429/5xx), reusing the RF-1 shared error
-  surface, including the uniform-404 and slug-conflict cases.
+- **G5.** Specify the **error-rendering** behaviors for the status codes the
+  tenant/store contracts actually define (`403`/`404`/`409`/store-`401`/`5xx`),
+  reusing the RF-1 shared error surface, including the uniform-404, the tenant
+  slug- and store-code-conflict cases, and the no-active-tenant `401` scope
+  prompt (distinct from session-expiry).
 - **G6.** Define the **functional requirements** and **acceptance criteria** any
   RF-2 plan / task list / implementation slice must satisfy.
 - **G7.** Record the **open questions** that must resolve before an RF-2
@@ -245,10 +271,10 @@ navigation, table columns, and interaction design are deferred to this slice's
 | --- | --- | --- |
 | SF-T1 | Tenant list | Renders the backend-scoped set of tenants (`listTenants`) as a table (DESIGN.md tables-over-cards). No client-side authorization filter (OQ-2). Entry point to tenant detail and (where the backend permits) tenant create. |
 | SF-T2 | Tenant detail | Read view of a single tenant (`readTenant`): its fields and status, rendered for display. Surfaces the path to edit/soft-delete; the backend decides whether those succeed. |
-| SF-T3 | Tenant create / edit | Collects tenant fields, calls `createTenant` or `updateTenant`, and reacts to the response (success → detail/list; 403 → permission error; 409 → slug/identity conflict; 422 → field-validation error from the backend). Soft-delete (`softDeleteTenant`) is offered here or from SF-T2 with a confirm step. |
-| SF-S1 | Store list | Renders the active tenant's stores (`listStores`) as a table. Tenant-scoped via RF-1's active context; no active tenant → scope prompt (OQ-4). |
-| SF-S2 | Store detail | Read view of a single store (`readStore`) within the active tenant. |
-| SF-S3 | Store create / edit | Collects store fields scoped to the **active tenant** (no tenant picker in the form — scope comes from RF-1's active context), calls `createStore` or `updateStore`, reacts to the response (success; 403; 409 no-active-tenant → scope prompt; 422 field validation). Soft-delete (`softDeleteStore`) with a confirm step. |
+| SF-T3 | Tenant create / edit | Collects tenant fields, calls `createTenant` or `updateTenant`, and reacts to the response (success → detail/list; 403 → permission error on create/soft-delete; 409 → slug conflict inline on create; 404 → uniform on update). Soft-delete (`softDeleteTenant`) is offered here or from SF-T2 with a confirm step. |
+| SF-S1 | Store list | Renders the active tenant's stores (`listStores`) as a table. Tenant-scoped via RF-1's active context; no active tenant → backend `401` rendered as a **scope prompt** (resolve tenant first), distinct from a session-expiry 401 (OQ-4). |
+| SF-S2 | Store detail | Read view of a single store (`readStore`) within the active tenant. 404 uniform on absent/no-access. |
+| SF-S3 | Store create / edit | Collects store fields scoped to the **active tenant** (no tenant picker in the form — scope comes from RF-1's active context), calls `createStore` or `updateStore`, reacts to the response (success; 403 insufficient role; 409 store-code conflict inline on the code field, OQ-9; 401 no-active-tenant → scope prompt, OQ-4; 404 uniform on update). Soft-delete (`softDeleteStore`) with a confirm step. |
 | SF-L | Scope-aware layout | The shared frame: RF-2 mounts inside RF-1's authenticated app shell (SF-2) and reads active tenant/store from RF-1's active-context provider (SF-3). The persistent gold scope header (RF-1) shows the current tenant/store; switching scope re-fetches RF-2 lists. RF-2 adds **no** new context state — it consumes RF-1's. |
 
 **Reuse rule.** SF-L is **not** a new shell. RF-2 renders within RF-1's
@@ -260,9 +286,12 @@ files RF-2 touches (tracked in `tasks.md`, not edited by this spec).
 
 **Scope-before-action rule.** A store surface requires a resolved active tenant
 (OQ-4). With none, RF-2 routes the operator to RF-1's scope chooser before any
-store call, and renders a `listStores`/`createStore` 409 ("no active tenant") as
-a scope prompt rather than a raw error. This mirrors RF-1's `switchActiveStore`
-409 behavior and honors PRODUCT.md Principle 1 (scope before action).
+store call. The stores contract returns **`401` ("No active tenant")** on
+`listStores` / `createStore` when no active tenant is set; RF-2 MUST treat this
+scope-precondition `401` as a **scope prompt** (resolve tenant first), distinct
+from a session-expiry `401` (which goes through RF-1's reactive-refresh path).
+This honors PRODUCT.md Principle 1 (scope before action) and avoids
+misrendering a scope gap as a session expiry.
 
 ---
 
@@ -364,21 +393,23 @@ A3 has an active tenant resolved (RF-1). A3 opens the store list (SF-S1).
 The set is whatever the backend scopes to A3 (OQ-2). A tenant with no stores yet
 renders the empty state with the create entry point (OQ-8).
 
-### Scenario S5 — Store create with no active tenant
+### Scenario S5 — Store list/create with no active tenant
 
-An operator opens the store create surface (SF-S3) with no active tenant
-resolved. RF-2 routes to the RF-1 scope chooser first (OQ-4); if a `createStore`
-or `listStores` call nonetheless returns 409 ("no active tenant"), RF-2 renders
-it as a scope prompt (resolve tenant first), mirroring RF-1's `switchActiveStore`
-409 rule — not as a raw error.
+An operator reaches a store surface (SF-S1/SF-S3) with no active tenant resolved.
+RF-2 routes to the RF-1 scope chooser first (OQ-4); if a `listStores` or
+`createStore` call nonetheless returns **`401` ("No active tenant")**, RF-2
+renders it as a **scope prompt** (resolve tenant first) — distinct from a
+session-expiry `401`, which RF-1's interceptor handles via reactive refresh. RF-2
+does not let a scope-precondition `401` trigger a sign-out (FR-004-006).
 
 ### Scenario S6 — Tenant Admin edits a store
 
 A3 opens a store detail (SF-S2, `readStore`), edits fields (SF-S3,
 `updateStore`). On success, RF-2 re-fetches the store and the store list. A
-field the backend rejects (422 validation) is surfaced inline against that
-field; a permission rejection (403) is surfaced via the shared error surface.
-RF-2 implements no field validation of its own (FR-004-004).
+permission rejection (`403` insufficient role) is surfaced via the shared error
+surface; a `404` is rendered uniformly. A `createStore` store-**code** conflict
+(`409`) is surfaced **inline** on the code field (OQ-9), parallel to the tenant
+slug conflict. RF-2 implements no field validation of its own (FR-004-004).
 
 ### Scenario S7 — Tenant switch re-scopes the store list
 
@@ -440,25 +471,43 @@ anchored to a foundation FR or constitution principle.
   holds. A scope change (an RF-1 action) re-fetches RF-2's lists.
   *Anchors:* foundation `data-model.md` E-3; RF-1 FR-003-005; OQ-5.
 
-- **FR-004-006 — Scope before a store action.** A store surface MUST require a
-  resolved active tenant. With none, RF-2 routes to RF-1's scope chooser before
-  any store call, and renders a `listStores`/`createStore` 409 ("no active
-  tenant") as a scope prompt — mirroring RF-1's `switchActiveStore` 409 rule.
-  *Anchors:* PRODUCT.md Principle 1; foundation contract `switchActiveStore` 409
-  rule; OQ-4.
+- **FR-004-006 — Scope before a store action; scope-`401` is not session-expiry.**
+  A store surface MUST require a resolved active tenant. With none, RF-2 routes to
+  RF-1's scope chooser before any store call. The stores contract returns
+  **`401` ("No active tenant")** on `listStores` / `createStore`; RF-2 MUST
+  distinguish this scope-precondition `401` from a session-expiry `401` and render
+  it as a **scope prompt** (resolve tenant first), NOT route it through RF-1's
+  reactive-refresh-then-sign-out path. (How the interceptor disambiguates the two
+  401s is a `plan.md`/`research.md` mechanism, not a spec decision.)
+  *Anchors:* PRODUCT.md Principle 1; stores contract `listStores`/`createStore`
+  `401`; OQ-4.
 
 ### Error rendering
 
 - **FR-004-007 — RF-2 error behaviors via the shared surface.** RF-2 MUST render
   its 4xx/5xx states through the RF-1 shared error/banner surface (reuse, not a
-  new surface): `403` permission rejection (no pre-hide; OQ-3); `409` slug /
-  identity conflict on `createTenant` (inline on the form) and `409` no-active-
-  tenant on store writes (scope prompt; FR-004-006); `422` field-validation
-  errors surfaced inline against the offending field (the backend is the
-  validation authority); `429` retry-after on writes with a disabled submit.
-  All 4xx responses surface the backend `request_id` in the user-visible message.
+  new surface), mapping each status to the behavior the tenant/store contracts
+  actually define at pin `62d0906`:
+  - `403` permission rejection (`createTenant` / `softDeleteTenant` not platform
+    admin; `createStore` / `updateStore` insufficient role) — rendered via the
+    shared banner; **no pre-hide** (OQ-3).
+  - `409` **slug** conflict on `createTenant`, and `409` **store-code** conflict
+    on `createStore` — both rendered **inline** on the offending field (OQ-9).
+  - `401` "No active tenant" on `listStores` / `createStore` — rendered as a
+    **scope prompt**, distinct from a session-expiry `401` (FR-004-006).
+  - `404` rendered **uniformly** on `readTenant`/`updateTenant`/`readStore`/
+    `updateStore`/`softDeleteStore` (FR-004-008).
+  - `5xx` rendered as a retry-able banner.
+
+  All 4xx responses surface the backend `request_id` (where present) in the
+  user-visible message. RF-2 implements **no** client-side field validation; the
+  slug pattern, store-code length, and status enum are backend-enforced and
+  surfaced as the backend reports them (AS-5). (The tenant/store contracts at this
+  pin do **not** document a `422` or `429` on these ten operations; RF-2 does not
+  invent them. If the backend later adds a validation/`429` envelope, the shared
+  surface renders it without an RF-2 contract change.)
   *Anchors:* foundation `data-model.md` VD-4; RF-1 FR-003-007 (shared surface
-  reuse).
+  reuse); tenant/store contracts @ `62d0906`.
 
 - **FR-004-008 — Uniform 404.** RF-2 MUST render tenant/store 404 responses
   identically regardless of cause (resource absent vs. no access), per the
@@ -571,9 +620,13 @@ acceptance of this spec as a `/speckit-specify` output.
 
 - **OQ-4 — Store surface with no active tenant.** **RESOLVED (Session
   2026-06-06): require active tenant first.** Route to RF-1's scope chooser
-  before any store call; render a `listStores`/`createStore` 409 ("no active
-  tenant") as a scope prompt, mirroring RF-1's `switchActiveStore` 409. Applies
-  to Scenarios S5/S7.
+  before any store call. Per the stores contract, `listStores`/`createStore`
+  return **`401` ("No active tenant")** when none is set; RF-2 renders this
+  scope-precondition `401` as a **scope prompt**, distinct from a session-expiry
+  `401` (which RF-1's interceptor handles via reactive refresh). The interceptor
+  disambiguation mechanism is a `plan.md`/`research.md` concern. Applies to
+  Scenarios S5/S7. (Corrected 2026-06-06 after reading the stores contract
+  end-to-end: the no-active-tenant signal is `401`, not `409`.)
 
 - **OQ-5 — New context operation vs reuse.** **RESOLVED (Session 2026-06-06):
   reuse, zero new context op.** RF-2 reads active tenant scope and
@@ -600,6 +653,14 @@ acceptance of this spec as a `/speckit-specify` output.
   pre-hidden by role (OQ-3); an unpermitted create 403s on attempt. Anchors the
   design brief's default/empty/loading/error/success state matrix. Reconciled
   into Scenarios S1/S4.
+
+- **OQ-9 — Store-write `409` meaning.** **RESOLVED (2026-06-06, after reading the
+  stores contract):** the `createStore` `409` is a **store-code conflict within
+  the tenant** (duplicate `code`), not a "no active tenant" signal. RF-2 renders
+  it **inline** on the code field (parallel to the tenant `createTenant` slug
+  `409`), while the no-active-tenant case is the `401` of OQ-4. This split the
+  formerly conflated store error into two distinct, contract-faithful behaviors.
+  Reconciled into Scenario S6 and FR-004-007.
 
 ---
 

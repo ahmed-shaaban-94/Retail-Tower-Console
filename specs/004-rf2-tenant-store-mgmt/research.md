@@ -46,24 +46,45 @@ discipline, but resolves to *reuse* rather than *new selection*.
   (`openapi-fetch`, slice 002 D-2) — no hand-rolled `fetch` to a DP2 path (spec
   FR-004-002). Support list queries, detail queries, create/update/soft-delete
   mutations with re-fetch-after-mutation, the RF-1 401 reactive-refresh
-  interceptor, and the typed-error mapping (403/404/409/422/429/5xx). Run in
+  interceptor (with the store no-active-tenant `401` disambiguated — see note
+  below), and the typed-error mapping (403/404/409/401-scope/5xx; the contracts
+  document no 422/429 on these ops). Run in
   tests without live DP2 (slice 002 C-5).
 - **Alternatives considered:** reuse RF-1's TanStack Query + `openapi-fetch`
   client; SWR; plain `openapi-fetch` in effects; a new thin hook layer.
 - **Decision (Session 2026-06-06): reuse RF-1's TanStack Query over the shared
   `openapi-fetch` client** (`src/lib/client.ts`, `src/lib/query.ts`). Lists and
   details are queries; create/update/soft-delete are mutations that invalidate +
-  re-fetch the relevant list/detail. The 401 interceptor is RF-1's, unchanged.
-  **No dependency added.**
+  re-fetch the relevant list/detail. **No dependency added.**
+- **401-disambiguation note (added after reading the stores contract @ `62d0906`).**
+  `listStores`/`createStore` return **`401` ("No active tenant")** as a
+  scope-precondition — but RF-1's interceptor (`src/lib/auth-interceptor.ts`)
+  currently treats **every** `401` as session-expiry (refresh-once, then
+  clear-cache + redirect to sign-in if refresh fails). A store no-active-tenant
+  `401` would therefore be misrendered as a sign-out. RF-2 MUST disambiguate.
+  Constraint: the disambiguation must not weaken RF-1's session-expiry behavior.
+  **Options (resolve in the gated build):** (a) **pre-gate the store calls on the
+  active tenant** read from RF-1's `ActiveContextProvider` — if no active tenant,
+  route to the scope chooser and never issue the store call (so the `401` is
+  avoided, not interpreted); (b) extend the interceptor to distinguish the store
+  no-active-tenant `401` (e.g. by response body/code) from a session-expiry `401`.
+  **Recommended: (a)** — it needs **no** edit to RF-1's interceptor (preferred:
+  zero shared-interceptor change), is the cleaner "scope before action"
+  realization, and keeps RF-1's session semantics untouched. If (b) is ever
+  needed, it is a **third shared-file touch** (`src/lib/auth-interceptor.ts`) and
+  is flagged as such. This is recorded as design-brief/plan open item, resolved
+  at implementation. **No dependency added.**
 
 ## R4-3 — Create/edit form handling + error surface
 
 - **Constraint:** Two small forms (tenant: a couple of fields; store: a couple of
-  fields, no tenant picker — scope from active context). Must surface backend
-  422 field-validation inline, 409 slug-conflict inline (tenant create), 403
-  permission via the shared banner, 429 retry-after with disabled submit (spec
-  FR-004-007). RF-2 implements **no** business validation (FR-004-004; the
-  backend is the validation authority). No secret/credential committed.
+  fields, no tenant picker — scope from active context). Must surface the
+  conflict the contract defines inline: `createTenant` `409` slug conflict and
+  `createStore` `409` store-code conflict (OQ-9); `403` permission via the shared
+  banner; backend field-validation messages inline as reported. (The tenant/store
+  contracts document **no** `422`/`429` envelope on these ops; RF-2 asserts none.)
+  RF-2 implements **no** business validation (FR-004-004; the backend is the
+  validation authority). No secret/credential committed.
 - **Alternatives considered:** a form library (React Hook Form / TanStack Form);
   reuse RF-1's uncontrolled-native-form posture; reuse RF-1's `Banner` +
   `InlineError` for errors vs a new surface.

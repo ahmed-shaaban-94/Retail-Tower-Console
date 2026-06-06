@@ -61,7 +61,7 @@ never live DP2 (FR-004-012, slice 002 C-5).
 
 **⚠️ CRITICAL**: Reuse RF-1's client/query/router/error surface; do not re-create them.
 
-- [ ] T005 Add the RF-2 query keys + typed-error mapping helper in `src/lib/rf2-queries.ts` over the **reused** openapi-fetch client: map 403→banner, 404→uniform, 409→(slug inline | no-active-tenant scope prompt), 422→inline field, 429→retry-after (design-brief §6; FR-004-007/008). No new client.
+- [ ] T005 Add the RF-2 query keys + typed-error mapping helper in `src/lib/rf2-queries.ts` over the **reused** openapi-fetch client, mapping the statuses the tenant/store contracts actually define @ `62d0906`: 403→banner; 404→uniform; 409→inline conflict (tenant slug | store code, OQ-9); store **401** "No active tenant"→scope prompt **distinct from session-expiry 401** (must not trigger RF-1 sign-out; FR-004-006, OQ-4); 5xx→retry-able banner. No 422/429 asserted (contracts document none). No new client (design-brief §6; FR-004-007/008).
 - [ ] T006 [P] Implement the shared list-table presenter in `src/components/DataTable.tsx` using the DESIGN.md `.data-table` from `src/styles` tokens (tables-over-cards; row→detail; 36px touch floor; AA contrast). No table library (research R4-4).
 - [ ] T007 [P] Implement the shared empty-state + loading-skeleton presenters in `src/components/ListState.tsx` (default/empty/loading distinct; empty is a successful zero-row state, not an error — spec OQ-8, design-brief §6). Reuse Banner for error state.
 - [ ] T008 [P] Implement the shared destructive-confirm affordance in `src/components/ConfirmDelete.tsx` (`.btn-destructive` + confirm step; names the resource; single-primary rule). Used by SF-T3/SF-S3 soft-delete (design-brief §7).
@@ -81,7 +81,7 @@ never live DP2 (FR-004-012, slice 002 C-5).
 ### Tests for tenant surfaces
 
 - [ ] T011 [P] [US1] Unit test the tenant-list state matrix (default/empty/loading/error/success; backend-scoped, no client filter) in `tests/unit/tenant-list.test.tsx` (VG-1; spec OQ-2/OQ-8).
-- [ ] T012 [P] [US2] Unit test the tenant create/edit branching (success / 409 slug inline / 422 inline / 403 banner / 429 retry-after) in `tests/unit/tenant-form.test.tsx` (VG-1; FR-004-007).
+- [ ] T012 [P] [US2] Unit test the tenant create/edit branching (success / 409 slug-conflict inline / 403 banner on create+soft-delete / 404 uniform on update) in `tests/unit/tenant-form.test.tsx` (VG-1; FR-004-007). No 422/429 (createTenant contract documents 201/403/409 only).
 - [ ] T013 [P] [US1] E2E tenant roster → detail (S1), incl. empty state, in `tests/e2e/tenant-roster.spec.ts` (VG-2, Scenario S1).
 - [ ] T014 [P] [US2] E2E tenant onboard + 409 slug-conflict (S2) in `tests/e2e/tenant-create.spec.ts` (VG-2, Scenario S2).
 - [ ] T015 [P] [US3] E2E unpermitted tenant-create attempt → 403 rendered, operator stays in place (S3), in `tests/e2e/tenant-403.spec.ts` (VG-2, Scenario S3, FR-004-004).
@@ -90,7 +90,7 @@ never live DP2 (FR-004-012, slice 002 C-5).
 
 - [ ] T016 [US1] Implement the tenant list (SF-T1) in `src/tenants/TenantList.tsx` using the shared DataTable + ListState: render the backend-scoped `listTenants` set (no client filter — OQ-2); zero rows → empty state with create entry point (OQ-8); the "New tenant" primary is rendered for all (no role pre-hide — OQ-3).
 - [ ] T017 [US1] Implement the tenant detail (SF-T2) in `src/tenants/TenantDetail.tsx` via `readTenant`: field rows + status `.badge`; `is_platform_admin`/`role_code` display-only badges (FR-004-004); 404 uniform (FR-004-008); edit + soft-delete rendered for all.
-- [ ] T018 [US2] Implement the tenant create/edit form (SF-T3) in `src/tenants/TenantForm.tsx` as an uncontrolled native form (no form library; research R4-3): calls `createTenant`/`updateTenant`; 409 slug → InlineError on the slug field; 422 → inline field error from the backend; 403 → Banner; 429 → retry-after disabled submit. No client-side validation (FR-004-004/AS-5).
+- [ ] T018 [US2] Implement the tenant create/edit form (SF-T3) in `src/tenants/TenantForm.tsx` as an uncontrolled native form (no form library; research R4-3): calls `createTenant`/`updateTenant`; **409 slug conflict → InlineError on the slug field**; 403 → Banner (create not platform admin); 404 uniform on update. No client-side validation; backend field errors render inline as reported (FR-004-004/AS-5). No 422/429 asserted (contract documents none).
 - [ ] T019 [US8] Implement tenant soft-delete in `src/tenants/useTenantDelete.ts` calling `softDeleteTenant` behind the shared ConfirmDelete; re-fetch the list on success; 404 uniform (S8, FR-004-008).
 
 **Checkpoint**: Tenant surfaces functional + independently testable against a mock.
@@ -101,22 +101,22 @@ never live DP2 (FR-004-012, slice 002 C-5).
 
 **Goal**: The store roster/detail/create-edit/soft-delete, scoped to the active tenant from RF-1 (plan.md build order #2).
 
-**Independent Test**: With an active tenant resolved (RF-1), `listStores` renders that tenant's stores; with no active tenant a store surface routes to the RF-1 scope chooser and a 409 renders as a scope prompt; the store form has no tenant picker; a tenant switch re-scopes the list; soft-delete re-fetches.
+**Independent Test**: With an active tenant resolved (RF-1), `listStores` renders that tenant's stores; with no active tenant a store surface pre-gates to the RF-1 scope chooser and a residual `401` renders as a scope prompt (not a sign-out); the store form has no tenant picker; a store-code `409` renders inline; a tenant switch re-scopes the list; soft-delete re-fetches.
 
 ### Tests for store surfaces
 
-- [ ] T020 [P] [US4] Unit test the store-list state matrix incl. no-active-tenant → scope prompt (409) in `tests/unit/store-list.test.tsx` (VG-1; FR-004-006).
-- [ ] T021 [P] [US6] Unit test the store create/edit branching (success / 422 inline / 403 banner / 409 no-active-tenant scope prompt) and the **no tenant picker** invariant in `tests/unit/store-form.test.tsx` (VG-1; FR-004-005/007).
+- [ ] T020 [P] [US4] Unit test the store-list state matrix incl. no-active-tenant **pre-gate** + residual `401` → scope prompt (not sign-out) in `tests/unit/store-list.test.tsx` (VG-1; FR-004-006, OQ-4).
+- [ ] T021 [P] [US6] Unit test the store create/edit branching (success / **409 store-code conflict inline** / 403 banner / **401 no-active-tenant scope prompt, not sign-out** / 404 uniform) and the **no tenant picker** invariant in `tests/unit/store-form.test.tsx` (VG-1; FR-004-005/007, OQ-9). No 422/429 (contracts document none).
 - [ ] T022 [P] [US4] E2E store list in the active tenant (S4), incl. empty state, in `tests/e2e/store-list.spec.ts` (VG-2, Scenario S4).
-- [ ] T023 [P] [US5] E2E store create with no active tenant → scope prompt (S5) in `tests/e2e/store-scope-prompt.spec.ts` (VG-2, Scenario S5, FR-004-006).
+- [ ] T023 [P] [US5] E2E store list/create with no active tenant → scope prompt (residual `401`, not a sign-out) (S5) in `tests/e2e/store-scope-prompt.spec.ts` (VG-2, Scenario S5, FR-004-006, OQ-4).
 - [ ] T024 [P] [US7] E2E tenant switch re-scopes the store list (S7) in `tests/e2e/store-rescope.spec.ts` (VG-2, Scenario S7, OQ-5).
 - [ ] T025 [P] [US8] E2E store soft-delete + uniform 404 (S8) in `tests/e2e/store-delete.spec.ts` (VG-2, Scenario S8).
 
 ### Implementation for store surfaces
 
-- [ ] T026 [US4] Implement the store list (SF-S1) in `src/stores/StoreList.tsx`: read active tenant from the **reused** `ActiveContextProvider`; render `listStores` (active-tenant-scoped) via the shared DataTable + ListState; no active tenant → route to RF-1 scope chooser; 409 → scope prompt (FR-004-006); zero rows → empty state.
+- [ ] T026 [US4] Implement the store list (SF-S1) in `src/stores/StoreList.tsx`: **pre-gate on the active tenant** read from the **reused** `ActiveContextProvider` — if no active tenant, route to RF-1's scope chooser and do **not** issue `listStores` (research R4-2 option (a), so the scope `401` is avoided, not interpreted as a sign-out). With an active tenant, render `listStores` via the shared DataTable + ListState; a residual `401` "No active tenant" → scope prompt (FR-004-006, OQ-4), never a sign-out; zero rows → empty state.
 - [ ] T027 [US4] Implement the store detail (SF-S2) in `src/stores/StoreDetail.tsx` via `readStore`: field rows; 404 uniform (FR-004-008).
-- [ ] T028 [US6] Implement the store create/edit form (SF-S3) in `src/stores/StoreForm.tsx`: uncontrolled native form scoped to the **active tenant** with **no tenant picker** (scope shown as a read-only line — FR-004-005); calls `createStore`/`updateStore`; 409 no-active-tenant → scope prompt; 422 inline; 403 Banner; 429 retry-after.
+- [ ] T028 [US6] Implement the store create/edit form (SF-S3) in `src/stores/StoreForm.tsx`: uncontrolled native form scoped to the **active tenant** with **no tenant picker** (scope shown as a read-only line — FR-004-005); pre-gate on active tenant (as T026); calls `createStore`/`updateStore`; **409 store-code conflict → inline on the code field** (OQ-9); residual **401 no-active-tenant → scope prompt** (not a sign-out; OQ-4); 403 Banner; 404 uniform on update. (No 422/429 — contracts document none; backend field errors render inline as reported.)
 - [ ] T029 [US8] Implement store soft-delete in `src/stores/useStoreDelete.ts` calling `softDeleteStore` behind ConfirmDelete; re-fetch the store list on success (S8).
 - [ ] T030 [US7] Wire store-list re-scoping to the RF-1 active-tenant switch (invalidate/re-fetch `listStores` on scope change; drop store-scoped views) in `src/stores/useStoreScope.ts` (S7; RF-2 holds no authoritative scope — OQ-5).
 

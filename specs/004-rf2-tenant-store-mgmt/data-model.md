@@ -97,22 +97,28 @@ LIST (backend-scoped set) ──(row select)──> DETAIL (readTenant/readStore
         │                                        ├─(soft-delete ok)──> LIST (re-fetched)
         │                                        └─(404)────────────> uniform "not available"
         │
-        ├─(create submit ok)──> DETAIL/LIST (re-fetched)
-        ├─(create 409 slug)───> FORM (inline slug-conflict error)
-        ├─(store op 409 no-tenant)─> SCOPE PROMPT (resolve tenant first)
-        ├─(any 403)───────────> rendered via shared Banner (no pre-hide)
-        ├─(422)──────────────> FORM (inline field error from backend)
-        └─(429)──────────────> FORM (retry-after, submit disabled)
+        ├─(create submit ok)──────> DETAIL/LIST (re-fetched)
+        ├─(createTenant 409 slug)─> FORM (inline slug-conflict error)
+        ├─(createStore 409 code)──> FORM (inline store-code-conflict error)   [OQ-9]
+        ├─(store op 401 no-tenant)─> SCOPE PROMPT (resolve tenant; NOT sign-out) [OQ-4]
+        └─(any 403)───────────────> rendered via shared Banner (no pre-hide)
 ```
 
-**Notes (RF-2 specifics):**
+**Notes (RF-2 specifics — corrected against the contracts @ pin `62d0906`):**
 
 - The **list set is whatever the backend returns** — no client-side
   authorization filter (spec OQ-2, FR-004-004).
 - An **unpermitted action is attempted, not pre-blocked**; the backend 403 is the
   transition trigger (spec OQ-3).
-- A **store operation with no active tenant** transitions to a scope prompt (spec
-  FR-004-006), mirroring RF-1's `switchActiveStore` 409 rule.
+- A **store operation with no active tenant** returns **`401`** ("No active
+  tenant"); RF-2 renders it as a scope prompt, **distinct from a session-expiry
+  `401`** (spec FR-004-006, OQ-4) — preferably by pre-gating store calls on the
+  active tenant so the `401` is avoided (research R4-2).
+- The **`createStore` `409`** is a **store-code conflict within the tenant**
+  (OQ-9), rendered inline — not a scope error.
+- The tenant/store contracts document **no `422`/`429`** on these ten
+  operations; RF-2 surfaces backend field errors as reported and asserts no
+  envelope it has not seen (Principle 2 / FR-011).
 - A **scope switch** (RF-1 action) re-scopes the store list and drops
   store-scoped views (spec S7); RF-2 holds no authoritative scope.
 
@@ -133,7 +139,9 @@ foundation `data-model.md`:
   role-hidden). `active_tenant === null` on a store surface → scope prompt.
 - **VD-4** — All backend 4xx carry `code` / `message` / `request_id`; RF-2
   surfaces `request_id` in any user-visible error (spec FR-004-007), and renders
-  the backend's 422 field message verbatim (it authors none).
+  any backend field-validation message verbatim (it authors none). The
+  tenant/store contracts @ `62d0906` document no `422`/`429` on these ten ops;
+  RF-2 asserts none (Principle 2 / FR-011).
 - **VD-5** — Tenant/store 404 rendered **identically** regardless of cause
   (resource absent vs no access; spec FR-004-008).
 - **Status display** — tenant/store status is rendered as a `.badge`; the

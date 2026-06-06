@@ -104,10 +104,10 @@ surface — never a new surface.
 
 | State | What the operator sees |
 | --- | --- |
-| Default | `.data-table` of the **backend-scoped** rows (spec OQ-2 — no client filter). Columns: name, slug (mono), status `.badge`, store count / created (as the contract provides). Row click → detail. |
+| Default | `.data-table` of the **backend-scoped** rows (spec OQ-2, no client filter). Columns from the generated client's response shape: tenant list = name + slug (mono) + status `.badge`; store list = name + code (mono) + active state `.badge`. Row click → detail. |
 | Empty | Successful zero-row state, **distinct from loading and error** (spec OQ-8): a short message ("No tenants yet." / "No stores in {tenant} yet.") + the create entry point. Create is still **not** role-hidden (OQ-3). No decorative empty illustration (rule 7). |
 | Loading | Quiet skeleton rows or a single inline progress affordance in the table region; the shell + scope header stay put (scope before action). No layout shift on resolve. |
-| Error | Permission `403` → persistent `.alert--danger` `Banner` with `request_id` (no pre-hide; spec FR-004-004/007). `5xx` → persistent banner "Could not load {tenants/stores}. Retry." with retry. Store list with no active tenant `409` → **scope prompt**, not a raw error (route to RF-1 scope chooser; spec FR-004-006). |
+| Error | Permission `403` → persistent `.alert--danger` `Banner` with `request_id` (no pre-hide; spec FR-004-004/007). `5xx` → persistent banner "Could not load {tenants/stores}. Retry." with retry. Store list with no active tenant `401` → **scope prompt**, not a raw error and not a sign-out (route to RF-1 scope chooser; spec FR-004-006, OQ-4). |
 | Success | After a create/edit/soft-delete elsewhere, the list re-fetches and reflects the change; a brief success `.alert--success` banner may confirm (persistent, not a toast — rule 4). |
 
 ### Tenant detail (SF-T2) / Store detail (SF-S2)
@@ -127,7 +127,7 @@ surface — never a new surface.
 | Default | Single-column form. Create = empty fields; edit = backend values prefilled. One `.btn-primary` submit. Store form shows the **active tenant as a read-only scope line** (no tenant picker — FR-004-005). |
 | Empty | N/A (the form is the surface). |
 | Loading | Submit shows in-flight state; submit disabled while pending (prevents double-submit). |
-| Error | `409` slug/identity conflict on `createTenant` → **inline** `InlineError` on the slug field ("That slug is already in use."). `409` no-active-tenant on store writes → **scope prompt** (resolve tenant first; FR-004-006). `422` field validation → inline against the offending field, message from the backend (RF-2 invents no validation — FR-004-004/AS-5). `403` → banner with `request_id`. `429` → retry-after banner with the submit disabled until the window elapses (FR-004-007). |
+| Error | `409` slug conflict on `createTenant` → **inline** `InlineError` on the slug field ("That slug is already in use."). `409` store-**code** conflict on `createStore` → **inline** on the code field (OQ-9). `401` no-active-tenant on store writes → **scope prompt** (resolve tenant first; FR-004-006, OQ-4), not a sign-out. `403` → banner with `request_id`. (Contracts document no `422`/`429` on these ops; field validation is backend-enforced and surfaced as reported — FR-004-004/007, AS-5.) |
 | Success | Route to the affected detail/list, re-fetch, persistent success banner. |
 
 ### Scope-aware layout (SF-L)
@@ -135,7 +135,7 @@ surface — never a new surface.
 | State | What the operator sees |
 | --- | --- |
 | Default | RF-1's gold `ScopeHeader` shows `Tenant > Store` (or `All Stores` / `Platform`). RF-2 content sits below it. |
-| No active tenant (store surfaces) | Route to RF-1's scope chooser before any store call (spec OQ-4); a `listStores`/`createStore` 409 renders as a scope prompt, not a raw error. |
+| No active tenant (store surfaces) | Route to RF-1's scope chooser before any store call (spec OQ-4); a `listStores`/`createStore` `401` renders as a scope prompt, distinct from a session-expiry 401, not a raw error or sign-out. |
 | Scope switch | Switching tenant/store via the RF-1 header re-fetches RF-2 lists and drops store-scoped views (spec S7); RF-2 holds no authoritative scope (OQ-5). |
 
 ## 7. Interaction model
@@ -169,12 +169,17 @@ Voice: matter-of-fact, short, says what happened and what to do next
   - 403: "You do not have permission to {list/create/edit/delete} this
     {tenant/store}. Reference {request_id}."
   - 404 (uniform): "This {tenant/store} is not available." (no absent-vs-no-access
-    distinction — FR-004-008).
-  - 409 slug: "That slug is already in use. Choose a different one."
-  - 409 no active tenant: "Select a tenant before managing stores." + scope CTA.
-  - 422: the backend's field message, rendered inline (RF-2 does not author it).
-  - 429: "Too many attempts. Try again in {n}s." with submit disabled.
+    distinction; FR-004-008).
+  - 409 tenant slug: "That slug is already in use. Choose a different one."
+    (inline on the slug field).
+  - 409 store code: "That store code is already in use in this tenant. Choose a
+    different one." (inline on the code field; OQ-9).
+  - 401 no active tenant (store surfaces): "Select a tenant before managing
+    stores." + scope CTA. Rendered as a scope prompt, not a sign-out (OQ-4).
   - 5xx: "Could not {load/save}. Try again." + retry, `request_id`.
+  - (Backend field-validation messages, when the backend returns them, render
+    inline verbatim; RF-2 authors none. The contracts document no 422/429 on
+    these ten ops, so the brief asserts no copy for them.)
 - **Confirm (soft-delete):** "Soft-delete {name}? It can be restored by an
   administrator." Primary destructive label: "Soft-delete".
 - **Display badges:** status (active/suspended/pending — values from the

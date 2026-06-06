@@ -32,7 +32,7 @@ implementation slice), not RF-2 implementation choices.
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
 - [x] All acceptance scenarios are defined (S1..S8)
-- [x] Edge cases are identified (S3 403, S5 no-active-tenant 409, S7 tenant-switch re-scope, S8 soft-delete + uniform 404)
+- [x] Edge cases are identified (S3 403, S5 no-active-tenant 401 scope-prompt, S6 store-code 409 inline, S7 tenant-switch re-scope, S8 soft-delete + uniform 404)
 - [x] Scope is clearly bounded (exactly ten operations; SF-T*/SF-S*/SF-L only; membership/operator mgmt excluded as RF-5)
 - [x] Dependencies and assumptions identified
 

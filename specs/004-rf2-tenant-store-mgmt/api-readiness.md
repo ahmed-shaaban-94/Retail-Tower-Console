@@ -53,7 +53,7 @@ logged demotion.
 | Backend surface (named, not specified) | Status | Carried from | Notes |
 | --- | --- | --- | --- |
 | Tenant CRUD (`listTenants` / `readTenant` / `createTenant` / `updateTenant` / `softDeleteTenant`) | `stable` | [`../001-console-foundation/api-readiness.md`](../001-console-foundation/api-readiness.md) §RF-2 | `tenants.openapi.yaml`. `listTenants` returns the caller-scoped set (all, if platform admin) — backend-scoped (spec OQ-2). Consumed by SF-T1/T2/T3. |
-| Store CRUD (`listStores` / `readStore` / `createStore` / `updateStore` / `softDeleteStore`) | `stable` | §RF-2 | `stores.openapi.yaml`. Store ops are scoped to the active tenant (read from RF-1's provider); `createStore`/`listStores` 409 when no active tenant. Consumed by SF-S1/S2/S3. |
+| Store CRUD (`listStores` / `readStore` / `createStore` / `updateStore` / `softDeleteStore`) | `stable` | §RF-2 | `stores.openapi.yaml`. Store ops are scoped to the active tenant (read from RF-1's provider); `listStores`/`createStore` return **`401`** ("No active tenant") when none is set (OQ-4), and `createStore` returns **`409`** on a store-code conflict (OQ-9). Consumed by SF-S1/S2/S3. |
 
 **Context membership graph — reused, not a new readiness row.** RF-2 reads
 active tenant scope + `memberships[]` from RF-1's active-context provider

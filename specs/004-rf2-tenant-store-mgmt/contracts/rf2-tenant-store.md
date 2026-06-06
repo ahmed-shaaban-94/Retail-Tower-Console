@@ -36,20 +36,20 @@ Constitution Principle 2).
 | operationId | HTTP | Surface | RF-2 use |
 | --- | --- | --- | --- |
 | `listTenants` | `GET /api/v1/tenants` | SF-T1 | Renders the **backend-scoped** tenant set (all, if platform admin) as a table. No client-side authorization filter (spec OQ-2). Zero rows → empty state (OQ-8). |
-| `readTenant` | `GET /api/v1/tenants/{tenant_id}` | SF-T2 | Read view of one tenant. 404 rendered uniformly regardless of cause (FR-004-008). |
-| `createTenant` | `POST /api/v1/tenants` | SF-T3 | Create. 409 slug/identity conflict → inline form error; 403 → shared banner; 422 → inline field error from the backend. |
-| `updateTenant` | `PATCH /api/v1/tenants/{tenant_id}` | SF-T3 | Update tenant fields. Re-fetch detail + list on success. 403/422 as above. |
-| `softDeleteTenant` | `DELETE /api/v1/tenants/{tenant_id}` | SF-T2/SF-T3 | Soft-delete behind a confirm step. Re-fetch list on success. |
+| `readTenant` | `GET /api/v1/tenants/{tenant_id}` | SF-T2 | Read view of one tenant. **404** rendered uniformly regardless of cause (FR-004-008). |
+| `createTenant` | `POST /api/v1/tenants` | SF-T3 | Create. **409** slug conflict → inline form error; **403** (not platform admin) → shared banner. (Contract documents 201/403/409 only — no 422.) |
+| `updateTenant` | `PATCH /api/v1/tenants/{tenant_id}` | SF-T3 | Update tenant fields (name, status). Re-fetch detail + list on success. (Contract documents 200/404 only.) |
+| `softDeleteTenant` | `DELETE /api/v1/tenants/{tenant_id}` | SF-T2/SF-T3 | Soft-delete behind a confirm step (204). **403** (not platform admin) → shared banner. Re-fetch list on success. |
 
 ### Store management — `stores.openapi.yaml`
 
 | operationId | HTTP | Surface | RF-2 use |
 | --- | --- | --- | --- |
-| `listStores` | `GET /api/v1/stores` | SF-S1 | Renders the **active tenant's** store set (scope from RF-1's provider) as a table. 409 / no active tenant → scope prompt (FR-004-006). Zero rows → empty state. |
-| `readStore` | `GET /api/v1/stores/{store_id}` | SF-S2 | Read view of one store. 404 uniform. |
-| `createStore` | `POST /api/v1/stores` | SF-S3 | Create scoped to the **active tenant** (no tenant picker in the form — FR-004-005). 409 no-active-tenant → scope prompt; 403/422 via shared/inline surfaces. |
-| `updateStore` | `PATCH /api/v1/stores/{store_id}` | SF-S3 | Update store fields. Re-fetch on success. 403/422 as above. |
-| `softDeleteStore` | `DELETE /api/v1/stores/{store_id}` | SF-S2/SF-S3 | Soft-delete behind a confirm step. Re-fetch store list on success. |
+| `listStores` | `GET /api/v1/stores` | SF-S1 | Renders the **active tenant's** store set (scope from RF-1's provider) as a table. **401** "No active tenant" → scope prompt, distinct from session-expiry 401 (FR-004-006, OQ-4). Zero rows → empty state. |
+| `readStore` | `GET /api/v1/stores/{store_id}` | SF-S2 | Read view of one store. **404** uniform. |
+| `createStore` | `POST /api/v1/stores` | SF-S3 | Create scoped to the **active tenant** (no tenant picker in the form — FR-004-005). **401** no-active-tenant → scope prompt (OQ-4); **403** insufficient role → banner; **409** store-**code** conflict within tenant → inline on the code field (OQ-9). |
+| `updateStore` | `PATCH /api/v1/stores/{store_id}` | SF-S3 | Update store fields (name, is_active). Re-fetch on success. (Contract documents 200/404 only.) |
+| `softDeleteStore` | `DELETE /api/v1/stores/{store_id}` | SF-S2/SF-S3 | Soft-delete behind a confirm step (204). **404** uniform. Re-fetch store list on success. |
 
 ### Context — REUSED from RF-1, NOT consumed by RF-2
 
@@ -95,20 +95,31 @@ Reused from RF-1 (not re-derived):
 ## Error contract behavior (RF-2 specifics)
 
 Rendered through RF-1's shared error/banner surface (reuse, not a new surface);
-restated for this slice's FR-004-007/008:
+mapped to the statuses the contracts actually document at pin `62d0906`
+(FR-004-007/008):
 
-- **`403` permission** — rendered via the shared banner with `request_id`; the
-  action was **attempted, not pre-blocked** (spec OQ-3). RF-2 never pre-hides or
-  pre-disables a control by role.
-- **`404` tenant/store** — rendered **identically** regardless of cause
-  (resource absent vs no access; FR-004-008).
-- **`409` slug/identity** on `createTenant` — inline on the offending field.
-- **`409` no-active-tenant** on `listStores`/`createStore` — scope prompt
-  (resolve tenant first; FR-004-006), mirroring RF-1's `switchActiveStore` 409.
-- **`422` field validation** — inline against the field, message from the
-  backend (RF-2 authors no validation; FR-004-004).
-- **`429`** — retry-after with the submit disabled until the window elapses.
-- **Any 4xx** — surface the backend `request_id` (data-model VD-4).
+- **`403` permission** (`createTenant`/`softDeleteTenant` not platform admin;
+  `createStore`/`updateStore` insufficient role) — rendered via the shared banner
+  with `request_id`; the action was **attempted, not pre-blocked** (spec OQ-3).
+  RF-2 never pre-hides or pre-disables a control by role.
+- **`404` tenant/store** (`readTenant`/`updateTenant`/`readStore`/`updateStore`/
+  `softDeleteStore`) — rendered **identically** regardless of cause (resource
+  absent vs no access; FR-004-008).
+- **`409` slug conflict** on `createTenant` — inline on the slug field.
+- **`409` store-code conflict** on `createStore` — inline on the code field
+  (OQ-9), parallel to the tenant slug conflict.
+- **`401` "No active tenant"** on `listStores`/`createStore` — scope prompt
+  (resolve tenant first; FR-004-006, OQ-4), **distinct** from a session-expiry
+  `401`. RF-2 must not let this scope-precondition `401` trigger RF-1's
+  refresh-then-sign-out path.
+- **`5xx`** — retry-able banner.
+- **Any 4xx** — surface the backend `request_id` where present (data-model VD-4).
+
+> Contract note: the tenant/store contracts at this pin document **no `422` and
+> no `429`** on these ten operations. Field validation (slug pattern, store-code
+> length, status enum) is backend-enforced and surfaced as the backend reports
+> it; RF-2 asserts no `422`/`429` envelope it has not seen (AS-5; Principle 2 /
+> FR-011). The two update verbs are **`PATCH`**.
 
 ---
 
