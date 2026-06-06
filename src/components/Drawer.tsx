@@ -1,0 +1,82 @@
+/**
+ * Side-panel drawer (RF-5 SF5-2/SF5-3). A new shared primitive: invite + edit
+ * mount over the member list as a right-side panel (`--shadow-pane`, DESIGN.md
+ * rule 8). Not a modal-as-first-thought — it is the intent-driven editing
+ * surface for a row/action, with the list still visible behind it.
+ *
+ * Accessibility: labelled dialog, Escape closes, focus moves in on open, and
+ * Tab/Shift+Tab are trapped within the panel so `aria-modal` is honest. No
+ * nested cards (rule 5); internal grouping uses surface-raised sections.
+ */
+import { useEffect, useRef } from "react";
+import "./drawer.css";
+
+export interface DrawerProps {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+const FOCUSABLE =
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+export function Drawer({ title, onClose, children }: DrawerProps): React.JSX.Element {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, []);
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>): void {
+    if (e.key === "Escape") {
+      onClose();
+      return;
+    }
+    if (e.key !== "Tab" || !panelRef.current) return;
+    // Trap focus within the panel (honors aria-modal): cycle at the edges.
+    const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+      (el) => el.offsetParent !== null,
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if (e.shiftKey && (active === first || active === panelRef.current)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  return (
+    // Scrim click closes; keyboard close is the panel's Escape handler (below),
+    // so the scrim itself needs no key handler.
+    // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard close is Escape on the dialog panel.
+    <div className="drawer-scrim" onClick={onClose} role="presentation">
+      {/* ARIA dialog on a div, not native <dialog>: the side-drawer needs custom
+          backdrop/positioning the native element does not give. Focus is moved in
+          and trapped (onKeyDown), so aria-modal is honored. */}
+      <div
+        ref={panelRef}
+        className="drawer"
+        // biome-ignore lint/a11y/useSemanticElements: intentional ARIA dialog; native <dialog> is unsuitable for a side drawer.
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={onKeyDown}
+      >
+        <header className="drawer__head">
+          <h2 className="drawer__title">{title}</h2>
+          <button type="button" className="btn-ghost" onClick={onClose} aria-label="Close">
+            ✕
+          </button>
+        </header>
+        <div className="drawer__body">{children}</div>
+      </div>
+    </div>
+  );
+}
