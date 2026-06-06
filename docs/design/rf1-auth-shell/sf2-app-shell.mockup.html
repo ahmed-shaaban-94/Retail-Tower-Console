@@ -1,0 +1,301 @@
+<!doctype html>
+<!--
+  SF-2 Authenticated app shell — the frame wrapping every RF-2..RF-7 screen.
+  top-bar (56px) + persistent gold scope header (40px) + sidebar (240px) + content.
+  Shows: default in-context · scope-header click-to-switch open · session-expired
+  redirect (S5). The content area is a stand-in (RF-2+ not in this slice).
+  MOCKUP-ONLY. Static. Wired to nothing. docs/** — ignored by biome/vite.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RF-1 · SF-2 App shell (mockup)</title>
+  <link rel="stylesheet" href="./tokens.css" />
+  <style>
+    .page-head { padding: var(--space-6) var(--space-6) 0; }
+    .page-head h1 { font: 700 var(--text-display)/1.25 var(--font-sans); letter-spacing: -0.015em; margin: 0 0 var(--space-2); }
+    .page-head p { color: var(--color-text-muted); margin: 0; max-width: 72ch; }
+    .page-head code { font-family: var(--font-mono); font-size: var(--text-mono); color: var(--color-gold-muted); }
+    .gallery { display: grid; gap: var(--space-7); padding: var(--space-7) var(--space-6); }
+    .state-frame { border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; }
+    .state-frame__label {
+      font: 600 var(--text-label)/1 var(--font-sans); color: var(--color-text-muted);
+      padding: var(--space-3) var(--space-4); background: var(--color-surface-sunken);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* ---- shell ---- */
+    .shell { height: 620px; display: grid; grid-template-rows: 56px 40px 1fr; grid-template-columns: 240px 1fr;
+             grid-template-areas: "topbar topbar" "scope scope" "sidebar content"; background: var(--color-bg); position: relative; }
+
+    .topbar { grid-area: topbar; display: flex; align-items: center; gap: var(--space-4);
+              padding: 0 var(--space-5); background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+    .topbar__spacer { flex: 1; }
+    .topbar__icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: grid; place-items: center;
+                    color: var(--color-text-muted); cursor: pointer; }
+    .topbar__icon:hover { background: var(--color-surface-raised); color: var(--color-text); }
+    .topbar__user { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2);
+                    border-radius: var(--radius-control); cursor: pointer; }
+    .topbar__user:hover { background: var(--color-surface-raised); }
+    .topbar__avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--color-primary);
+                      display: grid; place-items: center; font: 700 var(--text-caption)/1 var(--font-sans); color: #fff; }
+    .topbar__name { font-size: var(--text-label); font-weight: 600; }
+    .topbar__name small { display: block; font-weight: 400; color: var(--color-text-muted); }
+
+    /* scope header — the gold authority bar */
+    .scope { grid-area: scope; position: relative; display: flex; align-items: center; gap: var(--space-2);
+             padding: 0 var(--space-6); background: var(--color-gold-soft);
+             border-bottom: 1px solid rgba(200,162,74,0.18); }
+    .scope__btn { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer;
+                  background: transparent; border: none; padding: var(--space-1) var(--space-2);
+                  border-radius: var(--radius-sm); color: var(--color-gold);
+                  font: 600 var(--text-label)/1 var(--font-sans); }
+    .scope__btn:hover { background: rgba(200,162,74,0.10); }
+    .scope__crumb { opacity: 0.7; }
+    .scope__sep { opacity: 0.4; padding: 0 var(--space-1); }
+    .scope__current { opacity: 1; }
+    .scope__caret { width: 14px; height: 14px; opacity: 0.8; }
+    .scope__hint { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-caption); color: var(--color-gold-muted); opacity: 0.8; }
+
+    /* scope switch dropdown (open state) */
+    .scope-menu { position: absolute; top: 44px; left: var(--space-5); z-index: 20; width: 320px;
+                  background: var(--color-surface-overlay); border: 1px solid var(--color-border-strong);
+                  border-radius: var(--radius-dialog); box-shadow: var(--shadow-pane); padding: var(--space-3); }
+    .scope-menu__group { font: 600 var(--text-caption)/1 var(--font-sans); color: var(--color-text-muted);
+                         padding: var(--space-2) var(--space-2) var(--space-1); }
+    .scope-menu__item { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3);
+                        border-radius: var(--radius-md); cursor: pointer; color: var(--color-text); font-size: var(--text-body); }
+    .scope-menu__item:hover { background: var(--color-surface-raised); }
+    .scope-menu__item--active { background: var(--color-gold-soft); color: var(--color-gold); }
+    .scope-menu__check { margin-left: auto; width: 14px; height: 14px; }
+    .scope-menu__divider { height: 1px; background: var(--color-border); margin: var(--space-2) 0; }
+
+    /* sidebar */
+    .sidebar { grid-area: sidebar; background: var(--color-surface-sunken); border-right: 1px solid var(--color-border);
+               padding: var(--space-4) var(--space-3); display: flex; flex-direction: column; gap: 2px; }
+    .nav-section { font: 600 var(--text-caption)/1 var(--font-sans); color: var(--color-text-disabled);
+                   padding: var(--space-4) var(--space-3) var(--space-2); letter-spacing: 0.04em; }
+    .nav-entry { position: relative; display: flex; align-items: center; gap: var(--space-3); height: 40px;
+                 padding: 0 var(--space-3); border-radius: 8px; color: var(--color-text-muted);
+                 text-decoration: none; font-size: var(--text-body); cursor: pointer; }
+    .nav-entry:hover { background: var(--color-surface-raised); color: var(--color-text); }
+    .nav-entry--active { background: var(--color-primary-subtle); color: var(--color-text); }
+    .nav-entry--active::before { content: ""; position: absolute; top: 50%; left: 0; transform: translateY(-50%);
+                                 width: 3px; height: 20px; border-radius: 0 2px 2px 0; background: var(--color-gold); }
+    .nav-entry svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .nav-entry--disabled { opacity: 0.45; cursor: default; }
+    .nav-entry--disabled:hover { background: transparent; color: var(--color-text-muted); }
+    .nav-gate { margin-left: auto; font: 600 10px/1 var(--font-mono); color: var(--color-text-disabled);
+                border: 1px solid var(--color-border); padding: 2px 5px; border-radius: var(--radius-sm); }
+
+    /* content */
+    .content { grid-area: content; padding: var(--space-7) var(--space-6); overflow: auto; }
+    .content__title { font: 700 var(--text-display)/1.25 var(--font-sans); letter-spacing: -0.015em; margin: 0 0 var(--space-2); }
+    .content__sub { color: var(--color-text-muted); margin: 0 0 var(--space-6); }
+    .placeholder-note { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4);
+                        background: var(--color-info-surface); border: 1px solid rgba(30,111,140,0.3);
+                        border-radius: var(--radius-md); color: var(--color-info-on-dark); font-size: var(--text-body); }
+
+    /* dim layer behind open menu */
+    .scrim { position: absolute; inset: 0; background: rgba(10,16,24,0.35); z-index: 10; }
+
+    /* session-expired overlay (S5 → full redirect; shown mid-transition) */
+    .expire-stage { background: var(--color-bg); }
+    .expire-banner { grid-area: scope; display: flex; align-items: center; gap: var(--space-2);
+                     padding: 0 var(--space-6); background: var(--color-danger-surface);
+                     border-bottom: 1px solid rgba(179,46,54,0.3); color: var(--color-danger-on-dark);
+                     font-size: var(--text-label); font-weight: 600; }
+    .expire-content { grid-area: content; display: grid; place-items: center; }
+    .expire-card { text-align: center; display: grid; gap: var(--space-3); justify-items: center; }
+    .expire-card .spinner { width: 18px; height: 18px; border: 2px solid rgba(232,238,245,0.25); border-top-color: var(--color-text); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+    .expire-card__title { font: 700 var(--text-headline)/1.3 var(--font-sans); }
+    .expire-card__sub { color: var(--color-text-muted); }
+  </style>
+</head>
+<body>
+  <span class="mock-tag">MOCKUP · NOT SHIPPED CODE</span>
+
+  <div class="page-head">
+    <h1>SF-2 — Authenticated app shell</h1>
+    <p>
+      The frame every later family (RF-2..RF-7) attaches to. The gold scope header is always
+      visible in-context and is click-to-switch. Switching re-fetches <code>getActiveContext</code>
+      (no optimistic update); a tenant switch clears the store. A 401 on any call drops cached
+      context and redirects to SF-1. Sidebar entries beyond RF-1 are shown gated to mark scope,
+      not to claim they're built.
+    </p>
+  </div>
+
+  <div class="gallery">
+
+    <!-- DEFAULT IN-CONTEXT -->
+    <div class="state-frame">
+      <div class="state-frame__label">Default · in context <span class="badge badge--neutral">A3 Tenant Admin</span></div>
+      <div class="shell">
+        <div class="topbar">
+          <div class="tower-lockup">
+            <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z"/><path d="M12 7.5v9"/><path d="M8.5 12h7"/></svg>
+            <span class="tower-lockup__word">Retail Tower OS</span>
+          </div>
+          <div class="topbar__spacer"></div>
+          <div class="topbar__icon" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </div>
+          <div class="topbar__user">
+            <span class="topbar__avatar">AS</span>
+            <span class="topbar__name">Amal Saleh<small>Tenant Admin</small></span>
+          </div>
+        </div>
+
+        <div class="scope">
+          <button class="scope__btn" type="button">
+            <span class="scope__crumb">Northstar Retail</span>
+            <span class="scope__sep">›</span>
+            <span class="scope__current">Cairo Festival City</span>
+            <svg class="scope__caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <span class="scope__hint">active scope</span>
+        </div>
+
+        <nav class="sidebar">
+          <a class="nav-entry nav-entry--active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            Overview
+          </a>
+          <div class="nav-section">Management</div>
+          <a class="nav-entry nav-entry--disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
+            Stores <span class="nav-gate">RF-2</span>
+          </a>
+          <a class="nav-entry nav-entry--disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18l-1 13H4L3 7Z"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg>
+            Catalog <span class="nav-gate">RF-3</span>
+          </a>
+          <a class="nav-entry nav-entry--disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+            Unknown items <span class="nav-gate">RF-4</span>
+          </a>
+          <a class="nav-entry nav-entry--disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Operators <span class="nav-gate">RF-5</span>
+          </a>
+          <a class="nav-entry nav-entry--disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 3h9l5 5v13H5Z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
+            Audit <span class="nav-gate">RF-6</span>
+          </a>
+          <div class="topbar__spacer"></div>
+          <a class="nav-entry">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+            Sign out
+          </a>
+        </nav>
+
+        <main class="content">
+          <h2 class="content__title">Overview</h2>
+          <p class="content__sub">Northstar Retail · Cairo Festival City</p>
+          <span class="placeholder-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            RF-1 provides the shell only. Family screens light up as each RF slice clears its gate.
+          </span>
+        </main>
+      </div>
+    </div>
+
+    <!-- SCOPE SWITCH OPEN -->
+    <div class="state-frame">
+      <div class="state-frame__label">Scope header · click-to-switch open <span class="badge badge--neutral">re-fetch on select</span></div>
+      <div class="shell">
+        <div class="scrim"></div>
+        <div class="topbar">
+          <div class="tower-lockup">
+            <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z"/><path d="M12 7.5v9"/><path d="M8.5 12h7"/></svg>
+            <span class="tower-lockup__word">Retail Tower OS</span>
+          </div>
+          <div class="topbar__spacer"></div>
+          <div class="topbar__user">
+            <span class="topbar__avatar">AS</span>
+            <span class="topbar__name">Amal Saleh<small>Tenant Admin</small></span>
+          </div>
+        </div>
+
+        <div class="scope">
+          <button class="scope__btn" type="button" style="background: rgba(200,162,74,0.12)">
+            <span class="scope__crumb">Northstar Retail</span>
+            <span class="scope__sep">›</span>
+            <span class="scope__current">Cairo Festival City</span>
+            <svg class="scope__caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg)"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="scope-menu">
+            <div class="scope-menu__group">TENANT</div>
+            <div class="scope-menu__item scope-menu__item--active">
+              Northstar Retail
+              <svg class="scope-menu__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div class="scope-menu__item">Helios Markets</div>
+            <div class="scope-menu__item">Qanater Commerce</div>
+            <div class="scope-menu__divider"></div>
+            <div class="scope-menu__group">STORE · Northstar Retail</div>
+            <div class="scope-menu__item">All stores</div>
+            <div class="scope-menu__item scope-menu__item--active">
+              Cairo Festival City
+              <svg class="scope-menu__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div class="scope-menu__item">Mall of Egypt</div>
+            <div class="scope-menu__item">City Stars Heliopolis</div>
+          </div>
+          <span class="scope__hint">switching re-fetches context · tenant switch clears store</span>
+        </div>
+
+        <nav class="sidebar">
+          <a class="nav-entry nav-entry--active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            Overview
+          </a>
+          <div class="nav-section">Management</div>
+          <a class="nav-entry nav-entry--disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
+            Stores <span class="nav-gate">RF-2</span>
+          </a>
+          <a class="nav-entry nav-entry--disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18l-1 13H4L3 7Z"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg>
+            Catalog <span class="nav-gate">RF-3</span>
+          </a>
+        </nav>
+        <main class="content" aria-hidden="true">
+          <h2 class="content__title" style="opacity:0.5">Overview</h2>
+          <p class="content__sub" style="opacity:0.5">Northstar Retail · Cairo Festival City</p>
+        </main>
+      </div>
+    </div>
+
+    <!-- SESSION EXPIRED (S5) -->
+    <div class="state-frame">
+      <div class="state-frame__label">Session expired · redirecting to SF-1 <span class="badge badge--neutral">S5 · 401 on any call</span></div>
+      <div class="shell expire-stage">
+        <div class="topbar">
+          <div class="tower-lockup">
+            <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z"/><path d="M12 7.5v9"/><path d="M8.5 12h7"/></svg>
+            <span class="tower-lockup__word">Retail Tower OS</span>
+          </div>
+        </div>
+        <div class="expire-banner">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          Your session has expired. Returning you to sign-in.
+        </div>
+        <main class="expire-content" style="grid-column: 1 / -1">
+          <div class="expire-card">
+            <span class="spinner"></span>
+            <div class="expire-card__title">Session expired</div>
+            <div class="expire-card__sub">Redirecting to sign-in…</div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

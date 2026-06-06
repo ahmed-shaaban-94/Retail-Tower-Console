@@ -1,0 +1,238 @@
+/* RF-1 Auth Shell — design tokens.
+ *
+ * MOCKUP-ONLY. Verbatim from DESIGN.md v0.1. This file exists so the RF-1
+ * visual mockups (sf1-signin / sf2-scope-gate / sf2-app-shell .mockup.html)
+ * stay faithful to the committed design system and the later (gated)
+ * implementation is mechanical, not a re-derivation.
+ *
+ * NOT a src/ token file. NOT wired into the build. Under docs/** which
+ * biome.json ignores and Vite does not compile. Do not import from src/.
+ */
+
+:root {
+  /* Surfaces */
+  --color-bg: #0d1520;
+  --color-surface: #131e2e;
+  --color-surface-raised: #1a2840;
+  --color-surface-sunken: #0a1018;
+  --color-surface-overlay: #1e2d42;
+  --color-border: #2a3d55;
+  --color-border-strong: #3a5270;
+
+  /* Text */
+  --color-text: #e8eef5;
+  --color-text-muted: #8a9db5;
+  --color-text-disabled: #4a5e78;
+  --color-text-inverse: #0f1d2e;
+
+  /* Brand — gold is authority, scope-only */
+  --color-gold: #c8a24a;
+  --color-gold-soft: #2a2010;
+  --color-gold-muted: #8a6a2a;
+
+  /* Interactive — navy/teal drive actions */
+  --color-primary: #1f4e7a;
+  --color-primary-hover: #163d61;
+  --color-primary-subtle: #0e1e30;
+  --color-accent: #2e7da3;
+
+  /* Semantic */
+  --color-success: #1f8a5b;
+  --color-success-surface: #0a1f16;
+  --color-warning: #b87600;
+  --color-warning-surface: #1e1500;
+  --color-danger: #b32e36;
+  --color-danger-surface: #1f0a0c;
+  --color-info: #1e6f8c;
+  --color-info-surface: #061520;
+
+  /* Status badge/banner text — mid-ramp for AA on dark */
+  --color-success-on-dark: #52b986;
+  --color-warning-on-dark: #d49030;
+  --color-danger-on-dark: #c84d55;
+  --color-info-on-dark: #50a2c0;
+
+  /* Typography */
+  --font-sans: "Inter Variable", Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "Consolas", monospace;
+
+  --text-display: 1.875rem;   /* 30px / 700 / 1.25 / -0.015em */
+  --text-headline: 1.25rem;   /* 20px / 600 / 1.3 / -0.010em */
+  --text-title: 1rem;         /* 16px / 600 / 1.375 / -0.005em */
+  --text-body: 0.875rem;      /* 14px / 400 / 1.5 */
+  --text-label: 0.8125rem;    /* 13px / 600 / 1.25 */
+  --text-caption: 0.75rem;    /* 12px / 400 / 1.4 */
+  --text-mono: 0.8125rem;     /* 13px / 400 / 1.5 */
+  --text-mono-lg: 0.875rem;   /* 14px / 500 / 1.5 / 0.04em */
+
+  /* Shadows — tinted toward bg */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 2px 4px rgba(13, 21, 32, 0.4), 0 8px 24px rgba(13, 21, 32, 0.3);
+  --shadow-raised: 0 4px 12px rgba(13, 21, 32, 0.5), 0 1px 3px rgba(13, 21, 32, 0.3);
+  --shadow-pane: 0 20px 60px rgba(13, 21, 32, 0.7);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-gold-ring: 0 0 0 3px rgba(200, 162, 74, 0.25);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-dialog: 16px;
+  --radius-pill: 9999px;
+
+  /* Spacing — 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Motion */
+  --duration-1: 80ms;
+  --duration-2: 150ms;
+  --duration-3: 220ms;
+  --duration-4: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.25, 1);
+  --ease-in-out: cubic-bezier(0.45, 0.05, 0.25, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-1: 0ms;
+    --duration-2: 0ms;
+    --duration-3: 0ms;
+    --duration-4: 0ms;
+  }
+}
+
+/* ---- Shared primitives used across all RF-1 mockups ---- */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-2); height: 36px; padding: 0 14px;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-control);
+  color: #ffffff;
+  font: 600 var(--text-label)/1 var(--font-sans);
+  letter-spacing: -0.005em; cursor: pointer;
+  transition: background-color var(--duration-2) var(--ease-out),
+              box-shadow var(--duration-2) var(--ease-out);
+}
+.btn-primary:hover { background-color: var(--color-primary-hover); }
+.btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(31, 78, 122, 0.45); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-secondary {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-2); height: 36px; padding: 0 14px;
+  background-color: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font: 600 var(--text-label)/1 var(--font-sans);
+  letter-spacing: -0.005em; cursor: pointer;
+  transition: border-color var(--duration-2) var(--ease-out),
+              background-color var(--duration-2) var(--ease-out);
+}
+.btn-secondary:hover { border-color: var(--color-primary); background-color: var(--color-primary-subtle); }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  background: transparent; border: none;
+  color: var(--color-text-muted);
+  height: 32px; padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
+  font: 600 var(--text-label)/1 var(--font-sans); cursor: pointer;
+  transition: background-color var(--duration-2) var(--ease-out),
+              color var(--duration-2) var(--ease-out);
+}
+.btn-ghost:hover { background-color: var(--color-surface-raised); color: var(--color-text); }
+
+/* Input */
+.input {
+  display: block; width: 100%;
+  min-height: 36px; padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font: 400 var(--text-body)/1.5 var(--font-sans);
+  transition: border-color var(--duration-2) var(--ease-out),
+              box-shadow var(--duration-2) var(--ease-out);
+}
+.input::placeholder { color: var(--color-text-disabled); }
+.input:focus-visible {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(46, 125, 163, 0.3);
+  outline: none;
+}
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(179, 46, 54, 0.25);
+}
+
+.field { display: grid; gap: var(--space-2); }
+.field > label {
+  font: 600 var(--text-label)/1.25 var(--font-sans);
+  color: var(--color-text-muted);
+}
+
+/* Alert / banner — persistent, never a toast */
+.alert {
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+  border: 1px solid transparent;
+}
+.alert--danger  { background: var(--color-danger-surface);  color: var(--color-danger-on-dark);  border-color: rgba(179, 46, 54, 0.3); }
+.alert--warning { background: var(--color-warning-surface); color: var(--color-warning-on-dark); border-color: rgba(184, 118, 0, 0.3); }
+.alert--info    { background: var(--color-info-surface);    color: var(--color-info-on-dark);    border-color: rgba(30, 111, 140, 0.3); }
+.alert__req { font-family: var(--font-mono); font-size: var(--text-mono); opacity: 0.75; }
+
+/* Badge */
+.badge {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  height: 22px; padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  font: 600 var(--text-caption)/1 var(--font-sans);
+  white-space: nowrap;
+}
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 9999px; background-color: currentColor; }
+.badge--neutral { background: var(--color-surface-raised); color: var(--color-text-muted); }
+.badge--info    { background: var(--color-info-surface);   color: var(--color-info-on-dark); }
+
+/* Gold logo mark — stroke-only shield, currentColor */
+.tower-mark { width: 28px; height: 28px; color: var(--color-gold); flex-shrink: 0; }
+.tower-lockup { display: inline-flex; align-items: center; gap: var(--space-2); }
+.tower-lockup__word { font: 700 var(--text-title)/1 var(--font-sans); letter-spacing: -0.01em; color: var(--color-text); }
+
+/* Mockup chrome (NOT part of the design — labels the artifact) */
+.mock-tag {
+  position: fixed; top: 10px; right: 12px; z-index: 99;
+  font: 600 11px/1 var(--font-mono);
+  color: var(--color-text-disabled);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  padding: 6px 9px; border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+}
