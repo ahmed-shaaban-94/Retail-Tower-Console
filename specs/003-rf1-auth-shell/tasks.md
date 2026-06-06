@@ -19,7 +19,9 @@ shape), not optional. Tests against an approved mock only; never live DP2
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no incomplete dependencies)
-- **[Story]**: Maps to spec.md scenarios S1–S7
+- **[Story]**: `[USn]` ≡ spec.md Scenario **Sn** (US1≡S1 … US7≡S7). Note the two
+  axes: story labels map to *scenarios*, while phases group by *surface*
+  (SF-1/2/3). A surface phase can therefore carry tasks from several scenarios.
 - Exact file paths included. Repo is a React 19 + Vite SPA; no `src/models/`,
   no DB — the console owns zero domain entities (data-model.md).
 
