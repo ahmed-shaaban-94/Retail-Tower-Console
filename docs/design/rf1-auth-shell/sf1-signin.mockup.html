@@ -1,0 +1,289 @@
+<!doctype html>
+<!--
+  SF-1 Sign-in surface — RF-1 auth shell visual mockup.
+  MOCKUP-ONLY. Static HTML/CSS. Wired to nothing. Not a src/ file, not built,
+  not the "API mock" of FR-003-012. Under docs/** (biome/vite ignore it).
+  Shows: default · field focus · submitting · 401 generic · 429 retry-after.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RF-1 · SF-1 Sign-in (mockup)</title>
+  <link rel="stylesheet" href="./tokens.css" />
+  <style>
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: var(--space-7);
+      padding: var(--space-7) var(--space-6);
+      align-items: start;
+    }
+    .state-frame {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      background: var(--color-bg);
+    }
+    .state-frame__label {
+      font: 600 var(--text-label)/1 var(--font-sans);
+      color: var(--color-text-muted);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-surface-sunken);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .state-frame__label .badge { height: 20px; }
+
+    /* The sign-in stage: centered card on the command-room field */
+    .signin-stage {
+      min-height: 460px;
+      display: grid;
+      place-items: center;
+      padding: var(--space-7) var(--space-5);
+      /* faint radial lift so the dark field isn't dead flat — subtle, hue-true */
+      background:
+        radial-gradient(120% 80% at 50% 0%, rgba(31, 78, 122, 0.12), transparent 60%),
+        var(--color-bg);
+    }
+    .signin-card {
+      width: 100%;
+      max-width: 384px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-pane);
+      padding: var(--space-7) var(--space-6) var(--space-6);
+    }
+    .signin-head {
+      display: grid; gap: var(--space-2);
+      justify-items: center;
+      text-align: center;
+      margin-bottom: var(--space-6);
+    }
+    .signin-head .tower-lockup__word { font-size: var(--text-headline); }
+    .signin-head__sub {
+      color: var(--color-text-muted);
+      font-size: var(--text-caption);
+      letter-spacing: 0.02em;
+    }
+    .signin-form { display: grid; gap: var(--space-4); }
+    .signin-form .btn-primary { width: 100%; margin-top: var(--space-2); }
+
+    .signin-foot {
+      margin-top: var(--space-5);
+      text-align: center;
+      font-size: var(--text-caption);
+      color: var(--color-text-disabled);
+    }
+    .signin-foot a { color: var(--color-text-muted); text-decoration: none; }
+    .signin-foot a:hover { color: var(--color-text); }
+
+    /* simulated focus ring on the email field of the "focus" frame */
+    .is-focus-demo {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(46, 125, 163, 0.3);
+    }
+    /* spinner for submitting state */
+    .spinner {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #fff;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+    .page-head {
+      padding: var(--space-6) var(--space-6) 0;
+    }
+    .page-head h1 { font: 700 var(--text-display)/1.25 var(--font-sans); letter-spacing: -0.015em; margin: 0 0 var(--space-2); }
+    .page-head p { color: var(--color-text-muted); margin: 0; max-width: 70ch; }
+    .page-head code { font-family: var(--font-mono); font-size: var(--text-mono); color: var(--color-gold-muted); }
+  </style>
+</head>
+<body>
+  <span class="mock-tag">MOCKUP · NOT SHIPPED CODE</span>
+
+  <div class="page-head">
+    <h1>SF-1 — Sign-in</h1>
+    <p>
+      The only surface an anonymous actor (A7) can reach; the only surface without the app shell.
+      Centered card on the command-room field. Consumes <code>signIn</code> only. Errors are
+      persistent banners, never toasts. 401 is generic (no account-existence leak); 429 disables
+      submit with a retry-after countdown.
+    </p>
+  </div>
+
+  <div class="gallery">
+
+    <!-- 1. DEFAULT -->
+    <div class="state-frame">
+      <div class="state-frame__label">Default <span class="badge badge--neutral">A7 anonymous</span></div>
+      <div class="signin-stage">
+        <div class="signin-card">
+          <div class="signin-head">
+            <div class="tower-lockup">
+              <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z" />
+                <path d="M12 7.5v9" /><path d="M8.5 12h7" />
+              </svg>
+              <span class="tower-lockup__word">Retail Tower OS</span>
+            </div>
+            <span class="signin-head__sub">Administration Console</span>
+          </div>
+          <form class="signin-form" onsubmit="return false">
+            <div class="field">
+              <label for="e1">Email</label>
+              <input class="input" id="e1" type="email" placeholder="you@operator.example" autocomplete="username" />
+            </div>
+            <div class="field">
+              <label for="p1">Password</label>
+              <input class="input" id="p1" type="password" placeholder="••••••••••" autocomplete="current-password" />
+            </div>
+            <button class="btn-primary" type="submit">Sign in</button>
+          </form>
+          <div class="signin-foot">Access issues? Contact your administrator.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. FIELD FOCUS -->
+    <div class="state-frame">
+      <div class="state-frame__label">Field focus <span class="badge badge--info">teal ring</span></div>
+      <div class="signin-stage">
+        <div class="signin-card">
+          <div class="signin-head">
+            <div class="tower-lockup">
+              <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z" />
+                <path d="M12 7.5v9" /><path d="M8.5 12h7" />
+              </svg>
+              <span class="tower-lockup__word">Retail Tower OS</span>
+            </div>
+            <span class="signin-head__sub">Administration Console</span>
+          </div>
+          <form class="signin-form" onsubmit="return false">
+            <div class="field">
+              <label for="e2">Email</label>
+              <input class="input is-focus-demo" id="e2" type="email" value="amal@northstar-retail.eg" autocomplete="username" />
+            </div>
+            <div class="field">
+              <label for="p2">Password</label>
+              <input class="input" id="p2" type="password" placeholder="••••••••••" autocomplete="current-password" />
+            </div>
+            <button class="btn-primary" type="submit">Sign in</button>
+          </form>
+          <div class="signin-foot">Access issues? Contact your administrator.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. SUBMITTING -->
+    <div class="state-frame">
+      <div class="state-frame__label">Submitting <span class="badge badge--neutral">signIn in flight</span></div>
+      <div class="signin-stage">
+        <div class="signin-card">
+          <div class="signin-head">
+            <div class="tower-lockup">
+              <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z" />
+                <path d="M12 7.5v9" /><path d="M8.5 12h7" />
+              </svg>
+              <span class="tower-lockup__word">Retail Tower OS</span>
+            </div>
+            <span class="signin-head__sub">Administration Console</span>
+          </div>
+          <form class="signin-form" onsubmit="return false">
+            <div class="field">
+              <label for="e3">Email</label>
+              <input class="input" id="e3" type="email" value="amal@northstar-retail.eg" disabled />
+            </div>
+            <div class="field">
+              <label for="p3">Password</label>
+              <input class="input" id="p3" type="password" value="••••••••••••" disabled />
+            </div>
+            <button class="btn-primary" type="submit" disabled><span class="spinner"></span> Signing in</button>
+          </form>
+          <div class="signin-foot">Access issues? Contact your administrator.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 401 GENERIC ERROR -->
+    <div class="state-frame">
+      <div class="state-frame__label">401 — generic error <span class="badge badge--neutral">no leak</span></div>
+      <div class="signin-stage">
+        <div class="signin-card">
+          <div class="signin-head">
+            <div class="tower-lockup">
+              <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z" />
+                <path d="M12 7.5v9" /><path d="M8.5 12h7" />
+              </svg>
+              <span class="tower-lockup__word">Retail Tower OS</span>
+            </div>
+            <span class="signin-head__sub">Administration Console</span>
+          </div>
+          <div class="alert alert--danger" role="alert" style="margin-bottom: var(--space-4)">
+            <div>
+              Sign-in failed. Check your email and password, then try again.
+              <div class="alert__req">request_id: 9f3c1a7e-4b22</div>
+            </div>
+          </div>
+          <form class="signin-form" onsubmit="return false">
+            <div class="field">
+              <label for="e4">Email</label>
+              <input class="input" id="e4" type="email" value="amal@northstar-retail.eg" aria-invalid="true" />
+            </div>
+            <div class="field">
+              <label for="p4">Password</label>
+              <input class="input" id="p4" type="password" placeholder="••••••••••" aria-invalid="true" />
+            </div>
+            <button class="btn-primary" type="submit">Sign in</button>
+          </form>
+          <div class="signin-foot">Access issues? Contact your administrator.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 429 RETRY-AFTER -->
+    <div class="state-frame">
+      <div class="state-frame__label">429 — retry-after <span class="badge badge--neutral">submit disabled</span></div>
+      <div class="signin-stage">
+        <div class="signin-card">
+          <div class="signin-head">
+            <div class="tower-lockup">
+              <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z" />
+                <path d="M12 7.5v9" /><path d="M8.5 12h7" />
+              </svg>
+              <span class="tower-lockup__word">Retail Tower OS</span>
+            </div>
+            <span class="signin-head__sub">Administration Console</span>
+          </div>
+          <div class="alert alert--warning" role="alert" style="margin-bottom: var(--space-4)">
+            <div>
+              Too many attempts. You can try again in <strong>27s</strong>.
+              <div class="alert__req">request_id: 1d80be55-7a04</div>
+            </div>
+          </div>
+          <form class="signin-form" onsubmit="return false">
+            <div class="field">
+              <label for="e5">Email</label>
+              <input class="input" id="e5" type="email" value="amal@northstar-retail.eg" disabled />
+            </div>
+            <div class="field">
+              <label for="p5">Password</label>
+              <input class="input" id="p5" type="password" value="••••••••••••" disabled />
+            </div>
+            <button class="btn-primary" type="submit" disabled>Try again in 27s</button>
+          </form>
+          <div class="signin-foot">Access issues? Contact your administrator.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

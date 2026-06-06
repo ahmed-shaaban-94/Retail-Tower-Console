@@ -1,0 +1,254 @@
+<!doctype html>
+<!--
+  SF-2 Scope gate — full-screen "Select your context" for multi-membership
+  actors (A1/A2), Scenario S2/S3. Plus the zero-membership no-access state (S7).
+  Single-membership (OQ-4) auto-selects and NEVER shows this surface.
+  MOCKUP-ONLY. Static. Wired to nothing. docs/** — ignored by biome/vite.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RF-1 · SF-2 Scope gate (mockup)</title>
+  <link rel="stylesheet" href="./tokens.css" />
+  <style>
+    .page-head { padding: var(--space-6) var(--space-6) 0; }
+    .page-head h1 { font: 700 var(--text-display)/1.25 var(--font-sans); letter-spacing: -0.015em; margin: 0 0 var(--space-2); }
+    .page-head p { color: var(--color-text-muted); margin: 0; max-width: 72ch; }
+    .page-head code { font-family: var(--font-mono); font-size: var(--text-mono); color: var(--color-gold-muted); }
+
+    .gallery { display: grid; gap: var(--space-7); padding: var(--space-7) var(--space-6); }
+    .state-frame { border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; }
+    .state-frame__label {
+      font: 600 var(--text-label)/1 var(--font-sans); color: var(--color-text-muted);
+      padding: var(--space-3) var(--space-4); background: var(--color-surface-sunken);
+      border-bottom: 1px solid var(--color-border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* full-screen gate stage */
+    .gate-stage {
+      min-height: 560px;
+      display: grid; place-items: center;
+      padding: var(--space-8) var(--space-6);
+      background:
+        radial-gradient(120% 70% at 50% -10%, rgba(31, 78, 122, 0.12), transparent 55%),
+        var(--color-bg);
+    }
+    .gate {
+      width: 100%; max-width: 540px;
+      display: grid; gap: var(--space-5);
+    }
+    .gate__head { display: grid; gap: var(--space-2); justify-items: center; text-align: center; }
+    .gate__head .tower-lockup__word { font-size: var(--text-headline); }
+    .gate__title { font: 700 var(--text-headline)/1.3 var(--font-sans); letter-spacing: -0.01em; margin: var(--space-3) 0 0; }
+    .gate__sub { color: var(--color-text-muted); font-size: var(--text-body); }
+
+    /* step rail */
+    .steps { display: flex; align-items: center; gap: var(--space-2); justify-content: center; font-size: var(--text-caption); color: var(--color-text-muted); }
+    .steps .dot { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 11px; border: 1px solid var(--color-border-strong); color: var(--color-text-muted); }
+    .steps .dot--active { background: var(--color-gold-soft); border-color: var(--color-gold-muted); color: var(--color-gold); }
+    .steps .seg { width: 28px; height: 1px; background: var(--color-border); }
+
+    .search { position: relative; }
+    .search .input { padding-left: 36px; }
+    .search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--color-text-disabled); }
+
+    .pick-list { display: grid; gap: var(--space-2); max-height: 280px; overflow: auto; padding: 2px; }
+    .pick {
+      display: flex; align-items: center; gap: var(--space-3);
+      width: 100%; text-align: left; cursor: pointer;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-control);
+      color: var(--color-text);
+      transition: border-color var(--duration-2) var(--ease-out), background-color var(--duration-2) var(--ease-out);
+    }
+    .pick:hover { border-color: var(--color-primary); background: var(--color-surface-raised); }
+    .pick--selected { background: var(--color-gold-soft); border-color: var(--color-gold-muted); }
+    .pick__avatar {
+      width: 32px; height: 32px; border-radius: var(--radius-md); flex-shrink: 0;
+      display: grid; place-items: center;
+      background: var(--color-surface-raised); color: var(--color-text-muted);
+      font: 700 var(--text-label)/1 var(--font-sans);
+    }
+    .pick--selected .pick__avatar { background: rgba(200,162,74,0.16); color: var(--color-gold); }
+    .pick__body { display: grid; gap: 2px; flex: 1; min-width: 0; }
+    .pick__name { font: 600 var(--text-body)/1.3 var(--font-sans); }
+    .pick__meta { font-size: var(--text-caption); color: var(--color-text-muted); }
+    .pick__role { font: 600 var(--text-caption)/1 var(--font-sans); color: var(--color-text-muted); white-space: nowrap; }
+    .pick__chevron { color: var(--color-text-disabled); width: 16px; height: 16px; flex-shrink: 0; }
+
+    .gate__foot { display: flex; justify-content: space-between; align-items: center; }
+    .gate__foot .btn-ghost { color: var(--color-text-muted); }
+
+    /* no-access */
+    .noaccess { text-align: center; display: grid; gap: var(--space-4); justify-items: center; max-width: 420px; }
+    .noaccess__icon { width: 40px; height: 40px; color: var(--color-text-disabled); }
+    .noaccess__title { font: 700 var(--text-headline)/1.3 var(--font-sans); letter-spacing: -0.01em; }
+    .noaccess__body { color: var(--color-text-muted); }
+  </style>
+</head>
+<body>
+  <span class="mock-tag">MOCKUP · NOT SHIPPED CODE</span>
+
+  <div class="page-head">
+    <h1>SF-2 — Scope gate</h1>
+    <p>
+      Multi-membership actors (A1 platform admin, A2 tenant owner) hit this full-screen step
+      <em>before</em> the app shell renders: no RF-2..RF-7 route is reachable until scope resolves.
+      Tenant step, then store step. Single-membership actors never see it (auto-selected, OQ-4).
+      Drives <code>switchActiveTenant</code> / <code>switchActiveStore</code>, then re-fetches
+      <code>getActiveContext</code>. Gold is used only on the selected row (scope = authority).
+    </p>
+  </div>
+
+  <div class="gallery">
+
+    <!-- STEP 1: TENANT (A1, many memberships → searchable) -->
+    <div class="state-frame">
+      <div class="state-frame__label">Step 1 · Choose tenant <span class="badge badge--neutral">A1 · 6 memberships</span></div>
+      <div class="gate-stage">
+        <div class="gate">
+          <div class="gate__head">
+            <div class="tower-lockup">
+              <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z" /><path d="M12 7.5v9" /><path d="M8.5 12h7" />
+              </svg>
+              <span class="tower-lockup__word">Retail Tower OS</span>
+            </div>
+            <div class="gate__title">Select your context</div>
+            <div class="gate__sub">Choose a tenant to continue.</div>
+            <div class="steps" style="margin-top: var(--space-2)">
+              <span class="dot dot--active">1</span><span style="color:var(--color-gold)">Tenant</span>
+              <span class="seg"></span>
+              <span class="dot">2</span><span>Store</span>
+            </div>
+          </div>
+
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+            <input class="input" type="search" placeholder="Search tenants…" />
+          </div>
+
+          <div class="pick-list">
+            <button class="pick pick--selected" type="button">
+              <span class="pick__avatar">NS</span>
+              <span class="pick__body"><span class="pick__name">Northstar Retail</span><span class="pick__meta">12 stores · tenant_0af2</span></span>
+              <span class="pick__role">Platform Admin</span>
+              <svg class="pick__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <button class="pick" type="button">
+              <span class="pick__avatar">HM</span>
+              <span class="pick__body"><span class="pick__name">Helios Markets</span><span class="pick__meta">4 stores · tenant_3b91</span></span>
+              <span class="pick__role">Platform Admin</span>
+              <svg class="pick__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <button class="pick" type="button">
+              <span class="pick__avatar">QC</span>
+              <span class="pick__body"><span class="pick__name">Qanater Commerce</span><span class="pick__meta">1 store · tenant_77c0</span></span>
+              <span class="pick__role">Platform Admin</span>
+              <svg class="pick__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <button class="pick" type="button">
+              <span class="pick__avatar">VL</span>
+              <span class="pick__body"><span class="pick__name">Valley Logistics Retail</span><span class="pick__meta">8 stores · tenant_9e14</span></span>
+              <span class="pick__role">Platform Admin</span>
+              <svg class="pick__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+
+          <div class="gate__foot">
+            <button class="btn-ghost" type="button">Sign out</button>
+            <span style="font-size: var(--text-caption); color: var(--color-text-disabled)">6 tenants available</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: STORE -->
+    <div class="state-frame">
+      <div class="state-frame__label">Step 2 · Choose store <span class="badge badge--neutral">tenant resolved</span></div>
+      <div class="gate-stage">
+        <div class="gate">
+          <div class="gate__head">
+            <div class="tower-lockup">
+              <svg class="tower-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 4 6v6c0 4.5 3.2 7.4 8 9 4.8-1.6 8-4.5 8-9V6l-8-3Z" /><path d="M12 7.5v9" /><path d="M8.5 12h7" />
+              </svg>
+              <span class="tower-lockup__word">Retail Tower OS</span>
+            </div>
+            <div class="gate__title">Northstar Retail</div>
+            <div class="gate__sub">Select a store, or work across all stores.</div>
+            <div class="steps" style="margin-top: var(--space-2)">
+              <span class="dot" style="background:var(--color-surface-raised)">✓</span><span>Tenant</span>
+              <span class="seg" style="background:var(--color-gold-muted)"></span>
+              <span class="dot dot--active">2</span><span style="color:var(--color-gold)">Store</span>
+            </div>
+          </div>
+
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+            <input class="input" type="search" placeholder="Search stores…" />
+          </div>
+
+          <div class="pick-list">
+            <button class="pick" type="button">
+              <span class="pick__avatar" style="background:rgba(46,125,163,0.16); color:var(--color-accent)">★</span>
+              <span class="pick__body"><span class="pick__name">All stores</span><span class="pick__meta">Tenant-wide scope</span></span>
+              <span class="pick__role">12 stores</span>
+              <svg class="pick__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <button class="pick pick--selected" type="button">
+              <span class="pick__avatar">01</span>
+              <span class="pick__body"><span class="pick__name">Cairo Festival City</span><span class="pick__meta">store_c1f3 · New Cairo</span></span>
+              <span class="pick__role">Flagship</span>
+              <svg class="pick__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <button class="pick" type="button">
+              <span class="pick__avatar">02</span>
+              <span class="pick__body"><span class="pick__name">Mall of Egypt</span><span class="pick__meta">store_8b20 · 6th October</span></span>
+              <span class="pick__role"></span>
+              <svg class="pick__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <button class="pick" type="button">
+              <span class="pick__avatar">03</span>
+              <span class="pick__body"><span class="pick__name">City Stars Heliopolis</span><span class="pick__meta">store_44de · Nasr City</span></span>
+              <span class="pick__role"></span>
+              <svg class="pick__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+          </div>
+
+          <div class="gate__foot">
+            <button class="btn-ghost" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              Back to tenants
+            </button>
+            <button class="btn-primary" type="button">Enter console</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NO ACCESS (S7) -->
+    <div class="state-frame">
+      <div class="state-frame__label">No access <span class="badge badge--neutral">S7 · 0 memberships</span></div>
+      <div class="gate-stage">
+        <div class="noaccess">
+          <svg class="noaccess__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+          </svg>
+          <div class="noaccess__title">No assigned access</div>
+          <div class="noaccess__body">
+            You're signed in, but your account has no tenant or store access yet.
+            Contact your administrator to be granted a membership.
+          </div>
+          <button class="btn-secondary" type="button">Sign out</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
