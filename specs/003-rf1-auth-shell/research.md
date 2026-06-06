@@ -35,8 +35,10 @@ Principle 9). It does **not** pick values — that is the clarify skill's job.
   generated client's responses.
 - **Alternatives already considered** (foundation `research.md` R-5):
   react-router, TanStack Router, wouter, hand-rolled history-based routing.
-- **Decision deferred to:** this slice's `/speckit-clarify`. Any library added
-  to `package.json` requires Constitution Principle 9 approval first.
+- **Decision (clarify Session 2026-06-06):** react-router (data-router pattern).
+  Rationale: standard for Vite React SPAs, loader/redirect model fits the
+  401 → SF-1 guard, largest ecosystem (lowest maintenance risk). *Selected,
+  pending Constitution Principle 9 approval; version pinned at implementation.*
 
 ## R3-2 — Active-context state store
 
@@ -47,8 +49,11 @@ Principle 9). It does **not** pick values — that is the clarify skill's job.
 - **Alternatives already considered** (foundation `research.md` R-4): React
   Context + reducer, Zustand, Jotai, Redux Toolkit, TanStack Query cache as the
   store.
-- **Decision deferred to:** `/speckit-clarify`. Note R3-2 and R3-3 are coupled
-  (a data-fetching cache may double as the context store).
+- **Decision (clarify Session 2026-06-06):** the TanStack Query cache serves as
+  the read-only active-context store (R3-2 and R3-3 resolved together, as the
+  coupling note anticipated). `getActiveContext` is a query; the three context
+  mutators invalidate + re-fetch it (no optimistic mutation); tenant switch
+  invalidates store-scoped queries; a 401 clears the cache. *Pending Principle 9.*
 
 ## R3-3 — Data-fetching strategy for the seven operations
 
@@ -60,7 +65,10 @@ Principle 9). It does **not** pick values — that is the clarify skill's job.
 - **Alternatives already considered** (foundation `research.md` R-4): TanStack
   Query over `openapi-fetch`, SWR, plain `openapi-fetch` calls in effects, a
   thin custom hook layer.
-- **Decision deferred to:** `/speckit-clarify`.
+- **Decision (clarify Session 2026-06-06):** TanStack Query over `openapi-fetch`.
+  Supports re-fetch-after-mutation (FR-003-005), a 401 reactive-refresh
+  interceptor (OQ-2 on-401-retry-once → `refreshSession` once + retry, else
+  redirect), and test isolation without live DP2 (C-5). *Pending Principle 9.*
 
 ## R3-4 — Sign-in form handling
 
@@ -70,7 +78,10 @@ Principle 9). It does **not** pick values — that is the clarify skill's job.
   request. No secret/credential committed (FR-003-009).
 - **Alternatives already considered:** React Hook Form, TanStack Form,
   uncontrolled native form + minimal validation.
-- **Decision deferred to:** `/speckit-clarify`.
+- **Decision (clarify Session 2026-06-06):** uncontrolled native form + minimal
+  validation. Two fields (email/password); no form-library dependency; surfaces
+  the `signIn` 401 generically and 429 retry-after (FR-003-007); credentials
+  never stored beyond the request. Adds **no** dependency.
 
 ## R3-5 — Error / notification rendering surface
 
@@ -79,7 +90,10 @@ Principle 9). It does **not** pick values — that is the clarify skill's job.
   Must render uniform 404 (VD-5). Reusable by RF-2..RF-7 later.
 - **Alternatives already considered** (foundation `research.md` R-7): a toast
   library, an inline error component system, a hand-rolled notification context.
-- **Decision deferred to:** `/speckit-clarify`.
+- **Decision (clarify Session 2026-06-06):** inline error component system +
+  persistent banner (DESIGN.md rule 4: persistent banners, not toasts). Surfaces
+  the backend `request_id` (VD-4), renders uniform 404 (VD-5), reusable by
+  RF-2..RF-7. Adds **no** dependency.
 
 ## R3-6 — i18n posture (carried, not decided at RF-1)
 

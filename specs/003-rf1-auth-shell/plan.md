@@ -57,17 +57,29 @@ client only), and (c) the validation-gate shape RF-1 must define.
 | Unit/integration tests | Vitest | Slice 002 D-3 |
 | E2E tests | Playwright (in CI) | Slice 002 D-4/D-6 |
 | Lint/format | Biome | Slice 002 D-5 |
-| Router | **DEFERRED** | research R3-1 → `/speckit-clarify`; Principle 9 if a dependency |
-| Active-context state store | **DEFERRED** | research R3-2 → `/speckit-clarify` |
-| Data-fetching strategy | **DEFERRED** | research R3-3 → `/speckit-clarify` |
-| Form handling (sign-in) | **DEFERRED** | research R3-4 → `/speckit-clarify` |
-| Error/notification surface | **DEFERRED** | research R3-5 → `/speckit-clarify` |
+| Router | react-router (data-router pattern) — *selected, pending Principle 9* | research R3-1; clarify Session 2026-06-06 |
+| Active-context state store | TanStack Query cache as the read-only context store — *selected, pending Principle 9* | research R3-2/R3-3 (coupled); clarify Session 2026-06-06 |
+| Data-fetching strategy | TanStack Query over `openapi-fetch` — *selected, pending Principle 9* | research R3-3; clarify Session 2026-06-06 |
+| Form handling (sign-in) | Uncontrolled native form + minimal validation (no form library) | research R3-4; clarify Session 2026-06-06 |
+| Error/notification surface | Inline error component system + persistent banner (no toast library) | research R3-5; clarify Session 2026-06-06 |
+
+**Clarify resolutions (Session 2026-06-06).** R3-1..R3-5 are resolved above
+(version numbers pinned later, at Principle 9 / implementation). New runtime
+dependencies introduced: **react-router** and **TanStack Query** — both
+*selected, pending Constitution Principle 9 approval*; resolving the choice here
+is NOT Principle 9 sign-off. Form handling and the error surface add **no**
+dependency. Coexistence note: react-router's data-router triggers navigation and
+route-level loading; TanStack Query owns the active-context cache and the seven
+operations' fetching (re-fetch-after-mutation, 401 reactive-refresh interceptor).
+Behavioral resolutions (OQ-2 reactive on-401-retry-once, OQ-4 auto-select,
+S5 full redirect) live in [`spec.md`](./spec.md) Clarifications, not here.
 
 **Constitution Check.** This plan introduces no `package.json`, lockfile, CI,
-deployment, `src/`, or secret change. It defers every RF-1 stack-primitive
-decision to a gated `/speckit-clarify`. It consumes exactly the seven RF-1
-operations (no scope expansion). It modifies no foundation or slice-002
-artifact. All checks pass at plan level.
+deployment, `src/`, or secret change *at plan stage* — the two selected
+dependencies (react-router, TanStack Query) are added only at implementation
+after Principle 9 approval. It consumes exactly the seven RF-1 operations (no
+scope expansion). It modifies no foundation or slice-002 artifact. All checks
+pass at plan level.
 
 ---
 

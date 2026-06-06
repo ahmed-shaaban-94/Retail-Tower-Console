@@ -60,6 +60,22 @@ store, or authorize any source file.
 
 ---
 
+## Clarifications
+
+### Session 2026-06-06
+
+Behavioral resolutions only. Per AC-5, RF-1's router/state/data-fetching/form/
+error-surface **primitive** choices are NOT named here; they are resolved in
+[`plan.md`](./plan.md) Technical Context and [`research.md`](./research.md)
+R3-1..R3-5. This section records only resolutions that name no library.
+
+- Q: OQ-4 — auto-select on single membership, or always show the chooser? → A: Auto-select when `memberships.length === 1` (silently `switchActiveTenant`, re-fetch `getActiveContext`, land in SF-2). The chooser is shown only for multi-membership actors. Applies to Scenario S1.
+- Q: OQ-2 — `refreshSession` cadence (proactive timer / on-focus / on-401-retry-once)? → A: Reactive on-401-retry-once. A 401 triggers a single `refreshSession` (op #3) + retry of the original call; if the refresh also 401s, drop context and route to SF-1. No proactive background-timer refresh. Reconciled into Scenario S5.
+- Q: S5 — how does a mid-session 401 (after the reactive refresh fails) route the operator back? → A: Full redirect to SF-1; drop cached context. No modal, no place-preservation.
+- Q: OQ-1 / R3-1..R3-5 — RF-1 stack primitives (router, state store, data-fetching, sign-in form, error surface)? → A: Resolved in `plan.md` Technical Context and `research.md` R3-1..R3-5 (named there, not here, per AC-5). Each new runtime dependency is *selected, pending Constitution Principle 9 approval at implementation*.
+
+---
+
 ## 2. Goals
 
 - **G1.** Specify the **auth shell** surface: the sign-in entry point, the
@@ -216,9 +232,12 @@ SF-3 re-fetches `getActiveContext` as source of truth.
 ### Scenario S5 — Session expiry mid-session
 
 A2's session expires while on an RF-2 screen. The next consumed call returns
-401. The console's client intercepts it, SF-3 drops cached context, and the
-caller is routed to SF-1. This is rendering of backend truth, not a frontend
-authorization decision (FR-002).
+401. The console's client intercepts it and reactively attempts `refreshSession`
+(op #3) **once**; on success it retries the original call transparently. If the
+refresh itself returns 401, SF-3 drops cached context and the caller is routed
+to SF-1. This is rendering of backend truth, not a frontend authorization
+decision (FR-002). The single reactive refresh-then-retry is the resolved OQ-2
+cadence (see Clarifications); no proactive background-timer refresh is used.
 
 ### Scenario S6 — Sign-out
 
@@ -373,17 +392,19 @@ This **spec** is acceptable when all of the following hold:
 These block `/speckit-plan` or the FR-008 implementation gate, not the
 acceptance of this spec as a `/speckit-specify` output.
 
-- **OQ-1 — Router / state / data-fetching primitives.** RF-1 needs a route
-  guard, an active-context store, and a data-fetching strategy for the seven
-  operations. The choice of router, state library, and data-fetching library is
-  foundation `research.md` R-4..R-7 territory, deferred to this slice. It MUST be
-  resolved in `/speckit-clarify` / `plan.md` (and any new dependency approved per
-  Constitution Principle 9) before implementation. This spec does not pick them.
+- **OQ-1 — Router / state / data-fetching primitives.** **RESOLVED (Session
+  2026-06-06).** The router, active-context store, data-fetching strategy,
+  sign-in form handling, and error/notification surface are resolved in
+  [`plan.md`](./plan.md) Technical Context and [`research.md`](./research.md)
+  R3-1..R3-5. Per AC-5 the chosen primitives are **not** named in this spec.
+  Each new runtime dependency is selected pending Constitution Principle 9
+  approval at implementation. This spec remains primitive-agnostic.
 
-- **OQ-2 — `refreshSession` cadence.** The foundation contract leaves the proactive
-  refresh cadence to this slice. What triggers a proactive `refreshSession`
-  (timer, on-focus, on-401-retry-once)? Resolved in `plan.md`; it does not change
-  the AUTHENTICATED-state semantics (foundation `data-model.md` ST-1).
+- **OQ-2 — `refreshSession` cadence.** **RESOLVED (Session 2026-06-06):**
+  reactive on-401-retry-once (single `refreshSession` + retry on a 401; redirect
+  to SF-1 only if the refresh also 401s). No proactive background-timer refresh.
+  Reconciled into Scenario S5; recorded in Clarifications. Does not change the
+  AUTHENTICATED-state semantics (foundation `data-model.md` ST-1).
 
 - **OQ-3 — CSRF posture on the six POSTs + one DELETE.** Foundation
   `contracts/rf1-auth-context.md` flags a MUST-re-verify: does Data-Pulse-2
@@ -395,11 +416,11 @@ acceptance of this spec as a `/speckit-specify` output.
   clears; if a token is required, the resolution is recorded in this slice's
   `api-readiness.md`.
 
-- **OQ-4 — Auto-select-on-single-membership behavior.** When
-  `memberships.length === 1`, the foundation contract permits (does not require)
-  auto-selecting the membership. Should RF-1 auto-select, or always show the
-  chooser? A `plan.md`/clarify decision; it is a UX behavior, not a backend
-  contract question.
+- **OQ-4 — Auto-select-on-single-membership behavior.** **RESOLVED (Session
+  2026-06-06):** auto-select when `memberships.length === 1` (silently
+  `switchActiveTenant`, re-fetch `getActiveContext`, land in SF-2); show the
+  chooser only for multi-membership actors. Applies to Scenario S1; recorded in
+  Clarifications. A UX behavior, not a backend contract question.
 
 - **OQ-5 — Validation-gate definition.** FR-003-011 requires "validation gates
   defined and approved" as the 5th FR-008 gate. What are RF-1's validation gates
