@@ -27,9 +27,9 @@
 The following NEW runtime dependencies are approved for addition to
 `package.json` (only these two; FR-003-009):
 
-- [x] **react-router** (data-router pattern) — SF-1↔SF-2/SF-3 routing + 401 guard (R3-1).
-- [x] **TanStack Query** — data fetching for the seven operations + read-only
-      active-context cache (R3-2/R3-3).
+- [x] **react-router** `^7.17.0` (data-router pattern) — SF-1↔SF-2/SF-3 routing + 401 guard (R3-1).
+- [x] **@tanstack/react-query** `^5.101.0` — data fetching for the seven
+      operations + read-only active-context cache (R3-2/R3-3).
 
 Form handling (uncontrolled native) and the error surface (inline + banner) add
 **no** dependency. Exact versions pinned at install time; lockfile updated in the
