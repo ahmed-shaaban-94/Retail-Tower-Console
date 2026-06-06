@@ -7,10 +7,12 @@
 // Sources:
 // - packages/contracts/openapi/auth.openapi.yaml
 // - packages/contracts/openapi/context.openapi.yaml
+// - packages/contracts/openapi/tenants.openapi.yaml
+// - packages/contracts/openapi/stores.openapi.yaml
 //
-// The upstream auth and context OpenAPI files are separate documents with
-// overlapping component names, so this file namespaces each generated source
-// and composes their path maps for openapi-fetch.
+// The upstream OpenAPI files are separate documents with overlapping component
+// names, so this file namespaces each generated source and composes their path
+// maps for openapi-fetch.
 
 export namespace AuthSchema {
     export interface paths {
@@ -626,6 +628,540 @@ export namespace ContextSchema {
     }
 }
 
-export type paths = AuthSchema.paths & ContextSchema.paths;
-export type components = AuthSchema.components & ContextSchema.components;
-export type operations = AuthSchema.operations & ContextSchema.operations;
+export namespace TenantsSchema {
+    export interface paths {
+        "/api/v1/tenants": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** List tenants the current user has access to (or all, if platform admin). */
+            get: operations["listTenants"];
+            put?: never;
+            /** Create a new tenant. Platform-admin only (Q1 default A). */
+            post: operations["createTenant"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/tenants/{tenant_id}": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenant_id: string;
+                };
+                cookie?: never;
+            };
+            /** Read a tenant the caller has access to. */
+            get: operations["readTenant"];
+            put?: never;
+            post?: never;
+            /** Soft-delete the tenant. Platform-admin only. */
+            delete: operations["softDeleteTenant"];
+            options?: never;
+            head?: never;
+            /** Update tenant fields (name, status). Tenant-admin or platform-admin. */
+            patch: operations["updateTenant"];
+            trace?: never;
+        };
+        "/api/v1/tenants/{tenant_id}/members": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenant_id: string;
+                };
+                cookie?: never;
+            };
+            /** List memberships in a tenant. */
+            get: operations["listMembers"];
+            put?: never;
+            post?: never;
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+    }
+    export type webhooks = Record<string, never>;
+    export interface components {
+        schemas: {
+            TenantSummary: {
+                /** Format: uuid */
+                id?: string;
+                slug?: string;
+                name?: string;
+            };
+            Tenant: components["schemas"]["TenantSummary"] & {
+                /** @enum {string} */
+                status?: "active" | "suspended" | "pending";
+                /** Format: date-time */
+                created_at?: string;
+                /** Format: date-time */
+                updated_at?: string;
+                /** Format: date-time */
+                deleted_at?: string | null;
+            };
+            TenantCreate: {
+                slug: string;
+                name: string;
+            };
+            TenantUpdate: {
+                name?: string;
+                /** @enum {string} */
+                status?: "active" | "suspended";
+            };
+            MembershipDetail: {
+                /** Format: uuid */
+                membership_id?: string;
+                user?: {
+                    /** Format: uuid */
+                    id?: string;
+                    email?: string;
+                    display_name?: string | null;
+                };
+                role_code?: string;
+                /** @enum {string} */
+                store_access_kind?: "all" | "specific";
+                accessible_store_ids?: string[];
+                /** Format: date-time */
+                revoked_at?: string | null;
+            };
+        };
+        responses: never;
+        parameters: never;
+        requestBodies: never;
+        headers: never;
+        pathItems: never;
+    }
+    export type $defs = Record<string, never>;
+    export interface operations {
+        listTenants: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TenantSummary"][];
+                    };
+                };
+            };
+        };
+        createTenant: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TenantCreate"];
+                };
+            };
+            responses: {
+                /** @description Created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Tenant"];
+                    };
+                };
+                /** @description Caller is not a platform admin. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Slug conflict. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        readTenant: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenant_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Tenant"];
+                    };
+                };
+                /** @description Not found OR caller has no access. Same response (FR-ISO-4). */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        softDeleteTenant: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenant_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Soft-deleted; restorable within retention window (default 30 days). */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Caller is not a platform admin. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        updateTenant: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenant_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TenantUpdate"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Tenant"];
+                    };
+                };
+                /** @description Not found / no access. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        listMembers: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenant_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MembershipDetail"][];
+                    };
+                };
+                /** @description No access. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+    }
+}
+
+export namespace StoresSchema {
+    export interface paths {
+        "/api/v1/stores": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** List stores in the active tenant. */
+            get: operations["listStores"];
+            put?: never;
+            /** Create a store in the active tenant. Tenant-admin or owner only. */
+            post: operations["createStore"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/stores/{store_id}": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    store_id: string;
+                };
+                cookie?: never;
+            };
+            /** Read a store. Caller must have access (per membership policy). */
+            get: operations["readStore"];
+            put?: never;
+            post?: never;
+            /** Soft-delete the store. */
+            delete: operations["softDeleteStore"];
+            options?: never;
+            head?: never;
+            /** Update store fields. Tenant-admin or owner only. */
+            patch: operations["updateStore"];
+            trace?: never;
+        };
+    }
+    export type webhooks = Record<string, never>;
+    export interface components {
+        schemas: {
+            Store: {
+                /** Format: uuid */
+                id?: string;
+                /** Format: uuid */
+                tenant_id?: string;
+                code?: string;
+                name?: string;
+                is_active?: boolean;
+                /** Format: date-time */
+                created_at?: string;
+                /** Format: date-time */
+                updated_at?: string;
+                /** Format: date-time */
+                deleted_at?: string | null;
+            };
+            StoreCreate: {
+                code: string;
+                name: string;
+            };
+            StoreUpdate: {
+                name?: string;
+                is_active?: boolean;
+            };
+        };
+        responses: never;
+        parameters: never;
+        requestBodies: never;
+        headers: never;
+        pathItems: never;
+    }
+    export type $defs = Record<string, never>;
+    export interface operations {
+        listStores: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Store"][];
+                    };
+                };
+                /** @description No active tenant. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        createStore: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StoreCreate"];
+                };
+            };
+            responses: {
+                /** @description Created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Store"];
+                    };
+                };
+                /** @description No active tenant. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Insufficient role. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Code conflict within tenant. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        readStore: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    store_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Store"];
+                    };
+                };
+                /** @description Not found / no access. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        softDeleteStore: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    store_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Soft-deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not found / no access. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        updateStore: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    store_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StoreUpdate"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Store"];
+                    };
+                };
+                /** @description Not found / no access. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+    }
+}
+
+export type paths = AuthSchema.paths & ContextSchema.paths & TenantsSchema.paths & StoresSchema.paths;
+export type components = AuthSchema.components & ContextSchema.components & TenantsSchema.components & StoresSchema.components;
+export type operations = AuthSchema.operations & ContextSchema.operations & TenantsSchema.operations & StoresSchema.operations;

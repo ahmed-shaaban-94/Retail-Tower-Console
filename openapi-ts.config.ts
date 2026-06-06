@@ -18,18 +18,36 @@ import openapiTS, { astToString, COMMENT_HEADER } from "openapi-typescript";
  * commit. Sources live in `packages/contracts/openapi/` upstream:
  *   - auth.openapi.yaml     (signIn, signOut, refreshSession)
  *   - context.openapi.yaml  (getActiveContext, switch/clear context)
+ *   - tenants.openapi.yaml  (listTenants, readTenant, createTenant, updateTenant, softDeleteTenant) — RF-2
+ *   - stores.openapi.yaml   (listStores, readStore, createStore, updateStore, softDeleteStore) — RF-2
+ *
+ * The pin is UNCHANGED across slices; new slices add their contract source and
+ * regenerate at the same SHA (regeneration, not a re-pin).
  */
 export const DATA_PULSE_2_PIN = "62d0906" as const;
 
 /**
- * The OpenAPI sources consumed at this slice's RF-1 boundary.
- * (See specs/001-console-foundation/contracts/rf1-auth-context.md.)
- * Paths are relative to the Data-Pulse-2 repo root at the pinned SHA.
+ * The OpenAPI sources composed into the generated client, one entry per
+ * upstream contract. Each is namespaced in the output (overlapping component
+ * names across documents) and intersected into `paths`/`components`/`operations`.
+ *
+ * - RF-1 boundary: auth + context
+ *   (specs/001-console-foundation/contracts/rf1-auth-context.md).
+ * - RF-2 boundary: tenants + stores
+ *   (specs/004-rf2-tenant-store-mgmt/contracts/rf2-tenant-store.md).
+ *
+ * `path` is relative to the Data-Pulse-2 repo root at the pinned SHA; `name` is
+ * the TypeScript namespace the source is emitted under.
  */
-export const OPENAPI_SOURCES = [
-  "packages/contracts/openapi/auth.openapi.yaml",
-  "packages/contracts/openapi/context.openapi.yaml",
+export const OPENAPI_SOURCE_SPECS = [
+  { name: "Auth", path: "packages/contracts/openapi/auth.openapi.yaml" },
+  { name: "Context", path: "packages/contracts/openapi/context.openapi.yaml" },
+  { name: "Tenants", path: "packages/contracts/openapi/tenants.openapi.yaml" },
+  { name: "Stores", path: "packages/contracts/openapi/stores.openapi.yaml" },
 ] as const;
+
+/** Upstream source paths (kept for back-compat / documentation references). */
+export const OPENAPI_SOURCES = OPENAPI_SOURCE_SPECS.map((s) => s.path);
 
 /**
  * Where openapi-typescript writes the schema types (D-7). Committed,
@@ -45,8 +63,6 @@ export const OUTPUT_PATH = "src/generated/schema.d.ts" as const;
 export const CREDENTIALS_MODE = "include" as const;
 
 const DATA_PULSE_2_REPO_ENV = "DATA_PULSE_2_REPO" as const;
-
-const SOURCE_NAMES = ["auth", "context"] as const;
 
 const thisFilePath = fileURLToPath(import.meta.url);
 const repoRoot = dirname(thisFilePath);
@@ -91,27 +107,28 @@ function indent(text: string): string {
     .join("\n");
 }
 
-function composeSchema(authTypes: string, contextTypes: string): string {
+function composeSchema(generatedTypesBySource: readonly string[]): string {
+  const sourceList = OPENAPI_SOURCE_SPECS.map((spec) => `// - ${spec.path}`).join("\n");
+  const namespaceBlocks = OPENAPI_SOURCE_SPECS.map(
+    (spec, index) =>
+      `export namespace ${spec.name}Schema {\n${indent(stripOpenApiTypescriptHeader(generatedTypesBySource[index]))}\n}`,
+  ).join("\n\n");
+  const intersection = (member: string): string =>
+    OPENAPI_SOURCE_SPECS.map((spec) => `${spec.name}Schema.${member}`).join(" & ");
+
   return `${COMMENT_HEADER}// Source: Data-Pulse-2 @ ${DATA_PULSE_2_PIN}
 // Sources:
-// - ${OPENAPI_SOURCES[0]}
-// - ${OPENAPI_SOURCES[1]}
+${sourceList}
 //
-// The upstream auth and context OpenAPI files are separate documents with
-// overlapping component names, so this file namespaces each generated source
-// and composes their path maps for openapi-fetch.
+// The upstream OpenAPI files are separate documents with overlapping component
+// names, so this file namespaces each generated source and composes their path
+// maps for openapi-fetch.
 
-export namespace AuthSchema {
-${indent(stripOpenApiTypescriptHeader(authTypes))}
-}
+${namespaceBlocks}
 
-export namespace ContextSchema {
-${indent(stripOpenApiTypescriptHeader(contextTypes))}
-}
-
-export type paths = AuthSchema.paths & ContextSchema.paths;
-export type components = AuthSchema.components & ContextSchema.components;
-export type operations = AuthSchema.operations & ContextSchema.operations;
+export type paths = ${intersection("paths")};
+export type components = ${intersection("components")};
+export type operations = ${intersection("operations")};
 `;
 }
 
@@ -124,18 +141,14 @@ async function generateClientSchema(): Promise<void> {
 
   const tempDir = mkdtempSync(join(tmpdir(), "retail-tower-console-openapi-"));
   const generatedTypes = await Promise.all(
-    OPENAPI_SOURCES.map(async (sourcePath, index) => {
-      const sourceFilePath = join(tempDir, `${SOURCE_NAMES[index]}.openapi.yaml`);
-      writeFileSync(sourceFilePath, readPinnedSource(dataPulseRepo, sourcePath), "utf8");
+    OPENAPI_SOURCE_SPECS.map(async (spec) => {
+      const sourceFilePath = join(tempDir, `${spec.name.toLowerCase()}.openapi.yaml`);
+      writeFileSync(sourceFilePath, readPinnedSource(dataPulseRepo, spec.path), "utf8");
       return generateSourceTypes(sourceFilePath);
     }),
   );
 
-  writeFileSync(
-    resolve(repoRoot, OUTPUT_PATH),
-    composeSchema(generatedTypes[0], generatedTypes[1]),
-    "utf8",
-  );
+  writeFileSync(resolve(repoRoot, OUTPUT_PATH), composeSchema(generatedTypes), "utf8");
   console.log(`Generated ${OUTPUT_PATH} from Data-Pulse-2 @ ${DATA_PULSE_2_PIN}`);
 }
 
