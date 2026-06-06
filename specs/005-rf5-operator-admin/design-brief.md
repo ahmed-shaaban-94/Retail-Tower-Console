@@ -53,7 +53,7 @@ Each surface is specified across the five states the tasks trace to
 | default | `.data-table` with columns: Member (display_name over email, mono email in `--text-mono`), Role (`.badge--neutral`), Store access ("All stores" or "N stores" with id tooltip — OQ-3 ids not names), State (active, or `.badge--warning` "Revoked" when `revoked_at`). Page header: title "Operators" + subtitle (tenant name) + right-aligned "Invite member" `.btn-primary`. |
 | empty | No members (only the current admin): centered muted text "No other members in this tenant yet." + the same Invite action. No decorative illustration (rule 7). |
 | loading | Table header rendered; body shows skeleton rows (`--color-surface-raised` shimmer, motion respects `prefers-reduced-motion`). |
-| error | Persistent `.alert--danger` banner above the table. 403 → "You do not have permission to view members." (permission). **Precondition 401** → route to scope chooser (not an error banner). `request_id` shown in `--text-mono` (FR-005-009). |
+| error | Persistent `.alert--danger` banner above the table. `listMembers` documents only `404` (no access) → uniform "Members are not available for this tenant." with `request_id` in `--text-mono` (FR-005-009). The **no-active-tenant precondition** is guarded *before* the call → route to scope chooser (not an error banner). (No 403 / no precondition-401 on `listMembers`.) |
 | success | After a mutation: the table re-fetches; a transient `.alert--success` confirms ("Invitation sent" / "Member updated" / "Member revoked"). Banner persists until dismissed (rule 4). |
 
 ### SF5-2 — Invite member (drawer, `--shadow-pane`)
@@ -73,7 +73,7 @@ Each surface is specified across the five states the tasks trace to
 | default | Pre-filled Role + Store access (from `MembershipDetail`). One `.btn-primary` "Save changes". A separate, visually-isolated "Revoke membership" `.btn-destructive` (own section, top divider rule — no nested card, rule 5). |
 | empty | n/a. |
 | loading | Save / Revoke disabled + spinner during the call. |
-| error | `404` (member gone / no access) → uniform `.alert--danger` "This member could not be found." (leak-avoidance, VD-5). `403` → permission banner. `request_id` in mono. |
+| error | `updateMembership`/`revokeMembership` document only `404` (member gone / no access) → uniform `.alert--danger` "This member could not be found." (leak-avoidance, VD-5); `request_id` in mono. (No 403 / no precondition-401 on these ops — those exist only on `createInvitation`.) |
 | success | `200`/`204` → close drawer, refresh SF5-1, `.alert--success`. Revoke shows the member with a "Revoked" `.badge--warning` on the refreshed list. |
 | revoke-confirm | Clicking "Revoke" opens a confirm step: "Revoke <name>'s membership? They lose access immediately." with `.btn-destructive` "Revoke" + `.btn-secondary` "Cancel". |
 

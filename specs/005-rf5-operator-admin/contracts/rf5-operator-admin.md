@@ -38,16 +38,16 @@ of `tenants.openapi.yaml`, `memberships.openapi.yaml`, `context.openapi.yaml`, o
 
 | operationId | HTTP | Surface | RF-5 use |
 | --- | --- | --- | --- |
-| `listMembers` | `GET /api/v1/tenants/{tenant_id}/members` | SF5-1 | Reads the membership graph for the active tenant. `{tenant_id}` is RF-1's resolved `active_tenant.id` (reused, §RF-1 active context). Renders `MembershipDetail[]` as a table. `404` = no access. |
+| `listMembers` | `GET /api/v1/tenants/{tenant_id}/members` | SF5-1 | Reads the membership graph for the active tenant. `{tenant_id}` is RF-1's resolved `active_tenant.id` (reused, §RF-1 active context). Renders `MembershipDetail[]` as a table. Documented codes: **200, 404** (no access) only — no precondition 401, no 403. RF-5 guards the active-tenant precondition *before* calling (route to scope chooser when `active_tenant` is null). |
 
 ### Membership management — `memberships.openapi.yaml`
 
 | operationId | HTTP | Surface | RF-5 use |
 | --- | --- | --- | --- |
-| `createInvitation` | `POST /api/v1/memberships/invite` | SF5-2 | Invite an email into the active tenant. **`x-idempotency: required`** — RF-5 sends a client-generated `Idempotency-Key` header (see Idempotency contract below). `201`/replay/`400`/`401`(precondition)/`403`/`409`/`425`. |
-| `updateMembership` | `PATCH /api/v1/memberships/{membership_id}` | SF5-3 | Change a member's role and/or store-access policy. `200` → re-fetch `listMembers`. `404` = not found / no access (uniform). |
-| `revokeMembership` | `DELETE /api/v1/memberships/{membership_id}` | SF5-3 | Revoke (soft-delete; backend audit-logs). `204` → re-fetch `listMembers` (member shows `revoked_at`). `404` = not found / no access (uniform). Destructive action (confirmation). |
-| `acceptInvitation` | `POST /api/v1/invitations/accept` | SF5-4 | **Public (`security: []`).** Anonymous invitee accepts an emailed token; a session is established on `200`. `400` = invalid/expired token. Sibling of RF-1's public sign-in route. |
+| `createInvitation` | `POST /api/v1/memberships/invite` | SF5-2 | Invite an email into the active tenant. **`x-idempotency: required`** — RF-5 sends a client-generated `Idempotency-Key` header (see Idempotency contract below). Documented codes: **`201`(+replay) / `400` / `401`(precondition "No active tenant") / `403` / `409` / `425`**. This is the **only** RF-5 op with a precondition 401 and a 403. |
+| `updateMembership` | `PATCH /api/v1/memberships/{membership_id}` | SF5-3 | Change a member's role and/or store-access policy. Documented codes: **`200` / `404`** only (no 403, no precondition 401). `200` → re-fetch `listMembers`. `404` = not found / no access (uniform). |
+| `revokeMembership` | `DELETE /api/v1/memberships/{membership_id}` | SF5-3 | Revoke (soft-delete; backend audit-logs). Documented codes: **`204` / `404`** only (no 403, no precondition 401). `204` → re-fetch `listMembers` (member shows `revoked_at`). `404` = not found / no access (uniform). Destructive action (confirmation). |
+| `acceptInvitation` | `POST /api/v1/invitations/accept` | SF5-4 | **Public (`security: []`).** A7 (anonymous) invitee accepts an emailed token; a session is established on `200`. Documented codes: **`200` / `400`** (invalid/expired token). Sibling of RF-1's public sign-in route. |
 
 ### Reused (NOT re-consumed) — RF-1 active context (`context.openapi.yaml`)
 
@@ -115,8 +115,9 @@ Inherited from RF-1's resolved posture (not re-derived):
   documented CSRF parameter/header at pin `62d0906`. RF-5 inherits RF-1's
   `credentials: "include"` posture with no CSRF plumbing. (Confirm at the
   implementation gate against the regenerated client — `api-readiness.md`.)
-- **`acceptInvitation` is `security: []`** (public) — the accept token in the body
-  authenticates the request; no cookie required to reach it.
+- **`acceptInvitation` is `security: []`** (public) — the A7 (anonymous) invitee's
+  accept token in the body authenticates the request; no cookie required to reach
+  it.
 
 ---
 
@@ -125,26 +126,34 @@ Inherited from RF-1's resolved posture (not re-derived):
 Restated for this slice's FR-005-007/008/009 (read from the contracts, not copied):
 
 - **`listMembers` 404** — no access; rendered uniformly (leak-avoidance, VD-rule).
+  (No precondition 401 / no 403 — RF-5 guards the active-tenant precondition
+  before the call.)
 - **`createInvitation` 400** — `validation_error` / `idempotency_key_required` /
   `idempotency_key_malformed`; render the specific cause distinctly.
 - **`createInvitation` 401** — **precondition** "No active tenant" (session still
   valid) → route to RF-1 scope chooser; MUST NOT sign out (spec FR-005-007, OQ-1).
+  **This is the only RF-5 op with a precondition 401.**
 - **`createInvitation` 403** — insufficient role; render as a permission banner.
+  **This is the only RF-5 op with a 403.**
 - **`createInvitation` 409** — pending invite exists **or** `idempotency_key_conflict`
   (terminal). Render distinctly per the body's error code.
 - **`createInvitation` 425** — Too Early; retry with `Retry-After` (see idempotency).
 - **`updateMembership` / `revokeMembership` 404** — not found / no access, rendered
-  identically regardless of cause (leak-avoidance).
+  identically regardless of cause (leak-avoidance). These ops document **only**
+  `200`/`204` and `404` — no 403, no precondition 401.
 - **`acceptInvitation` 400** — invalid/expired token; render generically.
 - **Any 4xx** — surface the backend `request_id` where present in the body.
 
-> **401 disambiguation (the make-or-break rule).** RF-1's reactive-refresh
-> interceptor attempts `refreshSession` once on a 401 and only signals
-> session-lost if the refresh itself fails. RF-5 reuses that interceptor but MUST
-> NOT collapse every 401 to "session-lost": a 401 where the refresh **succeeds**
-> but the retried call still 401s is a **precondition** 401 (no active tenant) and
-> routes to the scope chooser, not to sign-in. See `plan.md` for the interceptor
-> interaction design note.
+> **401 disambiguation (the make-or-break rule, scoped to `createInvitation`).**
+> RF-1's reactive-refresh interceptor attempts `refreshSession` once on a 401 and
+> only signals session-lost if the refresh itself fails. **Only `createInvitation`**
+> can return a precondition 401 ("No active tenant"), so RF-5's disambiguation
+> wrapper is needed **only on that call**: a 401 where the refresh **succeeds**
+> but the retried `createInvitation` still 401s is a precondition and routes to
+> the scope chooser, not to sign-in. `listMembers`/`updateMembership`/
+> `revokeMembership` 401s are generic auth → standard RF-1 expiry handling; the
+> `listMembers` active-tenant precondition is guarded before the call. See
+> `plan.md` for the interceptor interaction design note.
 
 ---
 

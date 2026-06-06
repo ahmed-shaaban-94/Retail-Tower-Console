@@ -61,7 +61,7 @@ shape), not optional. Tests against an approved mock only; never live DP2
 
 - [ ] T005 [SHARED] Add the five typed op wrappers to `src/lib/client.ts` in the existing `{ status, data, error }` shape (verified `client.ts:1-71`): `listMembers`, `createInvitation`, `updateMembership`, `revokeMembership`, `acceptInvitation`. `createInvitation` MUST also send a client-generated `Idempotency-Key` header (new shape vs. body-only wrappers; §6.3, FR-005-008).
 - [ ] T006 Add the member-graph query + invalidation in `src/lib/query.ts` / a new `src/operators/useMembers.ts`: `listMembers` keyed by `active_tenant.id`; the three mutations invalidate + re-fetch (no optimistic mutation; FR-005-005), mirroring RF-1's invalidate-after-mutation (`useActiveContext.ts:73-86`).
-- [ ] T007 **(make-or-break, OQ-1)** Implement RF-5's 401-disambiguation in `src/operators/useMembersAuth.ts`: wrap member-graph calls with a dedicated `createAuthRetry` instance (reused from `src/lib/auth-interceptor.ts:32-60`) whose injected `onSessionLost` (refresh-failed) is the ONLY sign-out path; a 401 that SURVIVES a successful refresh is classified as precondition ("no active tenant") and routes to the RF-1 scope chooser. MUST NOT reuse `useActiveContext`'s blanket `status===401 → session-lost` mapping (FR-005-007).
+- [ ] T007 **(make-or-break, OQ-1)** Implement RF-5's 401-disambiguation in `src/operators/useInviteAuth.ts`, scoped to **`createInvitation`** (the only RF-5 op with a precondition 401 per the contracts): wrap that call with a dedicated `createAuthRetry` instance (reused from `src/lib/auth-interceptor.ts:32-60`) whose injected `onSessionLost` (refresh-failed) is the ONLY sign-out path; a 401 that SURVIVES a successful refresh is classified as precondition ("no active tenant") and routes to the RF-1 scope chooser. MUST NOT reuse `useActiveContext`'s blanket `status===401 → session-lost` mapping on `createInvitation`. `listMembers`/`updateMembership`/`revokeMembership` use the standard RF-1 wrapper (no precondition path); the `listMembers` active-tenant precondition is guarded *before* the call (route to chooser when `active_tenant` null) (FR-005-007).
 - [ ] T008 Wire the `Idempotency-Key` generator (UUIDv7, format `^[\x21-\x7E]{16,128}$`) and the replay/conflict/425 handling helpers in `src/operators/inviteIdempotency.ts` (§6.3).
 
 **Checkpoint**: Client wrappers, member query, 401-disambiguation, idempotency helpers ready.
@@ -77,13 +77,13 @@ shape), not optional. Tests against an approved mock only; never live DP2
 ### Tests for SF5-1
 
 - [ ] T009 [P] [US1] Unit test the member-list reduction + state matrix (default/empty/loading/error/success) in `tests/unit/member-list.test.tsx` (VG-1; design-brief SF5-1 matrix).
-- [ ] T010 [P] [US3] Unit test the 401-disambiguation: refresh-fails → sign-out; refresh-ok-but-401 → scope chooser, in `tests/unit/members-401-disambiguation.test.ts` (VG-1, FR-005-007).
-- [ ] T011 [P] [US3] E2E precondition-401 (no active tenant) → RF-1 scope chooser, in `tests/e2e/members-no-active-tenant.spec.ts` (VG-2, S3).
+- [ ] T010 [P] [US3] Unit test the `createInvitation` 401-disambiguation: refresh-fails → sign-out; refresh-ok-but-401 → scope chooser, in `tests/unit/invite-401-disambiguation.test.ts` (VG-1, FR-005-007). Also assert `listMembers` routes to the scope chooser via the pre-call active-tenant guard (not via a 401).
+- [ ] T011 [P] [US3] E2E no-active-tenant (pre-call guard on `listMembers`; precondition-401 on `createInvitation`) → RF-1 scope chooser, in `tests/e2e/members-no-active-tenant.spec.ts` (VG-2, S3).
 
 ### Implementation for SF5-1
 
 - [ ] T012 [US1] Implement the member list table in `src/operators/MemberList.tsx` as `.data-table` (DESIGN.md rule 7): Member (name/email), Role badge, Store-access (All / N stores — ids not names, OQ-3), State (Revoked badge when `revoked_at`). Page header + right-aligned "Invite member" `.btn-primary` (design-brief SF5-1).
-- [ ] T013 [US1] Implement empty/loading/error states per the design-brief matrix; precondition-401 → scope chooser (T007), 403 → permission `.alert--danger` with `request_id` (FR-005-009).
+- [ ] T013 [US1] Implement empty/loading/error states per the design-brief matrix. `listMembers` documents only `404` (no access) → uniform `.alert--danger` with `request_id` (FR-005-009). The no-active-tenant precondition is handled by the pre-call guard → scope chooser (not a 401/403 on `listMembers`).
 - [ ] T014 [US1] [SHARED] Un-gate the `Operators` entry in `src/shell/AppShell.tsx` `GATED_NAV` (verified `AppShell.tsx:12-18`) — turn it into a live nav link to the Operators route.
 - [ ] T015 [US1] [SHARED] Register the protected Operators route in `src/App.tsx` (inline routing, verified `App.tsx:24-32`; NO `src/lib/router.tsx`).
 

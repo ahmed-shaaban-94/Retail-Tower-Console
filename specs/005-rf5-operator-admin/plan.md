@@ -75,7 +75,7 @@ about RF-1 below cites the file:line it was read from. There is **no**
 | GATED_NAV array | `src/shell/AppShell.tsx:12-18` (`{ label: "Operators", gate: "RF-5" }`) | RF-5 un-gates the `Operators` entry (turns it into a live nav link). SHARED-FILE TOUCH. |
 | Typed op wrappers | `src/lib/client.ts:1-71` (`apiClient.GET/POST/...` → `{ status, data, error }`) | RF-5 adds 5 wrappers in the same shape; `createInvitation` adds an `Idempotency-Key` header (new shape). SHARED-FILE TOUCH. |
 | Active-context hook | `src/context/useActiveContext.ts:44-107` (read-only projection; `membershipCount`; `context.active_tenant`) | RF-5 reads `active_tenant.id` from this hook; does not re-implement it. |
-| 401 reactive-refresh | `src/lib/auth-interceptor.ts:32-60` (`createAuthRetry`: refresh once; `onSessionLost` fires only if refresh fails; per-call, NOT global middleware) | RF-5 wraps its member-graph calls with its own `createAuthRetry` instance, with a `onSessionLost` that drives sign-out **only** on a failed refresh; a precondition 401 (refresh succeeds, call still 401s) routes to the scope chooser. See "401 disambiguation" below. |
+| 401 reactive-refresh | `src/lib/auth-interceptor.ts:32-60` (`createAuthRetry`: refresh once; `onSessionLost` fires only if refresh fails; per-call, NOT global middleware) | RF-5 wraps **`createInvitation`** (the only op with a precondition 401) with its own `createAuthRetry` instance, with a `onSessionLost` that drives sign-out **only** on a failed refresh; a precondition 401 (refresh succeeds, call still 401s) routes to the scope chooser. The other three calls use the standard RF-1 wrapper. See "401 disambiguation" below. |
 | Shared error surface | `src/components/Banner.tsx`, `src/components/InlineError.tsx` | RF-5 renders its 400/403/404/409/425 outcomes through these; no new error component family. |
 | Design tokens | `src/styles/tokens.css`, `src/styles/controls.css` | RF-5 reuses; extends `docs/design/` mockups for the member table (see design-brief.md). |
 
@@ -104,17 +104,22 @@ Read against `src/lib/auth-interceptor.ts:32-60` and
   `{ kind: "session-lost" }`. That mapping is correct **for the context query**
   because RF-1's only 401 cause there is session-expiry.
 
-RF-5's operations have a **second** 401 cause: `createInvitation`/`listMembers`
-return `401` "No active tenant" — a **precondition**, session still valid. After a
-successful refresh the retried call **still** returns `401`. Therefore:
+**`createInvitation`** has a **second** 401 cause (per the contracts, it is the
+**only** RF-5 op that does): `401` "No active tenant" — a **precondition**, session
+still valid. After a successful refresh the retried `createInvitation` **still**
+returns `401`. (`listMembers`/`updateMembership`/`revokeMembership` take explicit
+path params and document **only** `200`/`204` + `404` — no precondition 401, no
+403; their 401, if any, is generic auth → standard RF-1 expiry. The `listMembers`
+active-tenant precondition is guarded *before* the call by routing to the scope
+chooser when `active_tenant` is null.) Therefore:
 
 - RF-5 MUST NOT reuse the `useActiveContext` "status===401 → session-lost"
-  mapping for its member-graph calls.
-- RF-5 wires its own `createAuthRetry` instance whose `onSessionLost` is the
-  **only** path to sign-out (fires only when the refresh itself fails). A 401 that
-  **survives** a successful refresh is classified as a precondition error and
-  routes the operator to the RF-1 scope chooser (set active tenant), NOT to
-  sign-out.
+  mapping **on the `createInvitation` call**.
+- RF-5 wraps **`createInvitation`** with its own `createAuthRetry` instance whose
+  `onSessionLost` is the **only** path to sign-out (fires only when the refresh
+  itself fails). A 401 that **survives** a successful refresh is classified as a
+  precondition error and routes the operator to the RF-1 scope chooser (set active
+  tenant), NOT to sign-out. The other three calls use the standard RF-1 wrapper.
 - **Design gap to resolve at implementation (OQ-1 note):** the current
   `createAuthRetry` returns the original response and signals session-loss via the
   injected `onSessionLost` side effect; it does not return a discriminator like

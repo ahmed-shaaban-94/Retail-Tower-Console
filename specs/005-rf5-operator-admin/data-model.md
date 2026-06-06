@@ -117,13 +117,19 @@ All of it is derived from, and re-synced to, backend responses.
 ### ST-1 — Session lifecycle (RF-1 owns; RF-5 only reacts to a 401)
 
 RF-5 does not drive ST-1. It reacts to a `401` per the **401 disambiguation**
-(FR-005-007, research R5-4):
+(FR-005-007, research R5-4). Per the contracts the precondition 401 occurs **only
+on `createInvitation`**:
 
 ```
-401 on an RF-5 call
+401 on createInvitation
    ├─ refresh fails  ───────────────> session-expiry → RF-1 SF-1 (sign-in)   [ST-1 → ANONYMOUS]
    └─ refresh ok, call still 401 ───> precondition "no active tenant"
                                        → RF-1 scope chooser (set active tenant) [NOT sign-out]
+
+401 on listMembers / updateMembership / revokeMembership
+   └─ generic auth → standard RF-1 expiry handling (no precondition path; their
+      no-access case is 404, and the listMembers active-tenant precondition is
+      guarded BEFORE the call by routing to the scope chooser when active_tenant null)
 ```
 
 ---

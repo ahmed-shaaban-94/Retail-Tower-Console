@@ -74,13 +74,17 @@ dependency** (spec OQ-4, FR-005-010).
   middleware): on 401, `refreshSession` once; if it fails, `onSessionLost()`; if
   it succeeds, re-issue and return the result. `useActiveContext.ts:64-68` maps
   `status===401 → session-lost` **for the context query only**.
-- **RF-5 extension:** RF-5's member-graph ops have a **second** 401 cause —
-  `createInvitation`/`listMembers` return 401 "No active tenant" (a precondition,
-  session still valid). RF-5 wires its **own** `createAuthRetry` instance whose
-  `onSessionLost` (refresh-failed path) is the **only** route to sign-out; a 401
-  that **survives a successful refresh** is a precondition error → route to the
-  RF-1 scope chooser. RF-5 MUST NOT reuse the `useActiveContext`
-  "status===401 → session-lost" mapping.
+- **RF-5 extension:** per the contracts, **only `createInvitation`** has a second
+  401 cause — 401 "No active tenant" (a precondition, session still valid;
+  `createInvitation` resolves the tenant from the session). RF-5 wraps **that one
+  call** with its **own** `createAuthRetry` instance whose `onSessionLost`
+  (refresh-failed path) is the **only** route to sign-out; a 401 that **survives a
+  successful refresh** is a precondition error → route to the RF-1 scope chooser.
+  RF-5 MUST NOT reuse the `useActiveContext` "status===401 → session-lost" mapping
+  on `createInvitation`. `listMembers`/`updateMembership`/`revokeMembership`
+  document only 200/204 + 404 (no precondition 401, no 403) and use the standard
+  RF-1 wrapper; the `listMembers` active-tenant precondition is guarded *before*
+  the call (route to chooser when `active_tenant` is null).
 - **Constraint:** FR-005-007 / OQ-1. This is the contradiction a code-blind
   consistency scan would miss — it is grounded in reading the interceptor, not the
   claim. RF-5 owns its interceptor instance (deps injected per-instance), so no

@@ -73,12 +73,19 @@ name no library.
 
 - Q: OQ-1 — Does a `createInvitation` 401 ("No active tenant") mean the same as a
   session-expiry 401 (which RF-1 routes to sign-out)? → A: **No — they are
-  distinct.** A `createInvitation`/`listMembers` precondition 401 (no active
-  tenant) MUST NOT be treated as session-expiry. RF-5 MUST distinguish: an
-  expiry 401 (where the reactive single-refresh also fails) routes to SF-1; a
-  precondition 401 (where the session is still valid) routes the operator to the
-  RF-1 scope chooser to set an active tenant first. RF-5 MUST NOT reuse a blanket
-  "any 401 → session-lost" mapping. Reconciled into Scenarios S1, S3; FR-005-007.
+  distinct.** Per the contracts, the "No active tenant" 401 is documented **only
+  on `createInvitation`** (it resolves the tenant from the session). A
+  `createInvitation` precondition 401 (no active tenant, session still valid) MUST
+  NOT be treated as session-expiry. RF-5 MUST distinguish: an expiry 401 (where
+  the reactive single-refresh also fails) routes to SF-1; a `createInvitation`
+  precondition 401 (where the refresh succeeds but the call still 401s) routes the
+  operator to the RF-1 scope chooser to set an active tenant first. RF-5 MUST NOT
+  reuse a blanket "any 401 → session-lost" mapping **on the `createInvitation`
+  call**. (`listMembers`, `updateMembership`, `revokeMembership` take an explicit
+  path param and document no precondition 401 — their no-access case is `404`;
+  RF-5 guards the active-tenant precondition *before* calling `listMembers`, by
+  routing to the scope chooser when `active_tenant` is null.) Reconciled into
+  Scenarios S1, S3; FR-005-007.
 - Q: OQ-2 — Is the public `acceptInvitation` flow (anonymous invitee accepting a
   token) in RF-5 scope? → A: **Yes, as a distinct public surface (SF5-4),** a
   sibling of the RF-1 public sign-in route (not an A1–A5 admin action). Foundation
@@ -169,7 +176,7 @@ verbatim and carries no authorization opinion (FR-005-004).
 | A4 | Store Manager | Store-scoped identity; may view members and (subject to backend role checks) manage store-level operators. RF-5 renders what the backend permits. |
 | A5 | Store Staff | Typically read-only in RF-5; the backend returns `403` on any management action A5 is not permitted, and RF-5 renders that. |
 | A6 | **POS Device / POS Operator** | **EXCLUDED.** A6 never appears in RF-5 and is never managed here. POS operators are managed through `pos-operators.openapi.yaml` (`/api/pos/v1/operators/*`, Clerk-JWT, device-token scoped) — a POS-Pulse / DP2-POS surface this console does not touch (Constitution Principle 3, foundation FR-003). RF-5 reads that contract *only* to assert this exclusion. The membership graph RF-5 manages is the A1–A5 platform-membership graph (`memberships` + `tenants/{id}/members`), which is a separate identity surface from POS operator sessions. |
-| A8 (anonymous invitee) | A user accepting an emailed invitation token | Reaches **only** the public accept-invitation surface (SF5-4). The accept token authenticates the request (`acceptInvitation` is `security: []`); on success a session is established and the new member lands in the RF-1 shell. Not an A1–A5 admin action. |
+| A7 | **Anonymous / unauthenticated** (foundation §4) — here, an invitee accepting an emailed token | Reaches **only** the public accept-invitation surface (SF5-4). The accept token authenticates the request (`acceptInvitation` is `security: []`); on success a session is established and the new member lands in the RF-1 shell. Not an A1–A5 admin action. (Same anonymous category RF-1 routes to its public sign-in surface.) |
 
 **Authorization rule.** RF-5 never decides whether an actor *may* invite,
 modify, or revoke a member. The backend enforces it (role checks, tenant
@@ -307,13 +314,16 @@ invitation and re-fetches the list. A double-submit (same key, same body) return
 duplicate pending invite for that email returns `409` and RF-5 surfaces it as
 "an invitation is already pending for this email."
 
-### Scenario S3 — Management attempted with no active tenant (precondition 401)
+### Scenario S3 — Management attempted with no active tenant (precondition)
 
 A1 (Platform Admin) opens `Operators` but has not yet selected an active tenant
-(or the active tenant was cleared). `listMembers`/`createInvitation` returns a
-**precondition `401` ("No active tenant")** — the session is still valid. RF-5
-MUST route the operator to the RF-1 scope chooser to set an active tenant first.
-It MUST NOT treat this as session-expiry and MUST NOT sign the operator out
+(or the active tenant was cleared). Because `listMembers` needs
+`active_tenant.id`, RF-5 **guards before calling**: with `active_tenant` null it
+routes the operator to the RF-1 scope chooser to set a tenant first (it does not
+fire `listMembers` blind). Separately, if A1 reaches the invite surface with no
+active tenant, `createInvitation` returns a **precondition `401` ("No active
+tenant")** — the session is still valid; RF-5 routes to the scope chooser. In
+neither case does RF-5 treat this as session-expiry or sign the operator out
 (FR-005-007, OQ-1). Contrast with Scenario S6.
 
 ### Scenario S4 — Change a member's role / store access
@@ -343,7 +353,7 @@ chooser) (FR-005-007, OQ-1).
 
 ### Scenario S7 — Accept an invitation (public)
 
-A8 (anonymous invitee) opens the emailed accept link. SF5-4 (public, no active
+A7 (anonymous, here an invitee) opens the emailed accept link. SF5-4 (public, no active
 session required) calls `acceptInvitation` with the token (and a password /
 display name if not yet a registered user). On `200` a membership is created and
 a session is established; the new member lands in the RF-1 shell with the new
@@ -403,15 +413,21 @@ anchored to a foundation FR or constitution principle.
   changes.
   *Anchors:* RF-1 SF-3 / FR-003-005; Constitution Principle 1.
 
-- **FR-005-007 — Precondition 401 ≠ session-expiry.** RF-5 MUST distinguish a
-  *precondition* `401` ("No active tenant", session still valid) from a
-  *session-expiry* `401`. A precondition 401 routes the operator to the RF-1
-  scope chooser; it MUST NOT trigger sign-out. A session-expiry 401 (the RF-1
+- **FR-005-007 — Precondition 401 ≠ session-expiry (on `createInvitation`).** The
+  "No active tenant" precondition `401` is documented **only on
+  `createInvitation`** (it resolves the tenant from the session). RF-5 MUST
+  distinguish, **on that call**, a *precondition* `401` (session still valid) from
+  a *session-expiry* `401`: a precondition 401 routes the operator to the RF-1
+  scope chooser and MUST NOT trigger sign-out; a session-expiry 401 (the RF-1
   reactive single-refresh also fails) routes to SF-1. RF-5 MUST NOT reuse a
-  blanket "any 401 → session-lost" mapping. The discriminator is whether the
-  reactive refresh fails.
+  blanket "any 401 → session-lost" mapping on `createInvitation`. The
+  discriminator is whether the reactive refresh fails (refresh fails → expiry;
+  refresh succeeds but the call still 401s → precondition). For `listMembers`,
+  RF-5 guards the active-tenant precondition *before* calling (route to chooser
+  when `active_tenant` is null); `listMembers`/`updateMembership`/
+  `revokeMembership` document no precondition 401 — their no-access case is `404`.
   *Anchors:* OQ-1; RF-1 Scenario S5 / reactive-refresh interceptor behavior;
-  `memberships.openapi.yaml` / `tenants.openapi.yaml` 401 semantics.
+  `memberships.openapi.yaml` `createInvitation` 401 ("No active tenant").
 
 ### Idempotency & error rendering
 
@@ -507,15 +523,20 @@ These block `/speckit-plan` or the FR-008 implementation gate, not the acceptanc
 of this spec as a `/speckit-specify` output.
 
 - **OQ-1 — Precondition 401 vs. session-expiry 401.** **RESOLVED (Session
-  2026-06-06):** distinct. `createInvitation`/`listMembers` can return `401`
-  meaning "no active tenant" (a *precondition*, session still valid) — this MUST
-  NOT route through RF-1's sign-out path. The discriminator is whether the RF-1
-  reactive single-refresh fails (true expiry → SF-1) vs. succeeds but the call
-  still 401s (precondition → RF-1 scope chooser). RF-5 MUST NOT reuse the RF-1
-  active-context "status===401 → session-lost" mapping verbatim. Whether the RF-1
-  interceptor currently surfaces "did the refresh fail / did the session-lost
-  callback fire?" to a downstream caller is a `plan.md` design note (see
-  `research.md`). Reconciled into Scenarios S3/S6, FR-005-007.
+  2026-06-06):** distinct, and scoped to `createInvitation`. Per the contracts,
+  only `createInvitation` returns `401` meaning "no active tenant" (a
+  *precondition*, session still valid) — this MUST NOT route through RF-1's
+  sign-out path. The discriminator is whether the RF-1 reactive single-refresh
+  fails (true expiry → SF-1) vs. succeeds but the call still 401s (precondition →
+  RF-1 scope chooser). RF-5 MUST NOT reuse the RF-1 active-context
+  "status===401 → session-lost" mapping verbatim **on `createInvitation`**. The
+  401-disambiguation interceptor wrapping is therefore needed **only on the
+  `createInvitation` call**; `listMembers`/`updateMembership`/`revokeMembership`
+  401s are generic auth (→ standard RF-1 expiry handling), and the active-tenant
+  precondition for `listMembers` is guarded before the call. Whether the RF-1
+  interceptor surfaces "did the refresh fail?" to a downstream caller is a
+  `plan.md` design note (see `research.md`). Reconciled into Scenarios S3/S6,
+  FR-005-007.
 
 - **OQ-2 — Public `acceptInvitation` flow in scope?** **RESOLVED (Session
   2026-06-06): yes,** as a distinct public surface SF5-4, a sibling of RF-1's
