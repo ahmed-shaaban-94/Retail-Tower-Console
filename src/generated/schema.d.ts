@@ -9,6 +9,7 @@
 // - packages/contracts/openapi/context.openapi.yaml
 // - packages/contracts/openapi/tenants.openapi.yaml
 // - packages/contracts/openapi/stores.openapi.yaml
+// - packages/contracts/openapi/memberships.openapi.yaml
 //
 // The upstream OpenAPI files are separate documents with overlapping component
 // names, so this file namespaces each generated source and composes their path
@@ -1162,6 +1163,288 @@ export namespace StoresSchema {
     }
 }
 
-export type paths = AuthSchema.paths & ContextSchema.paths & TenantsSchema.paths & StoresSchema.paths;
-export type components = AuthSchema.components & ContextSchema.components & TenantsSchema.components & StoresSchema.components;
-export type operations = AuthSchema.operations & ContextSchema.operations & TenantsSchema.operations & StoresSchema.operations;
+export namespace MembershipsSchema {
+    export interface paths {
+        "/api/v1/memberships/invite": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            /** Invite an email address to the active tenant. */
+            post: operations["createInvitation"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/memberships/{membership_id}": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    membership_id: string;
+                };
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            post?: never;
+            /** Revoke a membership. Membership row is soft-deleted; audit logged. */
+            delete: operations["revokeMembership"];
+            options?: never;
+            head?: never;
+            /** Change a member's role and/or store-access policy. */
+            patch: operations["updateMembership"];
+            trace?: never;
+        };
+        "/api/v1/invitations/accept": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            /** Accept a pending invitation. Public — accept token authenticates the request. */
+            post: operations["acceptInvitation"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+    }
+    export type webhooks = Record<string, never>;
+    export interface components {
+        schemas: {
+            InvitationCreate: {
+                /** Format: email */
+                email: string;
+                role_code: string;
+                /** @enum {string} */
+                store_access_kind: "all" | "specific";
+                /** @description Required when store_access_kind = 'specific'. */
+                store_ids?: string[];
+            };
+            Invitation: {
+                /** Format: uuid */
+                id?: string;
+                /** Format: uuid */
+                tenant_id?: string;
+                email?: string;
+                role_code?: string;
+                /** @enum {string} */
+                store_access_kind?: "all" | "specific";
+                invited_store_ids?: string[];
+                /** @enum {string} */
+                status?: "pending" | "accepted" | "expired" | "revoked";
+                /** Format: date-time */
+                expires_at?: string;
+            };
+            MembershipUpdate: {
+                role_code?: string;
+                /** @enum {string} */
+                store_access_kind?: "all" | "specific";
+                store_ids?: string[];
+            };
+            Membership: {
+                /** Format: uuid */
+                id?: string;
+                /** Format: uuid */
+                tenant_id?: string;
+                /** Format: uuid */
+                user_id?: string;
+                role_code?: string;
+                /** @enum {string} */
+                store_access_kind?: "all" | "specific";
+                accessible_store_ids?: string[];
+                /** Format: date-time */
+                revoked_at?: string | null;
+            };
+        };
+        responses: never;
+        parameters: never;
+        requestBodies: never;
+        headers: never;
+        pathItems: never;
+    }
+    export type $defs = Record<string, never>;
+    export interface operations {
+        createInvitation: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Client-generated opaque token (UUIDv7 recommended) that enables safe retries. The same key with the same body replays the original response. The same key with a different body returns 409. Missing header returns 400 (policy: required). */
+                    "Idempotency-Key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InvitationCreate"];
+                };
+            };
+            responses: {
+                /** @description Invitation created; email queued. */
+                201: {
+                    headers: {
+                        /** @description Present with value "true" when this response is a replay of an earlier successful request. */
+                        "Idempotent-Replayed"?: "true";
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Invitation"];
+                    };
+                };
+                /** @description Bad request. Possible error codes: - `validation_error` — invalid request body. - `idempotency_key_required` — Idempotency-Key header is missing. - `idempotency_key_malformed` — header value fails format validation. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No active tenant. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Insufficient role. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /**
+                 * @description Conflict. Possible causes: - A pending invitation already exists for that email in this tenant. - The same Idempotency-Key was previously used with a different request body (error code `idempotency_key_conflict`).
+                 *       This is a terminal client error — generate a new key.
+                 */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Too Early. The original request with this Idempotency-Key is still being processed. Retry after the `Retry-After` interval with the same key and body. */
+                425: {
+                    headers: {
+                        /** @description Seconds to wait before retrying. */
+                        "Retry-After"?: number;
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        revokeMembership: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    membership_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Revoked. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not found / no access. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        updateMembership: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    membership_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MembershipUpdate"];
+                };
+            };
+            responses: {
+                /** @description Updated. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Membership"];
+                    };
+                };
+                /** @description Not found / no access. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        acceptInvitation: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Single-use token sent to the invitee by email. */
+                        token: string;
+                        /** @description Required if the invitee is not yet a registered user. */
+                        password?: string;
+                        display_name?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Membership created and a session is established for the user. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Membership"];
+                    };
+                };
+                /** @description Invalid or expired token. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+    }
+}
+
+export type paths = AuthSchema.paths & ContextSchema.paths & TenantsSchema.paths & StoresSchema.paths & MembershipsSchema.paths;
+export type components = AuthSchema.components & ContextSchema.components & TenantsSchema.components & StoresSchema.components & MembershipsSchema.components;
+export type operations = AuthSchema.operations & ContextSchema.operations & TenantsSchema.operations & StoresSchema.operations & MembershipsSchema.operations;

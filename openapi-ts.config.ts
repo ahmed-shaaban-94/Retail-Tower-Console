@@ -18,8 +18,9 @@ import openapiTS, { astToString, COMMENT_HEADER } from "openapi-typescript";
  * commit. Sources live in `packages/contracts/openapi/` upstream:
  *   - auth.openapi.yaml     (signIn, signOut, refreshSession)
  *   - context.openapi.yaml  (getActiveContext, switch/clear context)
- *   - tenants.openapi.yaml  (listTenants, readTenant, createTenant, updateTenant, softDeleteTenant) — RF-2
+ *   - tenants.openapi.yaml  (listTenants, readTenant, createTenant, updateTenant, softDeleteTenant, listMembers) — RF-2/RF-5
  *   - stores.openapi.yaml   (listStores, readStore, createStore, updateStore, softDeleteStore) — RF-2
+ *   - memberships.openapi.yaml (createInvitation, updateMembership, revokeMembership, acceptInvitation) — RF-5
  *
  * The pin is UNCHANGED across slices; new slices add their contract source and
  * regenerate at the same SHA (regeneration, not a re-pin).
@@ -44,6 +45,7 @@ export const OPENAPI_SOURCE_SPECS = [
   { name: "Context", path: "packages/contracts/openapi/context.openapi.yaml" },
   { name: "Tenants", path: "packages/contracts/openapi/tenants.openapi.yaml" },
   { name: "Stores", path: "packages/contracts/openapi/stores.openapi.yaml" },
+  { name: "Memberships", path: "packages/contracts/openapi/memberships.openapi.yaml" },
 ] as const;
 
 /** Upstream source paths (kept for back-compat / documentation references). */
