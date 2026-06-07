@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="specs/001-console-foundation/plan.md"><img alt="Posture: scaffolded" src="https://img.shields.io/badge/posture-scaffolded-2563eb?style=flat-square"></a>
+  <a href="specs"><img alt="Posture: 4 of 7 families shipped" src="https://img.shields.io/badge/posture-RF--1%2F2%2F5%2F6%20shipped-059669?style=flat-square"></a>
   <a href="specs/002-tooling-and-scaffold"><img alt="Scaffold: slice 002 merged" src="https://img.shields.io/badge/scaffold-slice%20002%20merged-059669?style=flat-square"></a>
   <a href="specs/001-console-foundation/contracts"><img alt="API: generated client only" src="https://img.shields.io/badge/API-generated%20client%20only-2563eb?style=flat-square"></a>
   <a href="docs/agent-os/maestro-playbook.md"><img alt="Agent OS: gate governed" src="https://img.shields.io/badge/Agent%20OS-gate%20governed-111827?style=flat-square"></a>
@@ -29,7 +29,7 @@
 
 </div>
 
-Retail Tower Console is the planned admin web frontend for Retail Tower OS. It consumes Data-Pulse-2 OpenAPI contracts and must not own backend business logic, database schema, SQL migrations, POS terminal code, worker jobs, secrets, or deployment infrastructure.
+Retail Tower Console is the admin web frontend for Retail Tower OS. It consumes Data-Pulse-2 OpenAPI contracts and must not own backend business logic, database schema, SQL migrations, POS terminal code, worker jobs, secrets, or deployment infrastructure. Four of the seven route families are implemented and merged (RF-1 auth shell, RF-2 tenant/store, RF-5 operator/admin, RF-6 audit/search); RF-3/RF-4/RF-7 remain gated pending upstream contract coverage.
 
 ---
 
@@ -74,15 +74,18 @@ Open the [interactive Three.js console map](docs/architecture/retail-tower-conso
 
 ## Current implementation status
 
-This repository is planning-first with the slice 002 frontend scaffold now merged. The Vite/React shell, package manifest, lockfile, CI workflow, and generated-client storage location exist; RF-1 through RF-7 product UI remains gated by per-slice approvals.
+The slice 002 scaffold and four product route families are merged. The Vite/React shell, auth/active-context shell (RF-1), tenant/store management (RF-2), operator/admin management (RF-5), and audit/search (RF-6) are implemented behind their per-slice FR-008 gates. RF-3 (catalog), RF-4 (unknown items), and RF-7 (settings) remain gated pending upstream Data-Pulse-2 contract coverage.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| Console foundation | Planned | [`specs/001-console-foundation`](specs/001-console-foundation) |
-| API readiness map | Partial and explicit by route family | [`specs/001-console-foundation/api-readiness.md`](specs/001-console-foundation/api-readiness.md) |
+| Console foundation | Spec'd; primitives merged via RF-1 | [`specs/001-console-foundation`](specs/001-console-foundation) · [`specs/003-rf1-auth-shell`](specs/003-rf1-auth-shell) |
 | Tooling and scaffold | Merged slice 002 scaffold | [`package.json`](package.json) · [`specs/002-tooling-and-scaffold`](specs/002-tooling-and-scaffold) |
-| Runtime application code | Placeholder shell only; no RF UI | [`src/App.tsx`](src/App.tsx) |
-| Generated API client | Generated from pinned Data-Pulse-2 auth/context contracts | [`src/generated/schema.d.ts`](src/generated/schema.d.ts) · [`openapi-ts.config.ts`](openapi-ts.config.ts) |
+| RF-1 auth shell + active context | Merged | [`src/auth`](src/auth) · [`src/shell`](src/shell) · [`specs/003-rf1-auth-shell`](specs/003-rf1-auth-shell) |
+| RF-2 tenant/store management | Merged (PR #28) | [`src/tenants`](src/tenants) · [`src/stores`](src/stores) · [`specs/004-rf2-tenant-store-mgmt`](specs/004-rf2-tenant-store-mgmt) |
+| RF-5 operator/admin management | Merged (PR #29) | [`src/operators`](src/operators) · [`specs/005-rf5-operator-admin`](specs/005-rf5-operator-admin) |
+| RF-6 audit/search | Merged (PR #31) | [`src/audit`](src/audit) · [`specs/006-rf6-audit-search`](specs/006-rf6-audit-search) |
+| RF-3 / RF-4 / RF-7 surfaces | Gated; pending upstream contract coverage | [`specs/001-console-foundation/api-readiness.md`](specs/001-console-foundation/api-readiness.md) |
+| Generated API client | Generated from pinned Data-Pulse-2 contracts (auth, context, tenants, stores, memberships, audit) | [`src/generated/schema.d.ts`](src/generated/schema.d.ts) · [`openapi-ts.config.ts`](openapi-ts.config.ts) |
 | Backend contracts | Owned upstream by Data-Pulse-2 | [`specs/001-console-foundation/contracts`](specs/001-console-foundation/contracts) |
 | POS terminal behavior | Owned by POS-Pulse | [Constitution](.specify/memory/constitution.md) |
 
@@ -95,23 +98,23 @@ This repository is planning-first with the slice 002 frontend scaffold now merge
 | The console is frontend-only | [Constitution principle 1](.specify/memory/constitution.md) |
 | Data-Pulse-2 owns backend contracts | [Constitution principle 2](.specify/memory/constitution.md) · [contract boundary docs](specs/001-console-foundation/contracts) |
 | POS-Pulse owns terminal behavior | [Constitution principle 3](.specify/memory/constitution.md) |
-| RF UI implementation is gated | [Foundation plan](specs/001-console-foundation/plan.md) · [Maestro playbook](docs/agent-os/maestro-playbook.md) |
+| Each RF family ships only behind an explicit per-slice gate | [Foundation plan](specs/001-console-foundation/plan.md) · per-slice `gate-approval.md` (e.g. [004](specs/004-rf2-tenant-store-mgmt/gate-approval.md)) · [Maestro playbook](docs/agent-os/maestro-playbook.md) |
 | Package, lockfile, dependency, and CI changes remain approval-gated | [Constitution principle 9](.specify/memory/constitution.md) |
 | No secrets or deployment assumptions belong here | [Constitution principle 10](.specify/memory/constitution.md) |
 
 ---
 
-## Planned console surface
+## Console surface
 
 | Route family | Scope | Posture |
 | --- | --- | --- |
-| RF-1 | Auth shell and active context | First implementation family after gates clear |
-| RF-2 | Tenant and store management | Depends on upstream API readiness |
-| RF-3 | Catalog management | Depends on Data-Pulse-2 contract coverage |
-| RF-4a | Unknown items review UI | Read/write console workflow, POS behavior remains indirect |
-| RF-5 | Operator/admin management | A1-A5 identity and membership surfaces |
-| RF-6 | Audit and operational search | Backend-authorized read surface |
-| RF-7 | Settings/system management | Depends on Data-Pulse-2 contract coverage |
+| RF-1 | Auth shell and active context | ✅ Shipped — sign-in, scope gate, app shell |
+| RF-2 | Tenant and store management | ✅ Shipped — list/detail/create-edit/soft-delete |
+| RF-3 | Catalog management | Gated — depends on Data-Pulse-2 contract coverage |
+| RF-4a | Unknown items review UI | Gated — read/write workflow, POS behavior indirect |
+| RF-5 | Operator/admin management | ✅ Shipped — membership graph, invite/edit/revoke, public accept |
+| RF-6 | Audit and operational search | ✅ Shipped — cursor-paginated search + read-only inspect |
+| RF-7 | Settings/system management | Gated — depends on Data-Pulse-2 contract coverage |
 
 ---
 
@@ -121,8 +124,8 @@ This repository is planning-first with the slice 002 frontend scaffold now merge
 | --- | --- |
 | `specs/001-console-foundation` | Foundation spec, plan, API readiness, read-side model, and contract-consumption boundaries |
 | `specs/002-tooling-and-scaffold` | Merged scaffold/tooling slice and its gate record |
-| `src` | Placeholder SPA shell and generated-client storage location |
-| `tests` | Slice 002 smoke tests for the scaffold |
+| `src` | React SPA: auth shell, tenants, stores, operators, audit surfaces, shared components, and generated-client storage |
+| `tests` | Vitest unit + Playwright e2e across the shipped RF families |
 | `docs/agent-os` | Agent OS workflow and gate discipline |
 | `docs/product` | Product brief and console positioning |
 | `.specify/memory/constitution.md` | Binding project boundary and implementation rules |
@@ -141,7 +144,7 @@ Backend APIs, OpenAPI source contracts, database schema, SQL migrations, POS ter
 
 ## Getting started
 
-The scaffold exists, but product UI is still gate-governed. This repo uses **pnpm** (`pnpm@9.15.0`, Node `>=22`). Start with the local state and scaffold checks:
+Four RF families are implemented; each remaining family stays gate-governed. This repo uses **pnpm** (`pnpm@9.15.0`, Node `>=22`). Common checks:
 
 ```bash
 pnpm install        # install dependencies
@@ -162,7 +165,8 @@ Then review:
 | Foundation plan | [`specs/001-console-foundation/plan.md`](specs/001-console-foundation/plan.md) |
 | API dependency posture | [`specs/001-console-foundation/api-readiness.md`](specs/001-console-foundation/api-readiness.md) |
 | Merged scaffold gate | [`specs/002-tooling-and-scaffold`](specs/002-tooling-and-scaffold) |
-| Next implementation slice | [`specs/001-console-foundation/plan.md`](specs/001-console-foundation/plan.md) slice sequence |
+| Shipped slices | [`specs/003-rf1-auth-shell`](specs/003-rf1-auth-shell) · [`004`](specs/004-rf2-tenant-store-mgmt) · [`005`](specs/005-rf5-operator-admin) · [`006`](specs/006-rf6-audit-search) |
+| Remaining slice sequence | [`specs/001-console-foundation/plan.md`](specs/001-console-foundation/plan.md) (RF-3 / RF-4 / RF-7) |
 
 ---
 
