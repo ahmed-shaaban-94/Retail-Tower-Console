@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/brand/console-logo.svg" alt="Retail Tower Console logo" width="120" height="120"/>
+
 # Retail Tower Console
 
 **The browser admin command center for Retail Tower OS.**
@@ -44,6 +46,18 @@ operations and settings rise **up** to Data-Pulse-2.
 ```text
 Retail-Tower-Console ──▶ Data-Pulse-2 ──▶ ERPNext Connector ──▶ ERPNext / Frappe
 ```
+
+### Where the Console sits — full ecosystem view
+
+The diagram below places all five Retail Tower OS repositories under a shared control-plane band.
+The Console is the highlighted **admin edge node** (marked **★ THIS REPO**): a browser surface that
+talks only to Data-Pulse-2, never to ERPNext directly.
+
+<p align="center">
+  <img src="docs/assets/architecture/retail-tower-ecosystem.svg" alt="Animated five-repository Retail Tower OS ecosystem diagram with the Retail Tower Console node highlighted as the admin edge node" width="100%"/>
+</p>
+
+<p align="center"><sub>Live, animated 3D-styled SVG. Motion honors <code>prefers-reduced-motion</code> and degrades to a static rendering on GitHub.</sub></p>
 
 Full detail: [docs/architecture/sync-overview.md](docs/architecture/sync-overview.md) ·
 Program control plane: [Retail-Tower-Orchestrator](https://github.com/ahmed-shaaban-94/Retail-Tower-Orchestrator).
@@ -127,15 +141,16 @@ Backend APIs, OpenAPI source contracts, database schema, SQL migrations, POS ter
 
 ## Getting started
 
-The scaffold exists, but product UI is still gate-governed. Start with the local state and scaffold checks:
+The scaffold exists, but product UI is still gate-governed. This repo uses **pnpm** (`pnpm@9.15.0`, Node `>=22`). Start with the local state and scaffold checks:
 
 ```bash
-git status --short
-git branch --show-current
-pnpm install
-pnpm build
-pnpm lint
-pnpm test
+pnpm install        # install dependencies
+pnpm dev            # run the Vite dev server
+pnpm build          # type-check (tsc --noEmit) + production build
+pnpm lint           # Biome check
+pnpm test           # Vitest run with coverage
+pnpm test:e2e       # Playwright end-to-end tests
+pnpm generate:client # regenerate the typed client from pinned contracts
 ```
 
 Then review:
