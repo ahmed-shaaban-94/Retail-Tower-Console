@@ -11,7 +11,7 @@ import { useActiveContextValue } from "@/context/ActiveContextProvider";
  * 401 is NOT special-cased (OQ-1): a non-403 non-2xx falls through to the
  * generic banner; the shared interceptor handles a real session expiry.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuditFilters } from "./AuditFilters";
 import { AuditInspectDrawer } from "./AuditInspectDrawer";
 import { AuditPager } from "./AuditPager";
@@ -32,9 +32,25 @@ export function AuditSearch(): React.JSX.Element {
   const [searched, setSearched] = useState(false);
   const [inspecting, setInspecting] = useState<AuditRow | null>(null);
 
+  // S6: a scope switch (RF-1 SF-3) resets BOTH filters and results. The query
+  // key re-scopes the data layer, but filters/searched are component state that
+  // React preserves across the context change — so reset them here (a stale
+  // cross-tenant actor/store filter must not carry into the new scope), and
+  // close any open inspect drawer (its row belonged to the prior scope).
+  const activeTenantId = activeTenant?.id ?? null;
+  const activeStoreId = activeStore?.id ?? null;
+  // The scope ids are the intentional re-run TRIGGER (the effect only calls
+  // setters); resetting when they change is the whole point of S6.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scope ids are the trigger, not consumed values.
+  useEffect(() => {
+    setFilters(EMPTY_FILTERS);
+    setSearched(false);
+    setInspecting(null);
+  }, [activeTenantId, activeStoreId]);
+
   const { rows, hasMore, isLoading, isFetchingNextPage, error, loadMore } = useAuditSearch(
-    activeTenant?.id ?? null,
-    activeStore?.id ?? null,
+    activeTenantId,
+    activeStoreId,
     filters,
     searched,
   );
@@ -68,7 +84,13 @@ export function AuditSearch(): React.JSX.Element {
         </div>
       </header>
 
-      <AuditFilters storeInScope={Boolean(activeStore)} onApply={onApply} onClear={onClear} />
+      {/* Keyed on scope so the uncontrolled inputs clear on a scope switch (S6). */}
+      <AuditFilters
+        key={`${activeTenantId}:${activeStoreId}`}
+        storeInScope={Boolean(activeStore)}
+        onApply={onApply}
+        onClear={onClear}
+      />
 
       {error ? (
         <Banner

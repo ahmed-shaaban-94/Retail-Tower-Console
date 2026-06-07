@@ -113,4 +113,41 @@ describe("AuditSearch state matrix", () => {
     expect(screen.getByText(/select a tenant/i)).toBeDefined();
     expect(listAuditEvents).not.toHaveBeenCalled();
   });
+
+  test("S6: a scope switch resets the surface back to pre-query (filters + results)", async () => {
+    listAuditEvents.mockResolvedValue({
+      status: 200,
+      data: { items: [event("auth.signin")], next_cursor: null },
+    });
+    activeContext.mockReturnValue(withTenant);
+    const qc = createQueryClient();
+    function Tree({ children }: { children: ReactNode }) {
+      return (
+        <QueryClientProvider client={qc}>
+          <MemoryRouter>{children}</MemoryRouter>
+        </QueryClientProvider>
+      );
+    }
+    const { rerender } = render(
+      <Tree>
+        <AuditSearch />
+      </Tree>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /apply/i }));
+    expect(await screen.findByText("auth.signin")).toBeDefined();
+
+    // Switch tenant: the provider now reports a different active tenant.
+    activeContext.mockReturnValue({
+      context: { active_tenant: { id: "t2", name: "Helios Markets" }, active_store: null },
+    });
+    rerender(
+      <Tree>
+        <AuditSearch />
+      </Tree>,
+    );
+
+    // Reset to pre-query: prior rows gone, prompt back (filters cleared too).
+    expect(await screen.findByText(/search audit activity for helios/i)).toBeDefined();
+    expect(screen.queryByText("auth.signin")).toBeNull();
+  });
 });
