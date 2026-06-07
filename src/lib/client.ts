@@ -136,3 +136,25 @@ export async function acceptInvitation(body: AcceptInvitationBody) {
   const { data, error, response } = await apiClient.POST("/api/v1/invitations/accept", { body });
   return { status: response.status, data, error };
 }
+
+// --- RF-6 audit / search (T006) ---------------------------------------------
+// One read-only wrapper. NO posAuditEventsSync, NO invented single-event read
+// (FR-006-001); the inspect drawer reads the already-fetched row (OQ-2).
+
+export interface AuditQuery {
+  action?: string;
+  actor_user_id?: string;
+  store_id?: string;
+  from?: string;
+  to?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+/** GET /api/v1/audit/events — scoped to the active tenant; cursor-paginated. */
+export async function listAuditEvents(query: AuditQuery) {
+  const { data, error, response } = await apiClient.GET("/api/v1/audit/events", {
+    params: { query },
+  });
+  return { status: response.status, data, error };
+}

@@ -21,6 +21,7 @@ import openapiTS, { astToString, COMMENT_HEADER } from "openapi-typescript";
  *   - tenants.openapi.yaml  (listTenants, readTenant, createTenant, updateTenant, softDeleteTenant, listMembers) — RF-2/RF-5
  *   - stores.openapi.yaml   (listStores, readStore, createStore, updateStore, softDeleteStore) — RF-2
  *   - memberships.openapi.yaml (createInvitation, updateMembership, revokeMembership, acceptInvitation) — RF-5
+ *   - audit.openapi.yaml    (listAuditEvents) — RF-6
  *
  * The pin is UNCHANGED across slices; new slices add their contract source and
  * regenerate at the same SHA (regeneration, not a re-pin).
@@ -46,6 +47,7 @@ export const OPENAPI_SOURCE_SPECS = [
   { name: "Tenants", path: "packages/contracts/openapi/tenants.openapi.yaml" },
   { name: "Stores", path: "packages/contracts/openapi/stores.openapi.yaml" },
   { name: "Memberships", path: "packages/contracts/openapi/memberships.openapi.yaml" },
+  { name: "Audit", path: "packages/contracts/openapi/audit.openapi.yaml" },
 ] as const;
 
 /** Upstream source paths (kept for back-compat / documentation references). */
