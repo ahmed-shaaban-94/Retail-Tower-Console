@@ -106,15 +106,15 @@ The slice 002 scaffold and four product route families are merged. The Vite/Reac
 
 ## Console surface
 
-| Route family | Scope | Posture |
-| --- | --- | --- |
-| RF-1 | Auth shell and active context | ✅ Shipped — sign-in, scope gate, app shell |
-| RF-2 | Tenant and store management | ✅ Shipped — list/detail/create-edit/soft-delete |
-| RF-3 | Catalog management | Gated — depends on Data-Pulse-2 contract coverage |
-| RF-4a | Unknown items review UI | Gated — read/write workflow, POS behavior indirect |
-| RF-5 | Operator/admin management | ✅ Shipped — membership graph, invite/edit/revoke, public accept |
-| RF-6 | Audit and operational search | ✅ Shipped — cursor-paginated search + read-only inspect |
-| RF-7 | Settings/system management | Gated — depends on Data-Pulse-2 contract coverage |
+| | Route family | Scope | Posture |
+| :--: | --- | --- | --- |
+| <img src="docs/assets/icons/rf1-auth.svg" width="34" alt=""/> | RF-1 | Auth shell and active context | ✅ Shipped — sign-in, scope gate, app shell |
+| <img src="docs/assets/icons/rf2-tenant-store.svg" width="34" alt=""/> | RF-2 | Tenant and store management | ✅ Shipped — list/detail/create-edit/soft-delete |
+| <img src="docs/assets/icons/rf3-catalog.svg" width="34" alt=""/> | RF-3 | Catalog management | Gated — depends on Data-Pulse-2 contract coverage |
+| <img src="docs/assets/icons/rf4-unknown-items.svg" width="34" alt=""/> | RF-4a | Unknown items review UI | Gated — read/write workflow, POS behavior indirect |
+| <img src="docs/assets/icons/rf5-operators.svg" width="34" alt=""/> | RF-5 | Operator/admin management | ✅ Shipped — membership graph, invite/edit/revoke, public accept |
+| <img src="docs/assets/icons/rf6-audit-search.svg" width="34" alt=""/> | RF-6 | Audit and operational search | ✅ Shipped — cursor-paginated search + read-only inspect |
+| <img src="docs/assets/icons/rf7-settings.svg" width="34" alt=""/> | RF-7 | Settings/system management | Gated — depends on Data-Pulse-2 contract coverage |
 
 ---
 
@@ -131,6 +131,7 @@ The slice 002 scaffold and four product route families are merged. The Vite/Reac
 | `.specify/memory/constitution.md` | Binding project boundary and implementation rules |
 | `docs/architecture` | Live control map and topology data |
 | `docs/assets/architecture` | GitHub-safe architecture preview assets |
+| `docs/assets/icons` | 3D route-family icon set used across this README |
 
 ### What this repo owns
 
