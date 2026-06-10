@@ -1,0 +1,69 @@
+/* RF-4a review-queue surface styles. Composed over the design tokens; reuses the
+ * shared .surface frame (src/shell/surface.css). No new visual primitive. */
+
+/* Filter / sort / group control row above the queue table. */
+.unknown-item-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-end;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.unknown-item-controls__legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font: 600 var(--text-label) / 1.4 var(--font-sans);
+}
+.unknown-item-controls__field {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+}
+.unknown-item-controls__field input,
+.unknown-item-controls__field select {
+  min-height: 36px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--text-body);
+}
+
+/* Inspect-drawer read-only detail list. */
+.unknown-item-detail {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+.unknown-item-detail__field {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: var(--space-4);
+  align-items: baseline;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.unknown-item-detail__label {
+  color: var(--color-text-muted);
+  font: 600 var(--text-label) / 1.4 var(--font-sans);
+}
+.unknown-item-detail__value {
+  margin: 0;
+  color: var(--color-text);
+  word-break: break-word;
+}
+.unknown-item-detail__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+.unknown-item-dismiss {
+  margin-top: var(--space-5);
+  display: grid;
+  gap: var(--space-4);
+}
