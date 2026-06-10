@@ -22,6 +22,10 @@ import openapiTS, { astToString, COMMENT_HEADER } from "openapi-typescript";
  *   - stores.openapi.yaml   (listStores, readStore, createStore, updateStore, softDeleteStore) — RF-2
  *   - memberships.openapi.yaml (createInvitation, updateMembership, revokeMembership, acceptInvitation) — RF-5
  *   - audit.openapi.yaml    (listAuditEvents) — RF-6
+ *   - catalog/unknown-items.yaml (tenantAdminListUnknownItems,
+ *       tenantAdminInspectUnknownItem, tenantAdminDismissUnknownItem are the
+ *       three RF-4a runtime-merged ops; posCapture/link/create-product/reopen/
+ *       bulk-dismiss are also in the document but are out of RF-4a scope) — RF-4a
  *
  * The pin is UNCHANGED across slices; new slices add their contract source and
  * regenerate at the same SHA (regeneration, not a re-pin).
@@ -37,6 +41,8 @@ export const DATA_PULSE_2_PIN = "62d0906" as const;
  *   (specs/001-console-foundation/contracts/rf1-auth-context.md).
  * - RF-2 boundary: tenants + stores
  *   (specs/004-rf2-tenant-store-mgmt/contracts/rf2-tenant-store.md).
+ * - RF-4a boundary: catalog/unknown-items (the review-queue read surface;
+ *   specs/007-rf4a-unknown-items/contracts/rf4a-unknown-items.md).
  *
  * `path` is relative to the Data-Pulse-2 repo root at the pinned SHA; `name` is
  * the TypeScript namespace the source is emitted under.
@@ -48,6 +54,7 @@ export const OPENAPI_SOURCE_SPECS = [
   { name: "Stores", path: "packages/contracts/openapi/stores.openapi.yaml" },
   { name: "Memberships", path: "packages/contracts/openapi/memberships.openapi.yaml" },
   { name: "Audit", path: "packages/contracts/openapi/audit.openapi.yaml" },
+  { name: "UnknownItems", path: "packages/contracts/openapi/catalog/unknown-items.yaml" },
 ] as const;
 
 /** Upstream source paths (kept for back-compat / documentation references). */

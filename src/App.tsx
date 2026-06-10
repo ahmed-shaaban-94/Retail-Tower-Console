@@ -5,6 +5,7 @@ import { Overview } from "@/shell/Overview";
 import { ProtectedArea } from "@/shell/ProtectedArea";
 import { SignInRoute } from "@/shell/SignInRoute";
 import { rf2Routes } from "@/shell/rf2Routes";
+import { rf4aRoutes } from "@/shell/rf4aRoutes";
 import { rf5Routes } from "@/shell/rf5Routes";
 import { rf6Routes } from "@/shell/rf6Routes";
 /**
@@ -39,6 +40,7 @@ export function App(): React.JSX.Element {
             <Route path="/" element={<ProtectedArea />}>
               <Route index element={<Overview />} />
               {rf2Routes}
+              {rf4aRoutes}
               {rf5Routes}
               {rf6Routes}
             </Route>

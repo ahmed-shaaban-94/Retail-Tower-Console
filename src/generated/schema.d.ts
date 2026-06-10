@@ -11,6 +11,7 @@
 // - packages/contracts/openapi/stores.openapi.yaml
 // - packages/contracts/openapi/memberships.openapi.yaml
 // - packages/contracts/openapi/audit.openapi.yaml
+// - packages/contracts/openapi/catalog/unknown-items.yaml
 //
 // The upstream OpenAPI files are separate documents with overlapping component
 // names, so this file namespaces each generated source and composes their path
@@ -1549,6 +1550,965 @@ export namespace AuditSchema {
     }
 }
 
-export type paths = AuthSchema.paths & ContextSchema.paths & TenantsSchema.paths & StoresSchema.paths & MembershipsSchema.paths & AuditSchema.paths;
-export type components = AuthSchema.components & ContextSchema.components & TenantsSchema.components & StoresSchema.components & MembershipsSchema.components & AuditSchema.components;
-export type operations = AuthSchema.operations & ContextSchema.operations & TenantsSchema.operations & StoresSchema.operations & MembershipsSchema.operations & AuditSchema.operations;
+export namespace UnknownItemsSchema {
+    export interface paths {
+        "/api/pos/v1/catalog/unknown-items": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            /**
+             * POS captures (or resolves) a catalog item reference.
+             * @description Look up the submitted identifier against the tenant's active alias set. On a hit, return the resolved product reference; on a miss, create a `pending` `unknown_items` row scoped to (tenant, store) and return its stable id. The submitting POS device's authenticated principal supplies both `tenant_id` and `store_id` (per spec 002); body-supplied tenant / store fields are NOT accepted (Constitution §III).
+             *     Idempotency: the `Idempotency-Key` header is REQUIRED. The existing `IdempotencyInterceptor` keys on `(method, route, clientId = POS device principal id, key)` per FR-021a and honors a default 72-hour TTL (≥ FR-021b's 24h minimum). Identical retry replays the stored response with `Idempotent-Replayed: true`; key-reuse with a different logical payload returns 409 `idempotency_key_conflict` per FR-021c.
+             *     Failure-response error codes follow research.md §R2 taxonomy: `validation_failure`, `store_context_required`, `idempotency_key_required`, `idempotency_key_malformed`, `idempotency_key_conflict`.
+             */
+            post: operations["posCaptureItem"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/catalog/unknown-items": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /**
+             * List pending unknown items for the active tenant.
+             * @description Returns pending `unknown_items` visible to the authenticated dashboard principal under the active tenant context. Tenant-wide actors (tenant admin / tenant owner) see all stores in the tenant; store-scoped operators see only items captured at stores they have access to (RLS-enforced per 003 §8 / FR-014). Ordered by `encountered_at DESC, id DESC`. Cursor pagination matches the `outbox.openapi.yaml` precedent: opaque base64url token encoding the next-page boundary.
+             *     Cross-tenant probes are non-disclosing — the page is filtered to the active tenant by RLS, never by an authorization error (SI-001 / SI-004 / FR-013).
+             */
+            get: operations["tenantAdminListUnknownItems"];
+            put?: never;
+            post?: never;
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/catalog/unknown-items/{id}/dismiss": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            /**
+             * Dismiss a pending unknown item as invalid.
+             * @description Transition the addressed `unknown_items` row from `pending` to `dismissed` (FR-003 / resolution_action = `dismissed`). The UPDATE is constrained `WHERE resolution_status = 'pending'` to enforce monotonic lifecycle (FR-004). Re-dismissing a `dismissed` or `resolved` row returns 409 `already_reconciled` (research.md §R2). A subsequent POS submission of the same logical identifier creates a fresh `pending` row per FR-005; the dismissed row is preserved unchanged as audit history.
+             *     Cross-tenant or out-of-scope addresses receive a non-disclosing 404 (SI-001 / SI-004 / FR-013 / FR-092).
+             */
+            post: operations["tenantAdminDismissUnknownItem"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/catalog/unknown-items/{id}/link": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            /**
+             * Link a pending unknown item to an existing tenant product.
+             * @description Atomically: (1) verify the target product is active in the same tenant; (2) create or reactivate a `product_aliases` row binding the unknown item's identifier to the target product; (3) transition the unknown item from `pending` to `resolved` with `resolution_action = linked`. All three effects commit together or none do (FR-053).
+             *     Failure-response error codes follow research.md §R2 taxonomy: `alias_conflict` (FR-052 — identifier already bound to a different product), `target_unavailable` (FR-051 — product is retired or deleted), `already_reconciled` (race-loser per US3 #3 — item was concurrently resolved before this request committed), `validation_failure` (malformed request body).
+             *     Cross-tenant or out-of-scope addresses receive a non-disclosing 404 (SI-001 / SI-004 / FR-013 / FR-092). The conflict response MUST NOT disclose the conflicting product to an actor without authority to see it (FR-042).
+             */
+            post: operations["tenantAdminLinkUnknownItem"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/catalog/unknown-items/{id}/create-product": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            /**
+             * Create a new tenant product from a pending unknown item.
+             * @description Atomically: (1) INSERT a new `tenant_products` row in the authenticated tenant (body-supplied `tenant_id` is discarded per Constitution §III — backend authority); (2) INSERT a `product_aliases` row binding the unknown item's identifier to the new product; (3) transition the unknown item from `pending` to `resolved` with `resolution_action = created`. All three effects commit together or none do (FR-063).
+             *     Failure-response error codes follow research.md §R2 taxonomy: `alias_conflict` (FR-062 — identifier already bound to a different product; neither the product nor the alias is created), `already_reconciled` (race-loser — item was concurrently resolved), `validation_failure` (missing or malformed required fields).
+             *     Cross-tenant or out-of-scope addresses receive a non-disclosing 404 (SI-001 / SI-004 / FR-013 / FR-092).
+             */
+            post: operations["tenantAdminCreateProductFromUnknownItem"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/catalog/unknown-items/{id}": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /**
+             * Inspect a single unknown item (review surface).
+             * @description 007 US3 / FR-009. Returns the addressed `unknown_items` row as a `ReviewQueueItem` (no `sale_context`, FR-007; no candidate-match hint in v1, FR-070). RLS-scoped: cross-tenant or out-of-scope ids receive a non-disclosing 404 (SI-004 / FR-062). Inherits the document-level `cookieAuth`.
+             */
+            get: operations["tenantAdminInspectUnknownItem"];
+            put?: never;
+            post?: never;
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/catalog/unknown-items/{id}/reopen": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            /**
+             * Reopen a dismissed unknown item (tenant-wide only).
+             * @description 007 US7. Reopen a `dismissed` item by creating a fresh `pending` row for the same logical identifier (005 FR-005); the original `dismissed` row is preserved unchanged. Tenant-wide actors only: an in-scope store-scoped actor receives `403 forbidden` ("tenant-wide authority required", FR-042); an out-of-scope actor receives a non-disclosing `404` (FR-062). The authority split is decided in the service layer, not the route guard (R7.4).
+             *     Reopening a `resolved` item returns `409 already_reconciled` with `details.prior_state` (FR-043). Both the reopen action and the fresh capture are audited (FR-041 / FR-110, R7.5). Carries the `Idempotency-Key` header (identical-replay-response): replaying the same key + body yields the same fresh row + response; a changed body returns `409 idempotency_key_conflict`.
+             */
+            post: operations["tenantAdminReopenUnknownItem"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+        "/api/v1/catalog/unknown-items/bulk-dismiss": {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            get?: never;
+            put?: never;
+            /**
+             * Dismiss a bounded selection of unknown items.
+             * @description 007 US8. Dismiss up to 200 unknown items in one request. The batch is rejected whole with `400 validation` when more than 200 ids are supplied (FR-044) — nothing is dismissed. Within a valid batch each id is decomposed into the shipped per-item dismiss path (006 FR-070a, no new lifecycle write); the response carries one outcome per id (FR-070a). Each successful dismiss is audited. Carries the `Idempotency-Key` header (identical-replay-response, FR-063).
+             */
+            post: operations["tenantAdminBulkDismissUnknownItems"];
+            delete?: never;
+            options?: never;
+            head?: never;
+            patch?: never;
+            trace?: never;
+        };
+    }
+    export type webhooks = Record<string, never>;
+    export interface components {
+        schemas: {
+            PosCaptureItemRequest: {
+                /**
+                 * @description Identifier kind, matching 003's `unknown_items_identifier_type_valid` CHECK. `external_pos_id` REQUIRES `source_system`.
+                 * @enum {string}
+                 */
+                identifier_type: "barcode" | "sku" | "plu" | "supplier_code" | "external_pos_id";
+                /** @description Identifier string (barcode, SKU, etc.). Length matches 003's `unknown_items_value_length` CHECK. Catalog reference data per Constitution §XIV — not PII. */
+                identifier_value: string;
+                /** @description Required when `identifier_type = external_pos_id`; MUST be null/absent otherwise. Mirrors 003's `unknown_items_source_system_required` CHECK. */
+                source_system?: string | null;
+                /** @description Opaque advisory metadata (POS cashier label, vendor hint, etc.) flowed into the existing 003 `unknown_items.sale_context jsonb` column. NON-IDENTITY, NON-MATCHING, NON-AUTHORITATIVE per FR-006. Redaction applies at all logger boundaries per 003 §8 + Constitution §14. */
+                sale_context?: {
+                    [key: string]: unknown;
+                } | null;
+            };
+            PosCaptureResolvedResponse: {
+                /**
+                 * @description Discriminator literal — alias resolution succeeded.
+                 * @enum {string}
+                 */
+                kind: "resolved";
+                /**
+                 * Format: uuid
+                 * @description Tenant-product UUID the identifier resolved to.
+                 */
+                product_id: string;
+                /**
+                 * Format: uuid
+                 * @description Optional alias row id that produced the resolution. Convenience for auditing; clients SHOULD NOT depend on it.
+                 */
+                alias_id?: string;
+            };
+            PosCaptureUnknownResponse: {
+                /**
+                 * @description Discriminator literal — identifier did not resolve; a `pending` `unknown_items` row is the result.
+                 * @enum {string}
+                 */
+                kind: "unknown";
+                unknown_item: components["schemas"]["UnknownItem"];
+            };
+            /** @description Redacted projection of an `unknown_items` row. Schema mirrors 003 `data-model.md` §8 + 005 `data-model.md` §2.1 / §2.2. The `sale_context` field is opaque advisory metadata (FR-006). */
+            UnknownItem: {
+                /**
+                 * Format: uuid
+                 * @description UUIDv7 primary key.
+                 */
+                id: string;
+                /** Format: uuid */
+                tenant_id: string;
+                /**
+                 * Format: uuid
+                 * @description Non-null per FR-010; capture always carries the POS principal's resolved store binding.
+                 */
+                store_id: string;
+                /** @enum {string} */
+                identifier_type: "barcode" | "sku" | "plu" | "supplier_code" | "external_pos_id";
+                identifier_value: string;
+                /** @description Non-null when `identifier_type = external_pos_id`; null otherwise. Matches 003 CHECK `unknown_items_source_system_required`. */
+                source_system: string | null;
+                /**
+                 * @description Lifecycle state per FR-001 / FR-004.
+                 * @enum {string}
+                 */
+                resolution_status: "pending" | "resolved" | "dismissed";
+                /**
+                 * @description Populated only when `resolution_status != 'pending'`. Wave 1 only emits `dismissed`; `linked` and `created` are reserved for Wave 2 reconciliation.
+                 * @enum {string|null}
+                 */
+                resolution_action: "linked" | "created" | "dismissed" | null;
+                /** Format: date-time */
+                resolved_at: string | null;
+                /**
+                 * Format: uuid
+                 * @description Acting principal's id when not pending.
+                 */
+                resolved_by: string | null;
+                /**
+                 * Format: uuid
+                 * @description Set only when `resolution_action = linked` or `created` (Wave 2). Always null for Wave 1 dismiss outcomes.
+                 */
+                resolved_product_id: string | null;
+                /**
+                 * Format: date-time
+                 * @description When the capture first happened.
+                 */
+                encountered_at: string;
+                /** @description Opaque advisory metadata per FR-006 / FR-006a. Carries POS-supplied hints inside the existing 003 `sale_context jsonb` field. Non-identity, non-authoritative. */
+                sale_context?: {
+                    [key: string]: unknown;
+                } | null;
+            };
+            ListUnknownItemsResponse: {
+                items: components["schemas"]["ReviewQueueItem"][];
+                /** @description Opaque cursor for the next page; null on the last page. Clients MUST treat as opaque. */
+                next_cursor: string | null;
+            };
+            /** @description Wave 2 (005-WAVE2-CONTRACT T600). Request body for `tenantAdminLinkUnknownItem`. Carries the target product reference only; all tenant / store scoping is resolved from the authenticated principal (Constitution §III — backend authority). Snake_case on the wire per Wave 1 conventions. */
+            LinkUnknownItemRequest: {
+                /**
+                 * Format: uuid
+                 * @description UUID of the existing `tenant_products` row to link to. Must be active (not retired / deleted) in the authenticated tenant (FR-051).
+                 */
+                product_id: string;
+            };
+            /** @description Wave 2 (005-WAVE2-CONTRACT T600). Request body for `tenantAdminCreateProductFromUnknownItem`. Carries the minimal fields required by 003 §5 for `tenant_products` (FR-060). The persisted `tenant_id` is always taken from the authenticated principal (Constitution §III — body-supplied `tenant_id` is silently discarded). Snake_case on the wire per Wave 1 conventions. */
+            CreateProductFromUnknownItemRequest: {
+                /** @description Human-readable product name. Non-empty after trim. Mirrors the `tenant_products.name` NOT NULL constraint in 003 §5. */
+                name: string;
+                /** @description Tax category identifier for the new product. Non-empty after trim. Mirrors `tenant_products.tax_category` in 003 §5. */
+                tax_category: string;
+                /**
+                 * Format: uuid
+                 * @description Optional tenant-product category UUID. Null if the product is uncategorized. Mirrors `tenant_products.category_id` in 003 §5.
+                 */
+                category_id?: string | null;
+            };
+            /** @description 007 (data-model §2.1, FR-007 / 006 FR-021a). The review-surface projection of an `unknown_items` row: the shipped `UnknownItem` field set MINUS `sale_context`. Used by every 007 dashboard-review response (list, inspect, FR-001a terminal detail). `sale_context` is descriptive metadata that MUST NOT appear on the review surface; the shipped `UnknownItem` schema retains it for the POS capture round-trip (R7.3). */
+            ReviewQueueItem: {
+                /**
+                 * Format: uuid
+                 * @description UUIDv7 primary key.
+                 */
+                id: string;
+                /** Format: uuid */
+                tenant_id: string;
+                /**
+                 * Format: uuid
+                 * @description Non-null per 005 FR-010.
+                 */
+                store_id: string;
+                /** @enum {string} */
+                identifier_type: "barcode" | "sku" | "plu" | "supplier_code" | "external_pos_id";
+                identifier_value: string;
+                /** @description Non-null when `identifier_type = external_pos_id`; null otherwise. */
+                source_system: string | null;
+                /**
+                 * @description Lifecycle state per FR-001 / FR-004.
+                 * @enum {string}
+                 */
+                resolution_status: "pending" | "resolved" | "dismissed";
+                /**
+                 * @description Populated only when `resolution_status != 'pending'`.
+                 * @enum {string|null}
+                 */
+                resolution_action: "linked" | "created" | "dismissed" | null;
+                /** Format: date-time */
+                resolved_at: string | null;
+                /**
+                 * Format: uuid
+                 * @description Acting principal's id when not pending.
+                 */
+                resolved_by: string | null;
+                /**
+                 * Format: uuid
+                 * @description FR-001a conditional: present only when the caller has authority to see the linked/created product; OMITTED otherwise while the item row remains visible. Hence not in `required`.
+                 */
+                resolved_product_id?: string | null;
+                /**
+                 * Format: date-time
+                 * @description Capture timestamp; age basis for sort/filter.
+                 */
+                encountered_at: string;
+            };
+            /** @description 007 US7. Request body for `tenantAdminReopenUnknownItem`. Empty by design — tenant / store scope and authority are resolved from the authenticated principal (Constitution §III). No body-supplied tenant_id / store_id is honoured. The `{}` (or absent) body is the normal case; the schema exists to enforce `additionalProperties: false` (no smuggled fields). */
+            ReopenUnknownItemRequest: Record<string, never>;
+            /** @description 007 US8. Request body for `tenantAdminBulkDismissUnknownItems`. A bounded selection of unknown-item ids to dismiss. More than `maxItems` ids → whole-batch `400 validation` (FR-044). */
+            BulkDismissUnknownItemsRequest: {
+                /** @description The unknown-item ids to dismiss (≤200, FR-044). Each is decomposed into the shipped per-item dismiss path (006 FR-070a). */
+                ids: string[];
+            };
+            /** @description 007 US8 (data-model §2.3). One outcome per submitted id; no cross-item coupling — one item's failure does not affect siblings. */
+            BulkDismissUnknownItemsResponse: {
+                outcomes: components["schemas"]["BulkDismissOutcome"][];
+            };
+            /** @description 007 US8. The outcome of dismissing a single id within a bulk batch. */
+            BulkDismissOutcome: {
+                /** Format: uuid */
+                id: string;
+                /**
+                 * @description Per-item result. `dismissed` on success; `already_reconciled` when the item was already terminal (`details.prior_state` may accompany it); `not_found` when out-of-scope / absent (non-disclosing, SI-004).
+                 * @enum {string}
+                 */
+                outcome: "dismissed" | "already_reconciled" | "not_found";
+                /** @description Optional per-item detail (e.g. `prior_state` for `already_reconciled`). Null for plain `dismissed`. */
+                details?: {
+                    [key: string]: unknown;
+                } | null;
+            };
+            /** @description Canonical error envelope shared with `auth.openapi.yaml`, `outbox.openapi.yaml`, and others. The `error.code` enum is documented in `research.md` §R2 (FR-091 taxonomy). */
+            Error: {
+                error: {
+                    /** @description Stable machine-readable error code (FR-091 / 007 FR-100 taxonomy). The closed 8-category review-queue BUSINESS-FAILURE vocabulary is: `validation`, `target_unavailable`, `alias_conflict`, `idempotency_key_conflict`, `already_reconciled`, `not_found`, `forbidden` (007's 8th category — in-scope insufficient authority, distinct from `not_found`), and `system_failure`. NOTE: the `425 Too Early` idempotency in-progress signal is a TRANSPORT-level retry indicator, NOT a business-failure category — it is outside this closed set (the runtime interceptor emits a diagnostic `idempotency_in_progress` marker on 425; see the per-op 425 response and the recorded contract/runtime body-shape finding). Some shipped-005 operation prose uses the legacy spelling `validation_failure`; the canonical 007 wire code is `validation` (research §R4). Shipped ops are not retrofitted (ISOLATE, T003); the runtime already emits `validation` (the prose is documented drift, not a live second code). */
+                    code: string;
+                    /** @description Human-readable summary; no sensitive data. */
+                    message: string;
+                    /**
+                     * Format: uuid
+                     * @description Server-assigned correlation id.
+                     */
+                    request_id?: string | null;
+                };
+            };
+        };
+        responses: never;
+        parameters: never;
+        requestBodies: never;
+        headers: never;
+        pathItems: never;
+    }
+    export type $defs = Record<string, never>;
+    export interface operations {
+        posCaptureItem: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Client-generated opaque token (UUIDv7 recommended) that enables safe retries. Same key + same body replays the original response; same key + different body returns 409. Missing header returns 400 (policy: required). Shape and convention match `memberships.openapi.yaml#createInvitation`. */
+                    "Idempotency-Key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PosCaptureItemRequest"];
+                };
+            };
+            responses: {
+                /** @description Identifier resolved to an existing tenant product (FR-022, FR-030, FR-031). No `unknown_items` row was created. */
+                200: {
+                    headers: {
+                        /** @description Present with value "true" when this response is an idempotent replay of an earlier successful capture. */
+                        "Idempotent-Replayed"?: "true";
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PosCaptureResolvedResponse"];
+                    };
+                };
+                /** @description Identifier did not resolve; a new `pending` `unknown_items` row was created (or, on natural dedup, an existing pending row's reference was returned per FR-032). */
+                201: {
+                    headers: {
+                        /** @description Present with value "true" when this response is an idempotent replay. */
+                        "Idempotent-Replayed"?: "true";
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PosCaptureUnknownResponse"];
+                    };
+                };
+                /** @description Bad request. Possible `error.code` values: `validation_failure` (FR-070 / FR-071 — missing or malformed field), `store_context_required` (FR-011 — POS principal lacks resolved store), `idempotency_key_required`, `idempotency_key_malformed`. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description POS principal is missing or invalid. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Idempotency-Key reuse with a different logical payload (FR-021c). `error.code = "idempotency_key_conflict"`. Audit subject: `unknown_item.idempotency_mismatch_rejected`. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Too Early. The original request with this Idempotency-Key is still being processed. Retry after `Retry-After` seconds with the same key and body. */
+                425: {
+                    headers: {
+                        /** @description Seconds to wait before retrying. */
+                        "Retry-After"?: number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        tenantAdminListUnknownItems: {
+            parameters: {
+                query?: {
+                    /** @description Lifecycle filter. Wave 1 supports `pending`; the `resolved` and `dismissed` values are reserved for forward-compatibility with the Wave 2 reconciliation review surfaces. */
+                    status?: "pending" | "resolved" | "dismissed";
+                    /** @description Optional explicit store filter. RLS still applies; supplying a store the principal cannot see returns the same empty page a non-disclosing probe would. Tenant-wide actors may omit this to see all stores. */
+                    store_id?: string;
+                    /** @description Opaque pagination token returned in the previous page's `next_cursor`. Clients MUST treat as opaque. */
+                    cursor?: string;
+                    limit?: number;
+                    /** @description 007 (US2 / FR-002). Optional filter by the originating POS source system. Scope-safe: facets/counts reflect only in-scope rows (SC-007). RLS still applies. */
+                    source_system?: string;
+                    /** @description 007 (US2 / FR-003). Sort order. `age_*` sorts by `encountered_at`; `store` groups by store binding. Default preserves the shipped `encountered_at DESC` ordering. */
+                    sort?: "age_asc" | "age_desc" | "store";
+                    /** @description 007 (US2 / FR-004, MAY-grouping). Optional grouping dimension. Grouping does NOT change the response shape: the response stays the flat `ListUnknownItemsResponse.items` array. `group_by` orders items so members of the same group are contiguous (the grouping is a presentation/ordering concern, not a distinct grouped envelope). Buckets are scope-safe — items belonging only to out-of-scope groups never appear, and no out-of-scope group is revealed via ordering, count, or any field (FR-032 / SC-007). A richer grouped response variant is out of v1 scope. */
+                    group_by?: "store" | "source_system";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK — page of unknown items (possibly empty). */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ListUnknownItemsResponse"];
+                    };
+                };
+                /** @description Invalid query parameter (bad UUID, bad cursor encoding, limit out of range). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller is not authenticated. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller lacks the tenant-admin / store-operator role. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        tenantAdminDismissUnknownItem: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUIDv7 primary key of the unknown-item row. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Item transitioned to `dismissed`. The response carries the updated lifecycle fields so the client can refresh its view without a follow-up GET. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewQueueItem"];
+                    };
+                };
+                /** @description Bad request (invalid path UUID). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller is not authenticated. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller lacks the role to dismiss in this scope. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found OR not in scope. The two cases share one non-disclosing response per SI-004. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Already reconciled. The item is already `resolved` or `dismissed`. `error.code = "already_reconciled"` (research §R2). The lifecycle UPDATE is monotonic per FR-004. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        tenantAdminLinkUnknownItem: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUIDv7 primary key of the unknown-item row. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LinkUnknownItemRequest"];
+                };
+            };
+            responses: {
+                /** @description Item linked. Unknown item transitioned to `resolved` with `resolution_action = linked`. The response carries the updated lifecycle fields so the client can refresh its view without a follow-up GET. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewQueueItem"];
+                    };
+                };
+                /** @description Bad request. `error.code = "validation_failure"` (malformed path UUID or invalid request body). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller is not authenticated. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller lacks the tenant-admin / store-operator role. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found OR not in scope. Non-disclosing per SI-004. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Conflict. Possible `error.code` values: `alias_conflict` (FR-052 — identifier already bound to a different active product; conflicting product NOT disclosed per FR-042), `target_unavailable` (FR-051 — target product is retired or deleted), `already_reconciled` (US3 #3 race — item was concurrently resolved). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        tenantAdminCreateProductFromUnknownItem: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUIDv7 primary key of the unknown-item row. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateProductFromUnknownItemRequest"];
+                };
+            };
+            responses: {
+                /** @description New product created and unknown item resolved. Returns the updated row (now `resolved` with `resolution_action = created`) so the client can refresh its view. The `resolved_product_id` field references the newly created product. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewQueueItem"];
+                    };
+                };
+                /** @description Bad request. `error.code = "validation_failure"` (malformed path UUID, missing `name`, or missing `tax_category`). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller is not authenticated. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller lacks the tenant-admin / store-operator role. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found OR not in scope. Non-disclosing per SI-004. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Conflict. Possible `error.code` values: `alias_conflict` (FR-062 — identifier already bound to a different active product; neither the new product nor the alias is created; the conflicting product is NOT disclosed per FR-042), `already_reconciled` (US3 #3 race — item was concurrently resolved before this request committed). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        tenantAdminInspectUnknownItem: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUIDv7 primary key of the unknown-item row. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK — the item as a ReviewQueueItem projection. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewQueueItem"];
+                    };
+                };
+                /** @description Bad request — malformed path UUID. `error.code = "validation"`. Parity with the other `{id}` operations in this contract. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller is not authenticated. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller lacks the role to read the review queue in this scope. `error.code = "forbidden"` (007 FR-051 / FR-052). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found OR not in scope — one non-disclosing response per SI-004 / FR-062. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        tenantAdminReopenUnknownItem: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Idempotency key for identical-replay-response (007 FR-063, ISOLATE verdict T003). Bounds match the runtime `IdempotencyInterceptor` (apps/api/src/idempotency/ idempotency.interceptor.ts: 16–128 printable ASCII, no whitespace) and the `posCaptureItem` declaration above — NOT `Idempotency-Token` (T564). */
+                    "Idempotency-Key": string;
+                };
+                path: {
+                    /** @description UUIDv7 primary key of the dismissed unknown-item row. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ReopenUnknownItemRequest"];
+                };
+            };
+            responses: {
+                /** @description Reopened — a fresh `pending` row was created for the same logical identifier (005 FR-005). Body is the new row as a ReviewQueueItem. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewQueueItem"];
+                    };
+                };
+                /** @description Bad request (invalid path UUID or body shape). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller is not authenticated. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description In-scope but insufficient authority. `error.code = "forbidden"` — reopen requires tenant-wide authority (FR-042). Distinct from 404: the item exists in the caller's scope, but the caller may not reopen it. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found OR not in scope — one non-disclosing response per SI-004 / FR-062. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Conflict. `error.code` is `already_reconciled` (the item is already `resolved`; `details.prior_state` is set, FR-043) or `idempotency_key_conflict` (same key replayed with a different body). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Too Early. The original request with this Idempotency-Key is still being processed (the IdempotencyInterceptor in-progress marker is set). Retry after `Retry-After` seconds with the same key and body. Body shape mirrors `posCaptureItem`'s 425. */
+                425: {
+                    headers: {
+                        /** @description Seconds to wait before retrying. */
+                        "Retry-After"?: number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        tenantAdminBulkDismissUnknownItems: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Idempotency key for identical-replay-response (007 FR-063, ISOLATE verdict T003). Bounds match the runtime `IdempotencyInterceptor` (apps/api/src/idempotency/ idempotency.interceptor.ts: 16–128 printable ASCII, no whitespace) and the `posCaptureItem` declaration — NOT `Idempotency-Token` (T564). */
+                    "Idempotency-Key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BulkDismissUnknownItemsRequest"];
+                };
+            };
+            responses: {
+                /** @description Batch processed. Body is the per-item outcome list (a mixed batch can contain successes and per-item failures; the request itself succeeds). */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BulkDismissUnknownItemsResponse"];
+                    };
+                };
+                /** @description Whole-batch reject — more than 200 ids, or an invalid body. `error.code = "validation"`. Nothing is dismissed (FR-044). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller is not authenticated. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Caller lacks the role to dismiss in this scope. `error.code = "forbidden"`. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Conflict. `error.code = "idempotency_key_conflict"` — the same Idempotency-Key was replayed with a different body. (Per-item terminal states like `already_reconciled` surface in the 200 outcome list, NOT here.) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Too Early. The original request with this Idempotency-Key is still being processed. Retry after `Retry-After` seconds with the same key and body. Body shape mirrors `posCaptureItem`'s 425. */
+                425: {
+                    headers: {
+                        /** @description Seconds to wait before retrying. */
+                        "Retry-After"?: number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+    }
+}
+
+export type paths = AuthSchema.paths & ContextSchema.paths & TenantsSchema.paths & StoresSchema.paths & MembershipsSchema.paths & AuditSchema.paths & UnknownItemsSchema.paths;
+export type components = AuthSchema.components & ContextSchema.components & TenantsSchema.components & StoresSchema.components & MembershipsSchema.components & AuditSchema.components & UnknownItemsSchema.components;
+export type operations = AuthSchema.operations & ContextSchema.operations & TenantsSchema.operations & StoresSchema.operations & MembershipsSchema.operations & AuditSchema.operations & UnknownItemsSchema.operations;
