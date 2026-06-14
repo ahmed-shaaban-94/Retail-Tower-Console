@@ -6,9 +6,9 @@
 
 ## Vision reference
 
-- Vision 2 (dark): [`docs/design/_vision/vision-2/09-overview-welcome.png`](../../docs/design/_vision/vision-2/09-overview-welcome.png)
+- Vision (chosen direction): [`docs/design/_vision/vision-1/01-overview.png`](../../docs/design/_vision/vision-1/01-overview.png)
 
-> Only one vision drew this screen. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md) for the two-vision comparison context.
+> The console converged on a single design direction. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md).
 
 ## Intent (one paragraph)
 

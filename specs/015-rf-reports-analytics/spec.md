@@ -6,9 +6,11 @@
 
 ## Vision reference
 
-- Vision 1 (light): [`docs/design/_vision/vision-1/05-reports-analytics.png`](../../docs/design/_vision/vision-1/05-reports-analytics.png)
+- No dedicated screen in the chosen design direction — analytical/reporting views were
+  folded into the Sales Monitor ([`docs/design/_vision/vision-1/02-sales-monitor.png`](../../docs/design/_vision/vision-1/02-sales-monitor.png)) and Executive Overview surfaces; AI Studio ([`10-ai-studio.png`](../../docs/design/_vision/vision-1/10-ai-studio.png)) covers the report-builder direction.
 
-> Only one vision drew this screen. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md) for the two-vision comparison context.
+> The console converged on a single design direction; this slice no longer has a
+> standalone mockup. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md). Revisit whether it warrants its own screen during `/speckit-specify`.
 
 ## Intent (one paragraph)
 

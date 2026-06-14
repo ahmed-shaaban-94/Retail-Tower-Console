@@ -6,10 +6,9 @@
 
 ## Vision reference
 
-- Vision 1 (light): [`docs/design/_vision/vision-1/09-connectors-settings.png`](../../docs/design/_vision/vision-1/09-connectors-settings.png)
-- Vision 2 (dark): [`docs/design/_vision/vision-2/08-connectors-settings.png`](../../docs/design/_vision/vision-2/08-connectors-settings.png)
+- Vision (chosen direction): [`docs/design/_vision/vision-1/09-settings-integrations.png`](../../docs/design/_vision/vision-1/09-settings-integrations.png) (shown as "Settings & Integrations")
 
-> Two competing visions of this screen — compare side by side. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md).
+> The console converged on a single design direction. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md).
 
 ## Intent (one paragraph)
 

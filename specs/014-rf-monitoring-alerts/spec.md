@@ -6,10 +6,11 @@
 
 ## Vision reference
 
-- Vision 1 (light): [`docs/design/_vision/vision-1/08-monitoring-alerts.png`](../../docs/design/_vision/vision-1/08-monitoring-alerts.png)
-- Vision 2 (dark): [`docs/design/_vision/vision-2/05-monitoring-alerts.png`](../../docs/design/_vision/vision-2/05-monitoring-alerts.png)
+- No dedicated screen in the chosen design direction — alert signals surface via the
+  Executive Overview ([`docs/design/_vision/vision-1/01-overview.png`](../../docs/design/_vision/vision-1/01-overview.png), "Operational Exceptions" / "Recent Activity") and the Audit Logs surface.
 
-> Two competing visions of this screen — compare side by side. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md).
+> The console converged on a single design direction; this slice no longer has a
+> standalone mockup. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md). Revisit whether it warrants its own screen during `/speckit-specify`.
 
 ## Intent (one paragraph)
 

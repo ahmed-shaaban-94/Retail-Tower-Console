@@ -6,10 +6,9 @@
 
 ## Vision reference
 
-- Vision 1 (light): [`docs/design/_vision/vision-1/02-inventory.png`](../../docs/design/_vision/vision-1/02-inventory.png)
-- Vision 2 (dark): [`docs/design/_vision/vision-2/02-inventory.png`](../../docs/design/_vision/vision-2/02-inventory.png)
+- Vision (chosen direction): [`docs/design/_vision/vision-1/04-catalog-inventory.png`](../../docs/design/_vision/vision-1/04-catalog-inventory.png) (shown as "Catalog & Inventory")
 
-> Two competing visions of this screen — compare side by side. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md).
+> The console converged on a single design direction. See [`docs/design/_vision/README.md`](../../docs/design/_vision/README.md).
 
 ## Intent (one paragraph)
 
