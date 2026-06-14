@@ -38,12 +38,19 @@ tokens are the contract. What you should be able to read straight off every scre
 
 | What you see in the mockups | Where it's defined |
 |---|---|
-| Dark `#0d1520` page floor, layered `#131e2e` panels | `--color-bg` / `--color-surface` |
-| Gold **only** on the logo mark, scope bar, and active-nav stripe | `--color-gold`; Design Rule 1 |
-| Navy buttons and links — never gold for actions | `--color-primary`; Design Rule 2 |
-| Dense data tables as the primary surface, not card grids | "Density over decoration"; Design Rule 7 |
-| Top-bar (56px) + collapsible left sidebar (240/60px) + scrolling content | DESIGN.md → Layout → App Shell |
-| Status only on badges / banners (green·amber·red·teal) | semantic tokens; Design Rule 9 |
+| Dark `#0d1520` page floor, layered `#131e2e` panels | role token `--color-bg` / `--color-surface` (dark primitives) |
+| Gold **only** on the logo mark, scope bar, and active-nav stripe | The Gold Authority Rule (Colors) |
+| Navy buttons and links — never gold for actions | `--color-primary`; The Two-Ground Rule |
+| Dense data tables as the primary surface, not card grids | Density over decoration (Overview) |
+| Top-bar (56px) + collapsible left sidebar (240/60px) + scrolling content | Components → App Shell |
+| Status only on badges / banners (green·amber·red·teal) | semantic tokens (Colors) |
+
+**These mockups show the dark default.** The system is now **dark-default + AA-compliant
+light alternate** via a persisted user toggle (respects `prefers-color-scheme`). Vision 4
+has no light mockup — the light theme is a token-level synthesis defined in `DESIGN.md` and
+`tokens.css`, contrast-verified, not eyedropped. To preview a screen in light, set
+`[data-theme="light"]` on the document; the mockups consume only semantic role tokens, so
+they re-render on the light ground without edits.
 
 ---
 

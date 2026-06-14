@@ -1,61 +1,129 @@
-/* RF-1 Auth Shell — design tokens.
+/* Retail Tower Console — design tokens (dual-theme).
  *
- * MOCKUP-ONLY. Verbatim from DESIGN.md v0.1. This file exists so the RF-1
- * visual mockups (sf1-signin / sf2-scope-gate / sf2-app-shell .mockup.html)
- * stay faithful to the committed design system and the later (gated)
- * implementation is mechanical, not a re-derivation.
+ * MOCKUP-ONLY. Mirrors DESIGN.md v1.0. This file exists so the RF-1 visual
+ * mockups (sf1-signin / sf2-scope-gate / sf2-app-shell .mockup.html) stay
+ * faithful to the committed design system and the later (gated) implementation
+ * is mechanical, not a re-derivation.
  *
  * NOT a src/ token file. NOT wired into the build. Under docs/** which
  * biome.json ignores and Vite does not compile. Do not import from src/.
+ *
+ * ARCHITECTURE — two layers:
+ *   1. Theme PRIMITIVES: raw hex, namespaced --dark-* / --light-*. Never
+ *      consumed by components directly.
+ *   2. Semantic ROLES: --color-bg, --color-text, etc. Components consume ONLY
+ *      these. Roles resolve to dark primitives in :root (the default) and to
+ *      light primitives under [data-theme="light"]. A no-stored-preference
+ *      visitor follows prefers-color-scheme: light via the media query below;
+ *      an explicit [data-theme] attribute always wins.
+ *
+ * The bright gold (--gold) fails AA as text on light grounds (2.4:1), so on
+ * light any gold that carries text resolves to --color-gold-strong (#6f5320,
+ * 6.07:1 AA on the gilded scope surface #f4ecd6). The bright gold is reserved
+ * for the non-text nav marker + logo.
  */
 
 :root {
-  /* Surfaces */
-  --color-bg: #0d1520;
-  --color-surface: #131e2e;
-  --color-surface-raised: #1a2840;
-  --color-surface-sunken: #0a1018;
-  --color-surface-overlay: #1e2d42;
-  --color-border: #2a3d55;
-  --color-border-strong: #3a5270;
+  /* ============================================================
+   * LAYER 1 — THEME PRIMITIVES (raw hex, never consumed directly)
+   * ============================================================ */
 
-  /* Text */
-  --color-text: #e8eef5;
-  --color-text-muted: #8a9db5;
-  --color-text-disabled: #4a5e78;
+  /* Theme-agnostic brand + interactive (identical in both themes) */
+  --primary: #1f4e7a;
+  --primary-hover: #163d61;
+  --primary-subtle-dark: #0e1e30;
+  --primary-subtle-light: #e4edf5;
+  --accent: #2e7da3;
+  --gold: #c8a24a;          /* bright gold — dark text + non-text marker/logo */
+  --gold-strong: #6f5320;   /* deep gold — light-theme text-bearing authority (6.07:1 on gold-soft) */
+  --gold-muted: #8a6a2a;
+
+  /* Dark primitives */
+  --dark-bg: #0d1520;
+  --dark-surface: #131e2e;
+  --dark-surface-raised: #1a2840;
+  --dark-surface-sunken: #0a1018;
+  --dark-surface-overlay: #1e2d42;
+  --dark-border: #2a3d55;
+  --dark-border-strong: #3a5270;
+  --dark-text: #e8eef5;
+  --dark-text-muted: #8a9db5;
+  --dark-text-disabled: #4a5e78;
+  --dark-gold-soft: #2a2010;
+  --dark-gold-authority: var(--gold);     /* gold that carries text, on dark */
+
+  /* Light primitives */
+  --light-bg: #f4f7fa;
+  --light-surface: #ffffff;
+  --light-surface-raised: #eef2f7;
+  --light-surface-sunken: #e7edf3;
+  --light-surface-overlay: #ffffff;
+  --light-border: #d4dde7;
+  --light-border-strong: #aebccb;
+  --light-text: #16202e;
+  --light-text-muted: #566578;
+  --light-text-disabled: #9aa8b8;
+  --light-gold-soft: #f4ecd6;
+  --light-gold-authority: var(--gold-strong);  /* gold that carries text, on light */
+
+  /* Semantic fills — theme-agnostic */
+  --color-success: #1f8a5b;
+  --color-warning: #b87600;
+  --color-danger: #b32e36;
+  --color-info: #1e6f8c;
+
+  /* ============================================================
+   * LAYER 2 — SEMANTIC ROLES (default = DARK). Components use these.
+   * ============================================================ */
+  --color-bg: var(--dark-bg);
+  --color-surface: var(--dark-surface);
+  --color-surface-raised: var(--dark-surface-raised);
+  --color-surface-sunken: var(--dark-surface-sunken);
+  --color-surface-overlay: var(--dark-surface-overlay);
+  --color-border: var(--dark-border);
+  --color-border-strong: var(--dark-border-strong);
+
+  --color-text: var(--dark-text);
+  --color-text-muted: var(--dark-text-muted);
+  --color-text-disabled: var(--dark-text-disabled);
   --color-text-inverse: #0f1d2e;
 
-  /* Brand — gold is authority, scope-only */
-  --color-gold: #c8a24a;
-  --color-gold-soft: #2a2010;
-  --color-gold-muted: #8a6a2a;
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle-dark);
+  --color-accent: var(--accent);
 
-  /* Interactive — navy/teal drive actions */
-  --color-primary: #1f4e7a;
-  --color-primary-hover: #163d61;
-  --color-primary-subtle: #0e1e30;
-  --color-accent: #2e7da3;
+  /* Gold: authority signal. --color-gold-strong carries text (theme-aware);
+   * --color-gold-marker is the non-text marker/logo (always bright). */
+  --color-gold: var(--gold);
+  --color-gold-strong: var(--dark-gold-authority);
+  --color-gold-marker: var(--gold);
+  --color-gold-muted: var(--gold-muted);   /* low-emphasis brand metadata (caption-level) */
+  --color-gold-soft: var(--dark-gold-soft);
 
-  /* Semantic */
-  --color-success: #1f8a5b;
+  /* Semantic surfaces + on-surface text (dark ramp) */
   --color-success-surface: #0a1f16;
-  --color-warning: #b87600;
   --color-warning-surface: #1e1500;
-  --color-danger: #b32e36;
   --color-danger-surface: #1f0a0c;
-  --color-info: #1e6f8c;
   --color-info-surface: #061520;
+  --color-success-on: #52b986;
+  --color-warning-on: #d49030;
+  --color-danger-on: #d16168;  /* lightened for AA on danger-surface (5.08:1) */
+  --color-info-on: #50a2c0;
 
-  /* Status badge/banner text — mid-ramp for AA on dark */
-  --color-success-on-dark: #52b986;
-  --color-warning-on-dark: #d49030;
-  --color-danger-on-dark: #c84d55;
-  --color-info-on-dark: #50a2c0;
+  /* Shadows (dark — flooded toward bg hue) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 2px 4px rgba(13, 21, 32, 0.4), 0 8px 24px rgba(13, 21, 32, 0.3);
+  --shadow-raised: 0 4px 12px rgba(13, 21, 32, 0.5), 0 1px 3px rgba(13, 21, 32, 0.3);
+  --shadow-pane: 0 20px 60px rgba(13, 21, 32, 0.7);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-gold-ring: 0 0 0 3px rgba(200, 162, 74, 0.25);
+
+  /* ---- Theme-agnostic scales (identical in both themes) ---- */
 
   /* Typography */
   --font-sans: "Inter Variable", Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "Consolas", monospace;
-
   --text-display: 1.875rem;   /* 30px / 700 / 1.25 / -0.015em */
   --text-headline: 1.25rem;   /* 20px / 600 / 1.3 / -0.010em */
   --text-title: 1rem;         /* 16px / 600 / 1.375 / -0.005em */
@@ -64,14 +132,6 @@
   --text-caption: 0.75rem;    /* 12px / 400 / 1.4 */
   --text-mono: 0.8125rem;     /* 13px / 400 / 1.5 */
   --text-mono-lg: 0.875rem;   /* 14px / 500 / 1.5 / 0.04em */
-
-  /* Shadows — tinted toward bg */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 2px 4px rgba(13, 21, 32, 0.4), 0 8px 24px rgba(13, 21, 32, 0.3);
-  --shadow-raised: 0 4px 12px rgba(13, 21, 32, 0.5), 0 1px 3px rgba(13, 21, 32, 0.3);
-  --shadow-pane: 0 20px 60px rgba(13, 21, 32, 0.7);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-  --shadow-gold-ring: 0 0 0 3px rgba(200, 162, 74, 0.25);
 
   /* Radius */
   --radius-sm: 4px;
@@ -99,6 +159,87 @@
   --duration-4: 320ms;
   --ease-out: cubic-bezier(0.2, 0.7, 0.25, 1);
   --ease-in-out: cubic-bezier(0.45, 0.05, 0.25, 1);
+
+  color-scheme: dark;
+}
+
+/* ============================================================
+ * LIGHT THEME — explicit opt-in. Overrides semantic roles only.
+ * ============================================================ */
+:root[data-theme="light"] {
+  --color-bg: var(--light-bg);
+  --color-surface: var(--light-surface);
+  --color-surface-raised: var(--light-surface-raised);
+  --color-surface-sunken: var(--light-surface-sunken);
+  --color-surface-overlay: var(--light-surface-overlay);
+  --color-border: var(--light-border);
+  --color-border-strong: var(--light-border-strong);
+
+  --color-text: var(--light-text);
+  --color-text-muted: var(--light-text-muted);
+  --color-text-disabled: var(--light-text-disabled);
+  --color-text-inverse: #ffffff;
+
+  --color-primary-subtle: var(--primary-subtle-light);
+
+  --color-gold-strong: var(--light-gold-authority);  /* text-bearing gold -> #6f5320 (AA on gold-soft) */
+  --color-gold-muted: var(--light-gold-authority);   /* light: deepen muted gold too, for AA on light */
+  --color-gold-soft: var(--light-gold-soft);
+  /* --color-gold-marker stays bright (--gold): non-text marker + logo only */
+
+  --color-success-surface: #e6f4ec;
+  --color-warning-surface: #fbf0d9;
+  --color-danger-surface: #fae9ea;
+  --color-info-surface: #e3f0f5;
+  --color-success-on: #147a4d;
+  --color-warning-on: #8a5a00;
+  --color-danger-on: #b32e36;
+  --color-info-on: #1a6079;
+
+  /* Shadows — softer, cooler; paper-raise, not drop-sticker */
+  --shadow-sm: 0 1px 2px rgba(22, 32, 46, 0.08);
+  --shadow-card: 0 1px 2px rgba(22, 32, 46, 0.06), 0 4px 16px rgba(22, 32, 46, 0.08);
+  --shadow-raised: 0 4px 12px rgba(22, 32, 46, 0.12), 0 1px 3px rgba(22, 32, 46, 0.08);
+  --shadow-pane: 0 20px 60px rgba(22, 32, 46, 0.20);
+  --shadow-inset: inset 0 1px 2px rgba(22, 32, 46, 0.06);
+
+  color-scheme: light;
+}
+
+/* No stored preference + OS prefers light -> adopt light, unless an explicit
+ * [data-theme="dark"] is set (attribute always wins via the selector above). */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --color-bg: var(--light-bg);
+    --color-surface: var(--light-surface);
+    --color-surface-raised: var(--light-surface-raised);
+    --color-surface-sunken: var(--light-surface-sunken);
+    --color-surface-overlay: var(--light-surface-overlay);
+    --color-border: var(--light-border);
+    --color-border-strong: var(--light-border-strong);
+    --color-text: var(--light-text);
+    --color-text-muted: var(--light-text-muted);
+    --color-text-disabled: var(--light-text-disabled);
+    --color-text-inverse: #ffffff;
+    --color-primary-subtle: var(--primary-subtle-light);
+    --color-gold-strong: var(--light-gold-authority);
+    --color-gold-muted: var(--light-gold-authority);
+    --color-gold-soft: var(--light-gold-soft);
+    --color-success-surface: #e6f4ec;
+    --color-warning-surface: #fbf0d9;
+    --color-danger-surface: #fae9ea;
+    --color-info-surface: #e3f0f5;
+    --color-success-on: #147a4d;
+    --color-warning-on: #8a5a00;
+    --color-danger-on: #b32e36;
+    --color-info-on: #1a6079;
+    --shadow-sm: 0 1px 2px rgba(22, 32, 46, 0.08);
+    --shadow-card: 0 1px 2px rgba(22, 32, 46, 0.06), 0 4px 16px rgba(22, 32, 46, 0.08);
+    --shadow-raised: 0 4px 12px rgba(22, 32, 46, 0.12), 0 1px 3px rgba(22, 32, 46, 0.08);
+    --shadow-pane: 0 20px 60px rgba(22, 32, 46, 0.20);
+    --shadow-inset: inset 0 1px 2px rgba(22, 32, 46, 0.06);
+    color-scheme: light;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -122,6 +263,8 @@ body {
   color: var(--color-text);
   background-color: var(--color-bg);
   -webkit-font-smoothing: antialiased;
+  transition: background-color var(--duration-2) var(--ease-out),
+              color var(--duration-2) var(--ease-out);
 }
 
 /* Buttons */
@@ -167,6 +310,36 @@ body {
 }
 .btn-ghost:hover { background-color: var(--color-surface-raised); color: var(--color-text); }
 
+.btn-destructive {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-2); height: 36px; padding: 0 14px;
+  background-color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-control);
+  color: #ffffff;
+  font: 600 var(--text-label)/1 var(--font-sans);
+  letter-spacing: -0.005em; cursor: pointer;
+  transition: background-color var(--duration-2) var(--ease-out),
+              box-shadow var(--duration-2) var(--ease-out);
+}
+.btn-destructive:hover { background-color: #8e2329; }
+.btn-destructive:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(179, 46, 54, 0.4); }
+.btn-destructive:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Theme toggle — a ghost button variant in the top bar */
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: transparent; border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text-muted); cursor: pointer;
+  transition: background-color var(--duration-2) var(--ease-out),
+              color var(--duration-2) var(--ease-out),
+              border-color var(--duration-2) var(--ease-out);
+}
+.theme-toggle:hover { background-color: var(--color-surface-raised); color: var(--color-text); }
+.theme-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(46, 125, 163, 0.3); }
+
 /* Input */
 .input {
   display: block; width: 100%;
@@ -204,9 +377,10 @@ body {
   font-size: var(--text-body);
   border: 1px solid transparent;
 }
-.alert--danger  { background: var(--color-danger-surface);  color: var(--color-danger-on-dark);  border-color: rgba(179, 46, 54, 0.3); }
-.alert--warning { background: var(--color-warning-surface); color: var(--color-warning-on-dark); border-color: rgba(184, 118, 0, 0.3); }
-.alert--info    { background: var(--color-info-surface);    color: var(--color-info-on-dark);    border-color: rgba(30, 111, 140, 0.3); }
+.alert--danger  { background: var(--color-danger-surface);  color: var(--color-danger-on);  border-color: rgba(179, 46, 54, 0.3); }
+.alert--warning { background: var(--color-warning-surface); color: var(--color-warning-on); border-color: rgba(184, 118, 0, 0.3); }
+.alert--success { background: var(--color-success-surface); color: var(--color-success-on); border-color: rgba(31, 138, 91, 0.3); }
+.alert--info    { background: var(--color-info-surface);    color: var(--color-info-on);    border-color: rgba(30, 111, 140, 0.3); }
 .alert__req { font-family: var(--font-mono); font-size: var(--text-mono); opacity: 0.75; }
 
 /* Badge */
@@ -219,12 +393,49 @@ body {
 }
 .badge::before { content: ""; width: 6px; height: 6px; border-radius: 9999px; background-color: currentColor; }
 .badge--neutral { background: var(--color-surface-raised); color: var(--color-text-muted); }
-.badge--info    { background: var(--color-info-surface);   color: var(--color-info-on-dark); }
+.badge--success { background: var(--color-success-surface); color: var(--color-success-on); }
+.badge--warning { background: var(--color-warning-surface); color: var(--color-warning-on); }
+.badge--danger  { background: var(--color-danger-surface);  color: var(--color-danger-on); }
+.badge--info    { background: var(--color-info-surface);   color: var(--color-info-on); }
 
-/* Gold logo mark — stroke-only shield, currentColor */
-.tower-mark { width: 28px; height: 28px; color: var(--color-gold); flex-shrink: 0; }
+/* Gold logo mark — stroke-only shield, always bright gold (non-text) */
+.tower-mark { width: 28px; height: 28px; color: var(--color-gold-marker); flex-shrink: 0; }
 .tower-lockup { display: inline-flex; align-items: center; gap: var(--space-2); }
 .tower-lockup__word { font: 700 var(--text-title)/1 var(--font-sans); letter-spacing: -0.01em; color: var(--color-text); }
+
+/* Scope header — gold authority bar. Text gold is theme-aware (bright on dark,
+ * #6f5320 on light) so it always meets AA. */
+.scope-header {
+  display: flex; align-items: center; gap: var(--space-2);
+  height: 40px; padding: 0 var(--space-6);
+  background-color: var(--color-gold-soft);
+  border-bottom: 1px solid rgba(200, 162, 74, 0.18);
+  font: 600 var(--text-label)/1 var(--font-sans);
+  color: var(--color-gold-strong);
+}
+.scope-header__breadcrumb { opacity: 0.7; }
+.scope-header__separator { opacity: 0.4; padding: 0 var(--space-1); }
+.scope-header__current { opacity: 1; }
+
+/* Nav entry — gold marker stripe (non-text, always bright) */
+.nav-entry {
+  position: relative;
+  display: flex; align-items: center; gap: var(--space-3);
+  height: 40px; padding: 0 var(--space-3);
+  border-radius: 8px;
+  color: var(--color-text-muted); text-decoration: none;
+  transition: background-color var(--duration-2) var(--ease-out),
+              color var(--duration-2) var(--ease-out);
+  overflow: hidden; white-space: nowrap;
+}
+.nav-entry:hover { background-color: var(--color-surface-raised); color: var(--color-text); }
+.nav-entry--active { background-color: var(--color-primary-subtle); color: var(--color-text); }
+.nav-entry--active::before {
+  content: ''; position: absolute; top: 50%; left: 0;
+  transform: translateY(-50%);
+  width: 3px; height: 20px; border-radius: 0 2px 2px 0;
+  background-color: var(--color-gold-marker);
+}
 
 /* Mockup chrome (NOT part of the design — labels the artifact) */
 .mock-tag {

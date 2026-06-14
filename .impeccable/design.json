@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-14T00:00:00Z",
+  "title": "Design System: Retail Tower Console",
+  "extensions": {
+    "colorMeta": {
+      "primary":      { "role": "primary",  "displayName": "Command Navy",  "canonical": "oklch(36% 0.085 236)", "tonalRamp": ["#0a1726", "#0e2438", "#14324f", "#1f4e7a", "#2c6299", "#4f84b9", "#85aed4", "#c2d9ee"] },
+      "accent":       { "role": "primary",  "displayName": "Teal Marker",   "canonical": "oklch(52% 0.085 218)", "tonalRamp": ["#0a2230", "#103346", "#1a5066", "#2e7da3", "#4196bd", "#6cb1d2", "#9fcde0", "#cfe7f0"] },
+      "gold":         { "role": "secondary","displayName": "Tower Gold",    "canonical": "oklch(70% 0.110 72)",  "tonalRamp": ["#2a2010", "#473717", "#6f5320", "#8a6a2a", "#a98538", "#c8a24a", "#dcbd7a", "#eedcb4"], "note": "Bright gold (#c8a24a) is the authority signal: AA on dark (7.6:1), but fails as text on light (2.4:1). On light, text-bearing gold steps down to gold-strong (#6f5320); bright gold is non-text only (marker, logo)." },
+      "gold-strong":  { "role": "secondary","displayName": "Deep Gold",     "canonical": "oklch(44% 0.090 72)",  "tonalRamp": ["#2a2010", "#473717", "#6f5320", "#8a6a2a", "#a98538", "#c8a24a", "#dcbd7a", "#eedcb4"], "value": "#6f5320", "note": "Light-theme authority signal for any gold carrying text. Set deep (#6f5320) to read on the gilded scope-header surface (#f4ecd6): 6.07:1 there, 6.8:1+ on neutral light. The mid-tone #8a6a2a fails (4.27:1 on gold-soft)." },
+      "success":      { "role": "tertiary", "displayName": "Confirmation Green", "canonical": "oklch(56% 0.12 158)", "tonalRamp": ["#0a1f16", "#0f3526", "#147a4d", "#1f8a5b", "#2aa56d", "#52b986", "#88d2ac", "#c2ead6"] },
+      "warning":      { "role": "tertiary", "displayName": "Caution Amber", "canonical": "oklch(63% 0.13 70)",   "tonalRamp": ["#1e1500", "#3a2a00", "#8a5a00", "#b87600", "#d08800", "#d49030", "#e6b873", "#f2dcb0"] },
+      "danger":       { "role": "tertiary", "displayName": "Alert Red",     "canonical": "oklch(50% 0.16 22)",   "tonalRamp": ["#1f0a0c", "#3a1418", "#7a2329", "#b32e36", "#c84d55", "#d97179", "#e8a3a8", "#f3d0d3"] },
+      "info":         { "role": "tertiary", "displayName": "Info Teal",     "canonical": "oklch(50% 0.08 220)",  "tonalRamp": ["#061520", "#0c2838", "#1a6079", "#1e6f8c", "#2f87a3", "#50a2c0", "#8cc3d8", "#c4e1ec"] },
+      "dark-bg":      { "role": "neutral",  "displayName": "Command Room",  "canonical": "oklch(13% 0.032 236)", "tonalRamp": ["#0a1018", "#0d1520", "#131e2e", "#1a2840", "#243450", "#3a5270", "#6b87a8", "#aebccb"] },
+      "light-bg":     { "role": "neutral",  "displayName": "Paper",         "canonical": "oklch(97% 0.006 236)", "tonalRamp": ["#16202e", "#2c3a4d", "#566578", "#9aa8b8", "#d4dde7", "#e7edf3", "#f4f7fa", "#ffffff"] }
+    },
+    "typographyMeta": {
+      "display":  { "displayName": "Display",  "purpose": "Screen title. One per view, never more." },
+      "headline": { "displayName": "Headline", "purpose": "Section header, panel title." },
+      "title":    { "displayName": "Title",    "purpose": "Card title, group label." },
+      "body":     { "displayName": "Body",     "purpose": "Paragraph and description. Prose capped 65ch; tables run denser." },
+      "label":    { "displayName": "Label",    "purpose": "Badge, chip, table header. No all-caps." },
+      "mono":     { "displayName": "Mono",     "purpose": "IDs, refs, audit strings, UUIDs, scope context values." }
+    },
+    "themes": {
+      "default": "dark",
+      "switch": "[data-theme] attribute on the document element; falls back to prefers-color-scheme when no explicit choice is stored. Attribute always wins over the media query.",
+      "note": "Two grounds, one role system. Components consume semantic role tokens (--color-bg, --color-text, --color-gold-strong) only; primitives (--dark-*, --light-*) are never consumed directly. Light is a synthesis (Vision 4 has no light mockup), AA-verified, designed to harmonize with POS-Pulse light without owning it."
+    },
+    "shadows": [
+      { "name": "sm-dark",     "value": "0 1px 2px rgba(0,0,0,0.3)", "purpose": "Inline chips (dark)." },
+      { "name": "card-dark",   "value": "0 2px 4px rgba(13,21,32,0.4), 0 8px 24px rgba(13,21,32,0.3)", "purpose": "Resting card/pane (dark), flooded toward bg hue." },
+      { "name": "pane-dark",   "value": "0 20px 60px rgba(13,21,32,0.7)", "purpose": "Dialogs, drawers (dark)." },
+      { "name": "card-light",  "value": "0 1px 2px rgba(22,32,46,0.06), 0 4px 16px rgba(22,32,46,0.08)", "purpose": "Resting card/pane (light), soft cool paper-raise." },
+      { "name": "pane-light",  "value": "0 20px 60px rgba(22,32,46,0.20)", "purpose": "Dialogs, drawers (light)." },
+      { "name": "gold-ring",   "value": "0 0 0 3px rgba(200,162,74,0.25)", "purpose": "Gold-tinted focus ring for scope elements (both themes)." }
+    ],
+    "motion": [
+      { "name": "duration-1", "value": "80ms",  "purpose": "Micro-interactions: hover fills, pulse onset." },
+      { "name": "duration-2", "value": "150ms", "purpose": "Standard: button hover, focus, border, theme swap." },
+      { "name": "duration-3", "value": "220ms", "purpose": "Panel slides, sidebar expand/collapse." },
+      { "name": "duration-4", "value": "320ms", "purpose": "Dialog entrance, route fade." },
+      { "name": "ease-out",    "value": "cubic-bezier(0.2, 0.7, 0.25, 1)", "purpose": "All exit/in easing. Expo-style. No bounce." },
+      { "name": "ease-in-out", "value": "cubic-bezier(0.45, 0.05, 0.25, 1)", "purpose": "Bidirectional: sidebar toggle." },
+      { "name": "reduced-motion", "value": "all durations -> 0ms", "purpose": "prefers-reduced-motion collapses motion to instant." }
+    ],
+    "breakpoints": [
+      { "name": "mobile",       "value": "768px",  "purpose": "Sidebar hides, top bar gains hamburger." },
+      { "name": "sidebar-icon", "value": "1024px", "purpose": "Sidebar collapses to 60px icon-only." },
+      { "name": "sidebar-full", "value": "1280px", "purpose": "Sidebar expands to 240px with labels." },
+      { "name": "content-wide", "value": "1440px", "purpose": "Content padding-inline grows 32px -> 48px." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single action color. One per context. Command Navy fill, white text.",
+      "html": "<button class=\"ds-btn-primary\">Save changes</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; background: var(--color-primary); border: 1px solid var(--color-primary); border-radius: var(--radius-control); color: #fff; font: 600 var(--text-label)/1 var(--font-sans); letter-spacing: -0.005em; cursor: pointer; transition: background-color var(--duration-2) var(--ease-out); } .ds-btn-primary:hover { background: var(--color-primary-hover); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(31,78,122,0.45); } .ds-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Border-only, inherits surface. Hover borrows the primary border.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; background: transparent; border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); color: var(--color-text); font: 600 var(--text-label)/1 var(--font-sans); cursor: pointer; transition: border-color var(--duration-2) var(--ease-out), background-color var(--duration-2) var(--ease-out); } .ds-btn-secondary:hover { border-color: var(--color-primary); background: var(--color-primary-subtle); }"
+    },
+    {
+      "name": "Theme Toggle",
+      "kind": "custom",
+      "refersTo": "button-ghost",
+      "description": "Top-bar control switching [data-theme] dark<->light, persisted. First load follows prefers-color-scheme (dark default).",
+      "html": "<button class=\"ds-theme-toggle\" aria-label=\"Switch theme\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/></svg></button>",
+      "css": ".ds-theme-toggle { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: transparent; border: 1px solid var(--color-border); border-radius: var(--radius-control); color: var(--color-text-muted); cursor: pointer; transition: background-color var(--duration-2) var(--ease-out), color var(--duration-2) var(--ease-out); } .ds-theme-toggle:hover { background: var(--color-surface-raised); color: var(--color-text); } .ds-theme-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(46,125,163,0.3); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Recessed well; focus shifts border to teal with a glow, no layout shift.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search tenants, stores, refs...\" />",
+      "css": ".ds-input { display: block; width: 100%; min-height: 36px; padding: 6px 12px; background: var(--color-surface-sunken); border: 1px solid var(--color-border); border-radius: var(--radius-control); color: var(--color-text); font: 400 var(--text-body)/1.5 var(--font-sans); transition: border-color var(--duration-2) var(--ease-out), box-shadow var(--duration-2) var(--ease-out); } .ds-input::placeholder { color: var(--color-text-disabled); } .ds-input:focus-visible { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(46,125,163,0.3); outline: none; } .ds-input[aria-invalid=\"true\"] { border-color: var(--color-danger); box-shadow: 0 0 0 3px rgba(179,46,54,0.25); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard surface. Flat at rest with a structural shadow. No nested cards.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card__title\">Integration Health</h3><p class=\"ds-card__body\">42 of 44 connectors reporting. 2 degraded.</p></div>",
+      "css": ".ds-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 24px; } .ds-card__title { margin: 0 0 8px; font: 600 var(--text-title)/1.375 var(--font-sans); letter-spacing: -0.005em; color: var(--color-text); } .ds-card__body { margin: 0; font: 400 var(--text-body)/1.5 var(--font-sans); color: var(--color-text-muted); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Pill with a leading status dot. Semantic text tone tuned for AA on the active ground.",
+      "html": "<span class=\"ds-badge ds-badge--success\">Active</span> <span class=\"ds-badge ds-badge--danger\">Degraded</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: var(--radius-pill); font: 600 var(--text-caption)/1 var(--font-sans); white-space: nowrap; } .ds-badge::before { content: ''; width: 6px; height: 6px; border-radius: 9999px; background: currentColor; } .ds-badge--success { background: var(--color-success-surface); color: var(--color-success-on); } .ds-badge--danger { background: var(--color-danger-surface); color: var(--color-danger-on); }"
+    },
+    {
+      "name": "Navigation Entry",
+      "kind": "nav",
+      "refersTo": "nav-entry",
+      "description": "Sidebar entry. Active state carries the gold marker stripe (the only persistent gold in nav).",
+      "html": "<a class=\"ds-nav-entry ds-nav-entry--active\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\"/></svg>Overview</a>",
+      "css": ".ds-nav-entry { position: relative; display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-radius: 8px; color: var(--color-text-muted); text-decoration: none; font: 600 var(--text-label)/1 var(--font-sans); transition: background-color var(--duration-2) var(--ease-out), color var(--duration-2) var(--ease-out); } .ds-nav-entry:hover { background: var(--color-surface-raised); color: var(--color-text); } .ds-nav-entry--active { background: var(--color-primary-subtle); color: var(--color-text); } .ds-nav-entry--active::before { content: ''; position: absolute; top: 50%; left: 0; transform: translateY(-50%); width: 3px; height: 20px; border-radius: 0 2px 2px 0; background: var(--color-gold-marker); }"
+    },
+    {
+      "name": "Scope Header",
+      "kind": "custom",
+      "refersTo": "scope-header",
+      "description": "Persistent gold authority bar answering 'where am I acting'. Gold text is theme-aware (bright #c8a24a on dark, deep #6f5320 on light) for AA on the gilded surface.",
+      "html": "<div class=\"ds-scope-header\"><span class=\"ds-scope-header__crumb\">Acme Retail</span><span class=\"ds-scope-header__sep\">/</span><span class=\"ds-scope-header__current\">Downtown Store</span></div>",
+      "css": ".ds-scope-header { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 32px; background: var(--color-gold-soft); border-bottom: 1px solid rgba(200,162,74,0.18); font: 600 var(--text-label)/1 var(--font-sans); color: var(--color-gold-strong); } .ds-scope-header__crumb { opacity: 0.7; } .ds-scope-header__sep { opacity: 0.4; padding: 0 4px; } .ds-scope-header__current { opacity: 1; }"
+    },
+    {
+      "name": "Alert Banner",
+      "kind": "custom",
+      "refersTo": "alert",
+      "description": "Full-width persistent operational banner. Never a toast, never auto-dismisses.",
+      "html": "<div class=\"ds-alert ds-alert--warning\">Data-Pulse API is degraded. Some figures may be stale. <span class=\"ds-alert__req\">req: dp2-7f3a91</span></div>",
+      "css": ".ds-alert { display: flex; align-items: flex-start; gap: 8px; padding: 12px 24px; border-radius: var(--radius-md); font: 400 var(--text-body)/1.5 var(--font-sans); border: 1px solid transparent; } .ds-alert--warning { background: var(--color-warning-surface); color: var(--color-warning-on); border-color: rgba(184,118,0,0.3); } .ds-alert__req { font-family: var(--font-mono); font-size: var(--text-mono); opacity: 0.75; }"
+    },
+    {
+      "name": "Data Table",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The primary data surface. Hover tints a row; selection tints to gold-soft. Tables over cards for list data.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Store</th><th>Status</th><th>Txns</th></tr></thead><tbody><tr><td>Downtown</td><td>Active</td><td>1,248</td></tr><tr class=\"is-selected\"><td>Harbor</td><td>Active</td><td>986</td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; } .ds-table thead tr { border-bottom: 1px solid var(--color-border); } .ds-table th { padding: 12px 16px; text-align: left; font: 600 var(--text-label)/1.25 var(--font-sans); color: var(--color-text-muted); white-space: nowrap; } .ds-table td { padding: 12px 16px; font: 400 var(--text-body)/1.5 var(--font-sans); color: var(--color-text); border-bottom: 1px solid var(--color-border); } .ds-table tbody tr:hover td { background: var(--color-surface-raised); } .ds-table tbody tr.is-selected td { background: var(--color-gold-soft); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lit Command Desk",
+    "overview": "The Console is the seat from which one operator governs an entire retail platform: tenants, stores, catalog, audit, money. It answers a single question on every screen, where am I acting and is the system healthy, before it answers anything else. Authority reads as a quiet gold signal against a deep navy field; every action reads as navy; the data itself, dense and legible, is the content. This system is dark by default and light by preference: the same role system, components, and rules expressed on two grounds, with only surface and text primitives changing. It explicitly rejects the Bootstrap-era CRUD admin and the bloated SaaS dashboard; the dark navbar is the nearest trap, so disciplined gold-as-authority and real density must out-execute the cliche.",
+    "keyCharacteristics": [
+      "Dark default, AA-compliant light alternate, one shared system across both.",
+      "Gold is authority only. Navy drives every action. The two never swap jobs.",
+      "Density earns its place: tables over cards, information over whitespace, never clutter.",
+      "Scope before action: the active tenant/store context is always legible.",
+      "Flat by default; depth is structural, never decorative."
+    ],
+    "rules": [
+      { "name": "The Gold Authority Rule", "body": "Gold is brand authority, never decoration and never an action. It appears on exactly three things: the logo mark, the scope header, and the active-nav marker. On light, text-bearing gold becomes gold-strong (#6f5320, AA on the gilded scope surface); the bright gold is reserved for the non-text marker and logo.", "section": "colors" },
+      { "name": "The Two-Ground Rule", "body": "Light is not a recolor of dark; it is the same role system resolved on a light ground. A token role means the same thing in both themes; only its primitive value differs. Never hardcode a hex where a role token exists, or the toggle breaks.", "section": "colors" },
+      { "name": "The No-Extremes Rule", "body": "Never #000 or #fff as a surface. The darkest surface is #0d1520; the lightest is #ffffff reserved for cards only, with the page floor a tinted #f4f7fa. Every neutral carries chroma toward the 236deg hue.", "section": "colors" },
+      { "name": "The Single-Voice Rule", "body": "One typeface for the entire product UI. A heading is a heavier weight and tighter tracking of the same family, never a different font. Display faces in labels, buttons, or data are prohibited.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "If a surface has a shadow, it must be because it sits structurally above another surface. Shadow as hover decoration is forbidden. Smell test: if a flat list row gains a drop shadow on hover, the shadow is wrong, use a background tint instead.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep gold to the three authority surfaces only (logo, scope header, active-nav marker), and on light swap text-bearing gold to gold-strong (#6f5320) to hold AA.",
+      "Do drive every action with the Command Navy family. One primary button per context.",
+      "Do reach for a token role (--color-bg, --color-text), never a raw hex, so the dark/light toggle resolves correctly.",
+      "Do prefer a dense, well-organized table to a grid of cards for list data.",
+      "Do keep operational state in a persistent banner, not a toast.",
+      "Do meet WCAG AA in both themes. Every text/surface pair in this spec is contrast-verified.",
+      "Do respect prefers-reduced-motion: collapse all durations to 0ms."
+    ],
+    "donts": [
+      "Don't build the Bootstrap-era CRUD admin: dark navbar with blue primary buttons and a flat wall of tables. We share its dark ground, so we must out-execute it, never resemble it.",
+      "Don't build the bloated SaaS dashboard: gradient hero metrics, identical stat-card grids, glassmorphism, generic purple/indigo, decorative animation.",
+      "Don't use gold as a button fill, a badge color, or any decorative flourish, in either theme.",
+      "Don't use a border-left/border-right greater than 1px as a colored accent stripe.",
+      "Don't nest cards. Group inside a card with a raised-surface section and a divider rule.",
+      "Don't animate layout properties, add bounce/elastic easing, or run page-load choreography.",
+      "Don't claim or duplicate POS-Pulse's palette; Console-light harmonizes with it but is defined independently."
+    ]
+  }
+}
