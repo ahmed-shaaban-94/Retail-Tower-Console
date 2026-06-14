@@ -26,3 +26,6 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+
+# Local tool output (not part of the repo)
+graphify-out/
