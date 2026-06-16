@@ -5,11 +5,17 @@ the **contract-consuming work** (which ops, which boundaries, which gates), not
 implementation steps that write code. No task is checked; nothing here is built,
 dispatched, or run.
 
-> **Design-ahead posture.** The build phases (T-codegen onward) are **GATED on
-> `G-runtime`** — DP-2 must implement the 035 contract runtime for the four
-> consumed ops before any build begins. Until then the design phases (research /
-> data-model / contracts-boundary) are the only authorable work, and they author
-> Markdown only — never OpenAPI, code, or a migration.
+> **Not-yet-built posture.** The build phases (T-codegen onward) are **GATED on
+> 018's own G-client + G-boundary** — generate the DP-2 035 settlement client into
+> the Console (G-client) and author the VG-1..VG-4 boundary test (G-boundary). The
+> DP-2 035 runtime those ops consume is **already present** (merged on DP-2
+> `origin/main` @ `cb44d4f`, verified 2026-06-16 — controller + services +
+> `SettlementModule` @ `app.module.ts:222` + migration `0027`), so the blocker is
+> **not** a missing upstream runtime. Activation caveat: contract `1.0.0-draft`;
+> migration `0027`'s G3 is an open human review gate. Until G-client clears, the
+> design phases (research / data-model / contracts-boundary) are the only
+> authorable work, and they author Markdown only — never OpenAPI, code, or a
+> migration.
 
 ## Phase 0 — Design: research & boundary (authorable now; Markdown only)
 
@@ -17,11 +23,17 @@ dispatched, or run.
   shared presenters) and the **017/018/019 boundary** decision — 018 owns
   receivable-tracking + claim/remittance; 017 owns payer CRUD + `consoleApplyPayment`;
   019 owns cross-receivable reconciliation. No code.
-- [ ] T002 In `research.md`, record the **runtime-vs-contract gate** (load-bearing):
-  the four consumed ops are **contract-present** in `settlement/settlement.yaml`
-  (`1.0.0-draft`) but **runtime-absent** on DP-2 (no controller). State that this
-  inverts 007's gate and makes 018 design-ahead; define the `G-runtime` blocking
-  gate.
+- [ ] T002 In `research.md`, record the **runtime-vs-contract status**
+  (load-bearing): the four consumed ops are **contract-present** in
+  `settlement/settlement.yaml` (`1.0.0-draft`) **and runtime-present** on DP-2 —
+  merged on `origin/main` @ `cb44d4f` (controller + services + `SettlementModule`
+  @ `app.module.ts:222` + migration `0027`), verified 2026-06-16. State that this
+  matches 007's posture (runtime-merged), and that the real residual blockers are
+  018's own **G-client** (generate the client) + **G-boundary** (boundary test),
+  not an upstream gap. Record the activation caveat (contract `1.0.0-draft`;
+  migration `0027` G3 = open human review gate) and the root-cause note:
+  `settlement.yaml`'s header comment (~line 13) is **stale** ("No controller/DTO/
+  service/migration exists yet") and must not be trusted over the source tree.
 - [ ] T003 In `research.md`, confirm the consumed-vs-NOT-consumed op partition
   against the contract and record the inline reason for each excluded op
   (`consoleApplyPayment`, `consoleCreatePayerAccount`, `consoleListPayerAccounts`
@@ -46,7 +58,7 @@ dispatched, or run.
   `operatorAuthorization` envelope) and the **safe-404** non-disclosing isolation
   (FR-018-008/009).
 
-## Phase 2 — Codegen *(GATED on G-runtime — do NOT start until DP-2 035 runtime lands)*
+## Phase 2 — Codegen *(GATED on G-client — this phase IS the G-client step; the DP-2 035 runtime it consumes is already present @ `cb44d4f`)*
 
 - [ ] T007 *(gated)* Add the DP-2 `settlement/settlement.yaml` source to the
   Console codegen config at a **pinned codegen SHA** (the SHA at which DP-2 has
@@ -56,7 +68,7 @@ dispatched, or run.
   `consoleReconcileRemittance`) appear in the generated client types, and that the
   other four settlement ops, though generated whole, are **not** wired by 018.
 
-## Phase 3 — Data layer *(GATED on G-runtime)*
+## Phase 3 — Data layer *(GATED on G-client)*
 
 - [ ] T009 *(gated)* Typed wrappers over the four ops (read one / list / submit
   claim / reconcile remittance) + query keys, mirroring the RF-2 typed data-layer
@@ -68,7 +80,7 @@ dispatched, or run.
   reconcile-remittance) returning result-encoded errors; scope hook reading active
   tenant/store from `ActiveContextProvider` (no context/membership mutation).
 
-## Phase 4 — Surfaces *(GATED on G-runtime)*
+## Phase 4 — Surfaces *(GATED on G-client)*
 
 - [ ] T012 *(gated)* Receivable **queue list**: shared `DataTable` + state/payer/store
   filter row + `ListState`/`Banner`; opaque `nextCursor` pagination; backend-scoped
@@ -86,7 +98,7 @@ dispatched, or run.
 - [ ] T016 *(gated)* Route fragment for the 018 family; mount in `App.tsx` behind
   the RF-1 auth shell.
 
-## Phase 5 — Tests *(GATED on G-runtime)*
+## Phase 5 — Tests *(GATED on G-client; T020 boundary test IS the G-boundary step)*
 
 - [ ] T017 *(gated)* Unit: `mapReceivableError` per-op status coverage +
   no-undocumented-status assertion.
@@ -102,7 +114,7 @@ dispatched, or run.
   hiding; **no new remote egress**.
 - [ ] T021 *(gated)* E2E + a11y: queue → inspect → submit-claim → reconcile journey.
 
-## Phase 6 — Validation *(GATED on G-runtime)*
+## Phase 6 — Validation *(GATED on G-client + G-boundary)*
 
 - [ ] T022 *(gated)* Typecheck + build green.
 - [ ] T023 *(gated)* Unit + boundary tests green.

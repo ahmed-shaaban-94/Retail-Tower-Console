@@ -7,22 +7,27 @@
 | Branch | `018-console-receivables-and-insurance-claims` |
 | Status | **Proposed / Draft** |
 | Owner | Ahmed Shaaban |
-| Mode | Specify (design-ahead) |
+| Mode | Specify |
 | Created | 2026-06-16 |
 | Spec Kit phase | `/speckit specify` → `/clarify` → `/plan` → `/tasks` (this chain) |
 | Owning repo | Retail-Tower-Console |
 | Upstream producer | Data-Pulse-2 **035** sale-settlement-and-receivables-model (G2 **RATIFIED** 2026-06-15, PR #574 `cb4a7e5`) |
 | Consumed contract | `packages/contracts/openapi/settlement/settlement.yaml` (`1.0.0-draft`) |
 
-> **Mode contract.** Specify / design-ahead. This spec defines the Console
+> **Mode contract.** Specify. This spec defines the Console
 > **receivable-tracking + insurance-claim review/submission/remittance-reconciliation**
 > surface that consumes a **named four-operation subset** of the RATIFIED DP-2 035
 > G2 contract through the generated client only. It authorizes **no application
 > code**, no OpenAPI edit (DP-2 owns the contract), no migration, no new runtime
-> dependency, and no new remote egress. It is **design-ahead**: the DP-2 035 G2
-> contract is RATIFIED but is `1.0.0-draft` with **no DP-2 controller/service/DTO
-> runtime yet** — so this surface is **not buildable until DP-2 implements the
-> contract** (see §3). No 018 gate is marked satisfied.
+> dependency, and no new remote egress. The DP-2 035 G2 contract is RATIFIED and
+> **its runtime is MERGED on DP-2 `origin/main` @ `cb44d4f`** (controller +
+> services + `SettlementModule` at `app.module.ts:222` + migration `0027`,
+> verified 2026-06-16; see §3). The upstream runtime is therefore **present**, not
+> absent. 018 nevertheless remains a SPECIFY artifact: it is **not yet built** —
+> the residual work is 018's **own** Phase-2 steps (generate the client → boundary
+> test), not an upstream gap. Activation caveat: the contract is still versioned
+> `1.0.0-draft` and migration `0027`'s G3 (apply on a non-prod DB) is an **open
+> human review gate**. No 018 gate is marked satisfied.
 
 ---
 
@@ -109,19 +114,36 @@ the boundary is asserted by a VG-style boundary test (§7).
   - `posRecordSettlementIntent` — POS-facing capture (`operatorAuthorization`),
     **owned by POS-020**; not a Console op.
 
-### 3.1 Runtime-vs-contract gate — INVERTED relative to 007 (load-bearing)
+### 3.1 Runtime-vs-contract gate — runtime PRESENT (load-bearing)
 
 007 consumed three ops that were **runtime-merged** on DP-2 `main`, so 007 was
-buildable. 018 is the **opposite**: the DP-2 035 G2 contract is **RATIFIED but
-`1.0.0-draft`** — the contract description states "**no controller/DTO/service/
-migration exists yet**." Therefore the four consumed ops are **contract-present
-but runtime-absent**.
+buildable. 018 is **the same posture, not the opposite**: the DP-2 035 G2
+contract is **RATIFIED** and its **runtime is MERGED on DP-2 `origin/main` @
+`cb44d4f`** (verified 2026-06-16) — `settlement.controller.ts` (all routes),
+`receivable.service.ts`, `claim.service.ts`, `apply-payment-decision.ts`, the
+DTOs, unit + integration tests, with `SettlementModule` registered in
+`apps/api/src/app.module.ts:222` and migration
+`packages/db/drizzle/0027_settlement_receivables.sql` authored/merged. The
+runtime PRs (#576–#584) merged 2026-06-15. Therefore the four consumed ops are
+**contract-present AND runtime-present**.
 
-Consequence: **018 is a design-ahead spec, not a buildable slice.** It defines
-the contract-consuming surface so the work is ready the moment DP-2 ships the
-035 runtime, but the build phases are **gated on DP-2 implementing the
-contract** (DP-2 035 G3/impl, separately gated). No 018 gate is satisfied
-(§9, §11).
+> **Root-cause note (do not reintroduce the prior error).** An earlier draft of
+> this spec stated the runtime was "absent / no controller exists yet." That was
+> **false** — it was copied from `settlement.yaml`'s stale header comment
+> (~line 13), which still reads "No controller/DTO/service/migration exists yet."
+> That comment was written with the contract draft (PR #574) and was **never
+> updated** after the runtime landed the next day. Verify against the DP-2 source
+> tree (`apps/api/src/settlement/`, `app.module.ts:222`, migration `0027`), not
+> that comment.
+
+Consequence: **018 is a SPECIFY artifact that is not yet built** — but the reason
+is **018's own residual work**, not a missing upstream. The genuine remaining
+gates are 018's **G-client** (generate the DP-2 035 settlement client into the
+Console) and **G-boundary** (the boundary/consumption test), per §9 / §11.
+Activation caveat: the contract is still `1.0.0-draft` and migration `0027`'s G3
+(apply on a non-prod DB) is an **open human review gate** — so "not yet built /
+not yet activated" stays honest, while the "upstream runtime absent" premise was
+false. No 018 gate is satisfied (§9, §11).
 
 ## 4. User stories
 
@@ -147,8 +169,8 @@ contract** (DP-2 035 G3/impl, separately gated). No 018 gate is satisfied
   reconciliation result — `claimedAmount`, `remittedAmount`, `variance`, and
   `outcome` (`settled` / `partial` / `flagged`). **(P3)**
 
-> **US-1/US-2 are jointly P1** (the read surface is the unblockable, demonstrable
-> MVP once the runtime exists); US-3/US-4 are P2 (inspect + the first write);
+> **US-1/US-2 are jointly P1** (the read surface is the demonstrable MVP once 018's
+> own client is generated — G-client); US-3/US-4 are P2 (inspect + the first write);
 > US-5 is P3 (the most complex insurer path, mirroring DP-2 035's P3 ordering for
 > claim/remittance).
 
@@ -278,15 +300,23 @@ contract** (DP-2 035 G3/impl, separately gated). No 018 gate is satisfied
 ## 9. Gate mapping (NONE satisfied)
 
 > 018 consumes the DP-2 035 **G2** contract and carries repo-specific gates. This
-> SPECIFY artifact marks **NONE satisfied**. G2 being RATIFIED **upstream** is the
-> precondition that lets 018 be specified — it is **not** an 018 gate.
+> SPECIFY artifact marks **NONE of 018's own gates satisfied**. The upstream
+> preconditions are met: G2 is RATIFIED **and** the DP-2 035 **runtime is merged**
+> on `origin/main` @ `cb44d4f` (verified 2026-06-16). Those are upstream
+> preconditions, **not** 018 gates — 018 does not re-certify them. 018's own
+> residual gates (G-client, G-boundary) remain open.
+>
+> **Root-cause breadcrumb:** `settlement.yaml`'s header comment (~line 13) still
+> reads "No controller/DTO/service/migration exists yet"; it is **stale** (never
+> updated after the runtime merged) and was the source of the earlier false
+> "runtime absent" claim. Trust the DP-2 source tree, not that comment.
 
 | Gate | Meaning for 018 | Status in this artifact |
 | --- | --- | --- |
 | **G2 (consumed, upstream)** | DP-2 035 produces the contract 018 consumes. | **RATIFIED upstream** (2026-06-15, PR #574 `cb4a7e5`). Precondition only — **not an 018 gate**; 018 does not re-certify it. |
-| **G-runtime (018, blocking)** | DP-2 035 contract has a live runtime (controller/service) for the 4 ops. | **NOT satisfied** — contract is `1.0.0-draft`, runtime absent (§3.1). Blocks build. |
-| **G-client (018)** | The DP-2 035 client is generated into the Console at a pinned codegen SHA, exposing the 4 ops. | **NOT satisfied** — not yet generated; planned in `/plan`. |
-| **G-boundary (018)** | VG-1..VG-4 asserted by a boundary test. | **NOT satisfied** — design-only; test authored in the build slice. |
+| **DP-2 035 runtime (upstream precondition)** | DP-2 035 contract has a live runtime (controller/service) for the 4 ops. | **PRESENT** — merged on DP-2 `origin/main` @ `cb44d4f` (controller + services + `SettlementModule` @ `app.module.ts:222` + migration `0027`), verified 2026-06-16 (§3.1). Upstream precondition, **not** an 018 gate; **not a blocker**. Activation caveat: contract is `1.0.0-draft` and migration `0027`'s G3 is an open human review gate. |
+| **G-client (018, blocking)** | The DP-2 035 client is generated into the Console at a pinned codegen SHA, exposing the 4 ops. | **NOT satisfied** — not yet generated; planned in `/plan`. The real residual that gates the build (the runtime it consumes is present). |
+| **G-boundary (018, blocking)** | VG-1..VG-4 asserted by a boundary test. | **NOT satisfied** — design-only; test authored in the build slice. The other real residual. |
 | **G-auth (018, consumes 028/G10)** | Console human session + safe-404 isolation. | **NOT satisfied as built** — design references the 028 boundary; no code. |
 
 **No 018 gate is marked satisfied. Nothing here is built, dispatched, or run.**
@@ -294,8 +324,12 @@ contract** (DP-2 035 G3/impl, separately gated). No 018 gate is satisfied
 ## 10. Dependencies
 
 - **Upstream (hard):** DP-2 035 G2 contract (RATIFIED) — the source of the four
-  consumed operations and all field shapes. **DP-2 035 runtime/impl (G3/impl)** —
-  **absent**; gates the 018 build (§3.1).
+  consumed operations and all field shapes. **DP-2 035 runtime/impl** —
+  **present**, merged on DP-2 `origin/main` @ `cb44d4f` (controller + services +
+  `SettlementModule` @ `app.module.ts:222` + migration `0027`), verified
+  2026-06-16 (§3.1). The 018 build is gated on 018's **own** residuals
+  (G-client + G-boundary), not on a missing upstream. Activation caveat: contract
+  `1.0.0-draft`; migration `0027` G3 = open human review gate.
 - **Sibling boundary:** Console 017 (payer accounts + cash application) and
   Console 019 (reconciliation) — disjoint op surfaces (§2). 018 reads
   receivables 017/POS-020 open; it does not create payers or apply cash.
@@ -314,10 +348,15 @@ contract** (DP-2 035 G3/impl, separately gated). No 018 gate is satisfied
   dispatched work.
 - It marks **no 018 gate satisfied**. The upstream DP-2 035 **G2** is RATIFIED;
   that is a precondition, not an 018 gate, and 018 does not re-certify it.
-- 018 is **design-ahead**: the four consumed ops are contract-present but
-  **runtime-absent** on DP-2 (§3.1). 018 is **not buildable** until DP-2 ships
-  the 035 runtime. Any reader treating 018 as buildable today is reading more
-  than this artifact claims.
+- The four consumed ops are **contract-present AND runtime-present** on DP-2
+  (merged @ `cb44d4f`, §3.1). 018 is nonetheless **not yet built**: the residual
+  is 018's **own** work — **G-client** (generate the settlement client) +
+  **G-boundary** (boundary test) — plus the activation caveat that the contract
+  is `1.0.0-draft` and migration `0027`'s G3 is an open human review gate. The
+  blocker is **not** a missing upstream runtime. Any reader treating 018 as
+  already built/activated is reading more than this artifact claims; any reader
+  treating the upstream runtime as absent is reading the stale `settlement.yaml`
+  header (§3.1), not the source tree.
 - No cash-application, payer-CRUD, POS-intent, reversal, ERPNext, or new-egress
   capability is claimed (§6).
 
@@ -335,8 +374,10 @@ contract** (DP-2 035 G3/impl, separately gated). No 018 gate is satisfied
 - **SC-003** — Each consumed op's documented status set is mapped exactly
   (submit/reconcile include 409; get/list do not) with a no-undocumented-status
   assertion and no 422/429.
-- **SC-004** — A reviewer can confirm **no 018 gate is marked satisfied** and that
-  the runtime-absent / design-ahead posture (§3.1) is explicit.
+- **SC-004** — A reviewer can confirm **no 018 gate is marked satisfied**, that the
+  upstream posture is stated correctly — DP-2 035 G2 RATIFIED **and** runtime
+  PRESENT (merged @ `cb44d4f`, §3.1) — and that 018's residual blockers are its
+  own **G-client + G-boundary** (not a missing upstream runtime).
 - **SC-005** — A reviewer can confirm the surface authors **zero** OpenAPI /
   migration / code, makes **no** ERPNext call, introduces **no** new egress, and
   defines **no** reversal/rejection workflow (rejection routes to DP-026 reuse).
@@ -348,8 +389,10 @@ contract** (DP-2 035 G3/impl, separately gated). No 018 gate is satisfied
   spec consumes it and never edits it.
 - The RF-1 auth shell, `ActiveContextProvider`, shared presenters, and the
   generated-client pattern exist and are reused (no new shared primitive).
-- DP-2 will implement the 035 contract runtime on a separately-gated slice; 018's
-  build phases wait on that (§3.1).
+- DP-2 has implemented the 035 contract runtime (merged on `origin/main` @
+  `cb44d4f`, verified 2026-06-16); 018's build phases wait only on 018's own
+  G-client + G-boundary, plus the `1.0.0-draft` / migration-`0027`-G3 activation
+  caveats (§3.1).
 - ERPNext stays valuation / back-office; DP-2 owns operational settlement state;
   the Console never calls ERPNext (architecture invariant).
 - Manual adjudication entry only in v1 — no insurer API, no remittance-file
@@ -380,11 +423,20 @@ contract** (DP-2 035 G3/impl, separately gated). No 018 gate is satisfied
   of which is apply-payment. Receivable rows in 018 may show a balance reduced by
   017's cash application, but 018 never **calls** apply-payment. Non-critical: the
   four-op list pre-resolves it; it changes no gate or actor.
-- **CL-3 — Runtime absence of the consumed ops** → **Treat 018 as design-ahead;
-  gate the build on DP-2 035 runtime.** *Rationale:* G2 is RATIFIED but the
-  contract is `1.0.0-draft` with no DP-2 controller yet; 007's runtime-vs-contract
-  gate, inverted. Non-critical to SPECIFY (the contract surface is fixed); it sets
-  a build gate (§9 `G-runtime`), not a contract or actor change.
+- **CL-3 — Runtime availability of the consumed ops** → *(original resolution,
+  superseded — kept as audit trail)* "Treat 018 as design-ahead; gate the build on
+  DP-2 035 runtime," on the rationale that the contract was `1.0.0-draft` "with no
+  DP-2 controller yet." **AMENDED 2026-06-16:** that resolution rested on
+  `settlement.yaml`'s **stale header comment** (~line 13: "No controller/DTO/
+  service/migration exists yet"), which was never updated after the runtime
+  landed. Verified against DP-2 `origin/main` @ `cb44d4f`, the **035 runtime is
+  PRESENT** — `settlement.controller.ts`, `receivable.service.ts`,
+  `claim.service.ts`, DTOs, `SettlementModule` @ `app.module.ts:222`, migration
+  `0027` (PRs #576–#584, merged 2026-06-15). The corrected residual is therefore
+  018's own **G-client + G-boundary**, **not** an upstream runtime absence. The
+  `1.0.0-draft` version and migration `0027`'s open-G3 human review gate remain
+  the honest "not-yet-activated" caveats. Non-critical to SPECIFY (the contract
+  surface is unchanged); it corrects which gate blocks the build (§9).
 - **CL-4 — Claim-line rejection handling** → **Out of scope; route to DP-026 +
   Connector Arc A + POS-014.** *Rationale:* DP-2 035 NG-1 / FR-015 forbid a
   competing rejection model; the contract's `ReconciliationResult.outcome` enum is
