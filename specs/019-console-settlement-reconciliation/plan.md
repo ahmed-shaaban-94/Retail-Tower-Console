@@ -4,14 +4,18 @@
 
 **Input**: Feature specification from `specs/019-console-settlement-reconciliation/spec.md`
 
-> **Mode contract.** Specify / design-ahead plan. This plan sequences the Console
+> **Mode contract.** Specify plan. This plan sequences the Console
 > settlement-reconciliation surface (apply-payment settlement action + posting
 > retry) against the **named** DP-2 035 G2 ops **plus** the DP-2 032 sale-sync-ops
 > repair op, reusing the merged RF-1/RF-2 stack with zero new runtime dependency.
-> It authorizes **no code now**: the DP-2 035 contract is RATIFIED but
-> `1.0.0-draft` with **no runtime**, AND the DP-2 032 sale-sync-ops **end-to-end
-> posting-retry (G7) wiring is unverified ⇒ treated as a blocker** — so the build
-> phases are **gated on BOTH**. It does NOT edit
+> It authorizes **no code now**: the DP-2 035 contract is RATIFIED and its
+> **runtime is MERGED on DP-2 `origin/main` @ `cb44d4f`** (controller + services +
+> `SettlementModule` + migration 0027, verified 2026-06-16) but **not yet
+> activated** (contract `1.0.0-draft`; migration 0027 G3 is an open human gate),
+> AND the DP-2 032 sale-sync-ops **end-to-end posting-retry (G7) wiring is
+> unverified ⇒ treated as a blocker**. So the build phases are gated on 019's own
+> **G-client / G-boundary** PLUS the genuine **G-runtime-032 / G7** — not on a
+> missing 035 runtime. It does NOT edit
 > any OpenAPI, author a migration, add an egress, or open the 017/018/POS-020
 > surfaces.
 
@@ -30,13 +34,18 @@ sale-sync-ops client (`consoleRepairSaleSync`), and reuses the shared presenters
 It introduces no new shared primitive and no new remote egress.
 
 The load-bearing difference from 018: 018 carried **one** runtime gate (DP-2 035
-impl absent). 019 carries **two** — the DP-2 035 ops are contract-present /
-runtime-absent, **and** the DP-2 032 sale-sync-ops end-to-end posting-retry (G7)
-wiring is unverified ⇒ treated as a blocker (the `consoleRepairSaleSync` controller
-is present on DP-2 `main`, but the end-to-end path is not self-certified here — the
-extra dependency that makes 019 the LAST child). So 019 is **design-ahead** — the
-codegen + data-layer + UI + test phases below are **planned and gated on both
-runtimes**, not executed.
+impl absent). For 019 the DP-2 035 runtime is **present** (merged on DP-2
+`origin/main` @ `cb44d4f`, verified 2026-06-16 — controller + services +
+`SettlementModule` + migration 0027), so the 035 ops are contract-present **and
+runtime-backed**. 019's residual blockers are therefore its **own** build steps —
+`G-client` (generate the clients) + `G-boundary` (boundary test) — **plus** the
+genuine DP-2 032 sale-sync-ops end-to-end posting-retry (G7) gate, which is
+unverified ⇒ treated as a blocker (the `consoleRepairSaleSync` controller is
+present on DP-2 `main`, but the end-to-end path is not self-certified here — the
+extra dependency that makes 019 the LAST child). So 019 is still a **SPECIFY
+artifact** — the codegen + data-layer + UI + test phases below are **planned and
+gated on 019's own G-client/G-boundary plus G-runtime-032/G7** (not on a missing
+035 runtime), not executed.
 
 ## Technical Context
 
@@ -56,7 +65,7 @@ runtimes**, not executed.
 
 **Constraints**: cookie transport only (no `Authorization` header) on both contracts; render exact-decimal money strings (no float coercion); send the receivable `version` on apply-payment; no frontend authorization branching; no new remote egress.
 
-**Scale/Scope**: One route family; four consumed ops across two DP-2 contracts; ~four presentational surfaces; design-ahead (not yet built).
+**Scale/Scope**: One route family; four consumed ops across two DP-2 contracts; ~four presentational surfaces; SPECIFY artifact (not yet built — 035 runtime present, residual is 019's G-client/G-boundary + G-runtime-032/G7).
 
 ## Constitution Check
 
@@ -75,9 +84,15 @@ runtimes**, not executed.
 - **No new egress (VG-4 / architecture invariant):** no new remote target; the
   posting retry is server-mediated by DP-2 032, not a direct ERPNext call. PASS
   **by design**.
-- **G-runtime-035 (BLOCKING, NOT satisfied):** the three consumed settlement ops
-  have **no DP-2 controller** at any codegen pin (contract is `1.0.0-draft`). OPEN;
-  blocks codegen + build. **Not satisfied.**
+- **DP-2 035 runtime (PRESENT — not an 019 gate):** the three consumed settlement
+  ops are backed by a **live DP-2 controller/service merged on `origin/main` @
+  `cb44d4f`** (`settlement.controller.ts` + services + `SettlementModule` +
+  migration 0027, verified 2026-06-16). It is **not yet activated** (contract
+  `1.0.0-draft`; migration 0027 G3 is an open human gate), but the runtime is
+  present, so this is **not** an 019 blocker. 019's residual for these ops is its
+  own **G-client** (generate the settlement client) + **G-boundary** (boundary
+  test) below. (An earlier "no DP-2 controller" reading traced to a stale
+  `settlement.yaml` header comment — spec CL-9.)
 - **G-runtime-032 / G7 (BLOCKING, NOT satisfied — the EXTRA 019 gate):** the DP-2
   032 `consoleRepairSaleSync` controller route is **present on DP-2 `main`**
   (verified: `SaleSyncOpsController`, `POST .../sales/{saleRef}/repair`), so the
@@ -85,6 +100,10 @@ runtimes**, not executed.
   is unverified** and 019 does not self-certify it. Per the gate rule (uncertain ⇒
   blocker) this is **treated as a blocker**, confirmed at build time before codegen.
   Blocks the posting-retry build. **Not satisfied.**
+- **G-client / G-boundary (019's own, NOT satisfied):** the DP-2 035 + 032 clients
+  are **not yet generated** into the Console and the VG-1..VG-4 boundary test is
+  **not yet authored**. These — not a missing 035 runtime — are 019's residual work
+  for the 035 ops. OPEN. **Not satisfied.**
 - **No new dependency:** reuses TanStack Query, `openapi-fetch`, react-router.
   PASS **by design**.
 
@@ -99,7 +118,7 @@ runtimes**, not executed.
 specs/019-console-settlement-reconciliation/
 ├── plan.md              # This file
 ├── spec.md              # /specify + /clarify output
-├── research.md          # Phase 0 — reuse + boundary + TWO-runtime-gate decisions (build-slice)
+├── research.md          # Phase 0 — reuse + boundary + residual-gate decisions (035 runtime present; residual = G-client/G-boundary + G-runtime-032/G7) (build-slice)
 ├── data-model.md        # Phase 1 — render-side projections (no owned model)
 ├── contracts/
 │   └── settlement-recon.md   # Phase 1 — the 4-op (two-contract) consumption boundary (Markdown; NOT OpenAPI)
@@ -109,7 +128,8 @@ specs/019-console-settlement-reconciliation/
 ### Source Code (repository root)
 
 > **Planned, NOT created in this artifact.** Concrete paths are sequenced for the
-> build slice that runs only once BOTH `G-runtime-035` and `G-runtime-032` clear.
+> build slice that runs only once 019's own `G-client` / `G-boundary` are done AND
+> `G-runtime-032` / G7 clears (the DP-2 035 runtime is already present @ `cb44d4f`).
 > Mirrors the RF-2 / RF-4a / 018 layout.
 
 ```text
@@ -134,28 +154,32 @@ tests/
 **Structure Decision**: Web frontend, single route family attached to the RF-1
 shell — the established Console pattern. No backend code in this repo (DP-2 owns
 both the settlement and sale-sync-ops contracts). All paths above are **planned**;
-none is authored by this design-ahead artifact.
+none is authored by this SPECIFY artifact.
 
 ## Phases
 
 > Phases 0–1 are design (authored as companion Markdown in the feature dir, no
-> code). Phases 2+ are the **build slice**, **gated on BOTH `G-runtime-035` and
-> `G-runtime-032`** and therefore **not executed here**.
+> code). Phases 2+ are the **build slice**, **gated on 019's own `G-client` /
+> `G-boundary` plus `G-runtime-032` / G7** (the DP-2 035 runtime is already
+> present @ `cb44d4f`) and therefore **not executed here**.
 
 - **Phase 0 — research** (design): reuse map (RF-1/RF-2 primitives), the
   017/018/019 boundary (incl. the **apply-payment ownership correction**, §2.1 of
-  spec), and the **two-runtime-gate** posture (035 ops contract-present /
-  runtime-absent; 032 end-to-end posting-retry G7 wiring unverified ⇒ blocker,
-  controller present on `main`) → `research.md`.
+  spec), and the **residual-gate** posture (035 ops contract-present **and
+  runtime-backed** @ `cb44d4f` — residual is 019's own `G-client`/`G-boundary`; 032
+  end-to-end posting-retry G7 wiring unverified ⇒ blocker, controller present on
+  `main`) → `research.md`.
 - **Phase 1 — design** (design): render-side projections (`data-model.md`) and the
   four-op, two-contract consumption boundary (`contracts/settlement-recon.md`,
   Markdown — **never** OpenAPI; DP-2 owns both contracts).
-- **Phase 2 — codegen** *(GATED on BOTH runtimes)*: add the DP-2
+- **Phase 2 — codegen** *(this is 019's `G-client`; the 035 source is runtime-ready
+  @ `cb44d4f`, the 032 source is GATED on `G-runtime-032`/G7)*: add the DP-2
   `settlement/settlement.yaml` AND `sale-sync-ops/sale-sync-ops.yaml` sources to
-  the codegen config at pinned SHAs (the SHAs at which DP-2 has shipped the 035
-  runtime AND the 032 end-to-end posting-retry path is confirmed wired, G7);
-  regenerate the client(s); confirm the four ops appear. Cannot run until BOTH
-  conditions are verified at build time.
+  the codegen config at pinned SHAs (035 at the SHA where the merged runtime sits;
+  032 at the SHA where the end-to-end posting-retry path is confirmed wired, G7);
+  regenerate the client(s); confirm the four ops appear. The 035 client can be
+  generated against the present runtime; the 032 client wiring waits on G7
+  confirmation at build time.
 - **Phase 3 — data layer** *(GATED)*: typed wrappers + query keys +
   `mapSettlementError` / `mapRepairError` (per-op documented statuses; 409 on
   apply-payment + repair only; no 422/429); TanStack hooks; scope hook from
@@ -189,29 +213,38 @@ none is authored by this design-ahead artifact.
   `consoleApplyPayment` + the two receivable reads + field shapes. DP-2 032
   sale-sync-ops contract (present at `1.0.0-draft`; ratification status per DP-2,
   not certified here) → source of `consoleRepairSaleSync`.
-- **Hard upstream (runtime):** **DP-2 035 runtime/impl (`G-runtime-035`)** →
-  **OPEN** (verified absent from the 035 contract text). **DP-2 032 end-to-end
-  posting-retry wiring (`G-runtime-032` / G7)** → **OPEN (unverified ⇒ blocker)**:
-  the `consoleRepairSaleSync` controller is present on DP-2 `main`, but the
-  end-to-end G7 path is not self-certified here. The build phases (2–6) do not start
-  until **both** clear — 019 is the only 035 child with the second runtime gate.
+- **Hard upstream (runtime):** **DP-2 035 runtime/impl** → **PRESENT** (merged on
+  DP-2 `origin/main` @ `cb44d4f`, verified 2026-06-16 — controller + services +
+  `SettlementModule` + migration 0027); **not an 019 blocker** (not yet activated:
+  contract `1.0.0-draft` + migration 0027 G3 human gate open). The earlier
+  "verified absent" reading came from a stale `settlement.yaml` header comment (spec
+  CL-9). **DP-2 032 end-to-end posting-retry wiring (`G-runtime-032` / G7)** →
+  **OPEN (unverified ⇒ blocker)**: the `consoleRepairSaleSync` controller is present
+  on DP-2 `main`, but the end-to-end G7 path is not self-certified here. **019's own
+  residual:** `G-client` (generate the clients) + `G-boundary` (boundary test) →
+  **OPEN**. The build phases (2–6) do not start until 019's `G-client`/`G-boundary`
+  are done **and** `G-runtime-032`/G7 clears — 019 is the only 035 child carrying
+  the 032 runtime gate.
 - **Sibling boundary:** disjoint **write** surfaces from Console 017 (payer CRUD)
   and Console 018 (claim/remittance writes). 019 shares only receivable **reads**
   with 018; no shared mutable surface.
 - **Reversal reuse:** DP-026 + Connector Arc A + POS-014 (no reversal UI built
   here; posting retry is a sync re-queue, not a reversal).
-- **Sequencing for the eventual build slice:** confirm `G-runtime-035` **and**
-  `G-runtime-032` → Phase 2 codegen at pinned SHAs → Phases 3–6. The owner
-  approves the dispatch of that build slice; this plan does not dispatch it.
+- **Sequencing for the eventual build slice:** the 035 runtime is present, so for
+  the 035 ops the path is 019's own `G-client` → `G-boundary`; for the 032 op,
+  confirm `G-runtime-032` / G7 → then Phase 2 codegen at pinned SHAs → Phases 3–6.
+  The owner approves the dispatch of that build slice; this plan does not dispatch
+  it.
 
 ## Complexity Tracking
 
 > No Constitution violation requiring justification. The surface reuses existing
 > primitives, adds no dependency, owns no state, and introduces no egress. The
-> only "complexity" is the **design-ahead** posture with **two** blocking runtime
-> gates, which is a sequencing consequence of the runtime-absent 035 impl and the
-> unverified 032 end-to-end posting-retry (G7) wiring (§Constitution Check), not an
-> architecture deviation.
+> only "complexity" is the **not-yet-end-to-end-buildable** posture: the residual
+> blockers are 019's own `G-client` / `G-boundary` plus the **one** genuine runtime
+> gate `G-runtime-032` / G7 (the unverified 032 end-to-end posting-retry wiring) —
+> the 035 runtime is present @ `cb44d4f` and is not a blocker. This is a sequencing
+> consequence (§Constitution Check), not an architecture deviation.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|

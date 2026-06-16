@@ -7,7 +7,7 @@
 | Branch | `019-console-settlement-reconciliation` |
 | Status | **Proposed / Draft** |
 | Owner | Ahmed Shaaban |
-| Mode | Specify (design-ahead) |
+| Mode | Specify (residual blockers: 019 G-client/G-boundary + DP-2 032 G7) |
 | Created | 2026-06-16 |
 | Spec Kit phase | `/speckit specify` → `/clarify` → `/plan` → `/tasks` (this chain) |
 | Owning repo | Retail-Tower-Console |
@@ -15,17 +15,22 @@
 | Consumed contract | `packages/contracts/openapi/settlement/settlement.yaml` (`1.0.0-draft`) |
 | Extra upstream | Data-Pulse-2 **032** sale-sync-ops runtime wiring (G7) — `packages/contracts/openapi/sale-sync-ops/sale-sync-ops.yaml` (`1.0.0-draft`) |
 
-> **Mode contract.** Specify / design-ahead. This spec defines the Console
+> **Mode contract.** Specify. This spec defines the Console
 > **settlement-reconciliation** surface — the **LAST** of the five DP-2 035
 > children — that consumes a **named subset** of the RATIFIED DP-2 035 G2 contract
 > **plus** the DP-2 032 sale-sync-ops **repair/retry** op, through the generated
 > client only. It authorizes **no application code**, no OpenAPI edit (DP-2 owns
 > both contracts), no migration, no new runtime dependency, and no new remote
-> egress. It is **design-ahead**: the DP-2 035 G2 contract is RATIFIED but is
-> `1.0.0-draft` with **no DP-2 controller/service/DTO runtime yet**, AND the DP-2
-> 032 **end-to-end posting-retry (G7) wiring is unverified** — so this surface is
-> **not buildable until DP-2 implements the 035 contract AND the 032 posting-retry
-> path is confirmed wired end-to-end** (see §3). No 019 gate is marked satisfied.
+> egress. The DP-2 035 G2 contract is RATIFIED and its **runtime is MERGED on
+> DP-2 `origin/main` @ `cb44d4f`** (controller + services + `SettlementModule` +
+> migration 0027, verified 2026-06-16) — so the apply-payment + receivable-read
+> ops 019 consumes ARE backed by a live runtime. It is **not yet activated** (the
+> contract is still `1.0.0-draft` and migration 0027's G3 apply/rollback is an open
+> human gate), and the DP-2 032 **end-to-end posting-retry (G7) wiring is
+> unverified** — so this surface remains **not buildable end-to-end** until 019's
+> own **G-client** (generate the DP-2 clients) and **G-boundary** (boundary test)
+> are done AND the DP-2 032 posting-retry path is confirmed wired end-to-end
+> (G-runtime-032/G7) (see §3). No 019 gate is marked satisfied.
 
 ---
 
@@ -168,14 +173,31 @@ exactly one owner. The boundary test (§7, VG-2) asserts 019 calls **none** of t
 > presentation decision deferred to `/plan` (CL-5); 019's load-bearing consumed
 > **write** from 032 is `consoleRepairSaleSync` only.
 
-### 3.4 Runtime-vs-contract gate — TWO blocking gates (load-bearing)
+### 3.4 Runtime-vs-contract gate — the residual blockers (load-bearing)
 
-018 carried one blocking runtime gate (DP-2 035 impl absent). 019 carries **two**:
+018 carried one blocking runtime gate (DP-2 035 impl absent). For 019 the 035
+runtime is **present**, so 019's residual blockers are its **own** build steps
+(`G-client` / `G-boundary`) **plus** the genuine DP-2 032 posting-retry gate
+(`G-runtime-032` / G7):
 
-1. **G-runtime-035 (035 impl absent).** The DP-2 035 G2 contract is **RATIFIED but
-   `1.0.0-draft`** — its description states "**no controller/DTO/service/migration
-   exists yet**." So `consoleApplyPayment` (and the two receivable reads) are
-   **contract-present but runtime-absent**.
+1. **DP-2 035 runtime — PRESENT (not a blocker).** The DP-2 035 G2 contract is
+   **RATIFIED** and its **runtime is MERGED on DP-2 `origin/main` @ `cb44d4f`**
+   (verified 2026-06-16): `settlement.controller.ts` (all eight routes incl.
+   `consoleApplyPayment` + the receivable reads), `receivable.service.ts`,
+   `claim.service.ts`, `apply-payment-decision.ts`, DTOs and tests, with
+   `SettlementModule` registered at `app.module.ts:222` and migration
+   `0027_settlement_receivables.sql` authored/merged (runtime PRs #576–#584,
+   2026-06-15). So `consoleApplyPayment` and the two receivable reads are
+   **contract-present AND runtime-backed**. The surface is **not yet activated**
+   only because the contract is still `1.0.0-draft` and migration 0027's G3
+   (apply/rollback on a non-prod DB) is an **open human review gate** (per the
+   migration header) — schema exists; G3 is a human gate, **not** a missing
+   runtime. (Root cause of the earlier "035 impl absent" claim: `settlement.yaml`'s
+   header comment, ~line 13, still says "No controller/DTO/service/migration exists
+   yet" — stale since the contract draft PR #574, never updated after the runtime
+   landed; see CL-9.) 019's real residual for the 035 ops is therefore its **own**
+   `G-client` (generate the settlement client) + `G-boundary` (boundary test), **not**
+   a missing 035 runtime.
 2. **G-runtime-032 / G7 (032 end-to-end posting-retry wiring — UNVERIFIED ⇒
    treated as blocker).** The DP-2 032 sale-sync-ops contract is `1.0.0-draft`. A
    `consoleRepairSaleSync` controller route **is present on DP-2 `main`** (verified:
@@ -187,10 +209,14 @@ exactly one owner. The boundary test (§7, VG-2) asserts 019 calls **none** of t
    confirmed at build time before codegen. This is the extra dependency that
    distinguishes 019 from every other 035 child.
 
-Consequence: **019 is a design-ahead spec, not a buildable slice.** It defines the
-contract-consuming surface so the work is ready the moment DP-2 ships **both** the
-035 runtime and the 032 sync-ops wiring, but the build phases are **gated on both**.
-No 019 gate is satisfied (§9, §11).
+Consequence: **019 is still a SPECIFY artifact, not an end-to-end-buildable slice
+today** — but for the **honest** reason: the 035 runtime is **present**, so what
+remains is 019's own `G-client` / `G-boundary` work **plus** the genuine 032
+posting-retry gate (`G-runtime-032` / G7). 019 is therefore correctly **not
+auto-dispatchable** — not because the 035 runtime is absent (it is not), but
+because 019 has not yet generated its client / written its boundary test and the
+032 posting-retry path is not confirmed wired end-to-end. No 019 gate is satisfied
+(§9, §11).
 
 ## 4. User scenarios & testing *(mandatory)*
 
@@ -200,9 +226,9 @@ As a Console accounts administrator, I see the receivable queue scoped to my
 active tenant (and the stores I can access), newest-first, with each row's
 outstanding balance and lifecycle state, so I can find receivables to settle.
 
-**Why this priority**: The read surface is the demonstrable MVP the moment the
-DP-2 035 runtime exists; the whole settlement floor starts from being able to see
-what is owed.
+**Why this priority**: The read surface is the demonstrable MVP — the DP-2 035
+runtime now exists (@ `cb44d4f`), so it is reachable once 019 generates its client
+(`G-client`); the whole settlement floor starts from being able to see what is owed.
 
 **Independent Test**: Reviewable by confirming the queue consumes only
 `consoleListReceivables`, renders the backend-scoped page as-is (no client-side
@@ -447,8 +473,9 @@ contract's inline `409 repair_conflict`.
   orchestrator architecture invariant.
 - **No tax / VAT logic** — `taxPlaceholder` is display-only; no allocation
   (DP-2 035 §OQ-2 / NG-4).
-- **No build before BOTH the DP-2 035 runtime AND the DP-2 032 sync-ops runtime
-  wiring exist** (§3.4).
+- **No end-to-end build before 019's own `G-client` / `G-boundary` are done AND the
+  DP-2 032 sync-ops end-to-end posting-retry (G7) wiring is confirmed** (§3.4). The
+  DP-2 035 runtime is already present @ `cb44d4f` (not a blocker).
 
 ## 7. Non-functional / boundary (VG)
 
@@ -495,7 +522,7 @@ contract's inline `409 repair_conflict`.
 | Gate | Meaning for 019 | Status in this artifact |
 | --- | --- | --- |
 | **G2 (consumed, upstream)** | DP-2 035 produces the contract 019 consumes. | **RATIFIED upstream** (2026-06-15, PR #574 `cb4a7e5`). Precondition only — **not an 019 gate**; 019 does not re-certify it. |
-| **G-runtime-035 (019, blocking)** | DP-2 035 contract has a live runtime (controller/service) for apply-payment + receivable reads. | **NOT satisfied** — contract is `1.0.0-draft`, runtime absent (§3.4). Blocks build. |
+| **DP-2 035 runtime (upstream, PRESENT — not an 019 blocker)** | DP-2 035 contract has a live runtime (controller/service) for apply-payment + receivable reads. | **PRESENT** — runtime MERGED on DP-2 `origin/main` @ `cb44d4f` (`settlement.controller.ts` + services + `SettlementModule`@`app.module.ts:222` + migration 0027, verified 2026-06-16, PRs #576–#584). **Not activated** (contract `1.0.0-draft`; migration 0027 G3 is an open human gate) and **not** an 019 gate. The earlier "035 runtime absent" claim traced to a stale `settlement.yaml` header comment (CL-9); 019's residual for these ops is its own **G-client/G-boundary** below. |
 | **G-runtime-032 / G7 (019, blocking — the EXTRA 019 gate)** | DP-2 032 posting-retry path is **wired end-to-end** so `consoleRepairSaleSync` runs. | **NOT satisfied (UNVERIFIED ⇒ blocker)** — the `consoleRepairSaleSync` controller route is present on DP-2 `main` (verified), but the end-to-end G7 wiring is not self-certified by 019; per the gate rule (uncertain ⇒ blocker) it blocks the posting-retry build (§3.4). The extra dependency distinguishing 019 from every other 035 child. |
 | **G-client (019)** | The DP-2 035 + 032 clients are generated into the Console at pinned codegen SHAs, exposing the four ops. | **NOT satisfied** — not yet generated; planned in `/plan`. |
 | **G-boundary (019)** | VG-1..VG-4 asserted by a boundary test. | **NOT satisfied** — design-only; test authored in the build slice. |
@@ -507,9 +534,12 @@ contract's inline `409 repair_conflict`.
 
 - **Upstream (hard, contract):** DP-2 035 G2 contract (RATIFIED) — the source of
   `consoleApplyPayment` + the two receivable reads and all field shapes.
-- **Upstream (hard, runtime):** **DP-2 035 runtime/impl (`G-runtime-035`)** —
-  **absent**; gates the apply-payment + read build (§3.4). **DP-2 032 sale-sync-ops
-  end-to-end posting-retry wiring (`G-runtime-032` / G7)** — the
+- **Upstream (hard, runtime):** **DP-2 035 runtime/impl** — **PRESENT**: merged on
+  DP-2 `origin/main` @ `cb44d4f` (controller + services + `SettlementModule` +
+  migration 0027, verified 2026-06-16); **not an 019 blocker** (not yet activated:
+  contract `1.0.0-draft` + migration 0027 G3 human gate open). 019's residual for
+  the apply-payment + read build is its own **G-client/G-boundary**. **DP-2 032
+  sale-sync-ops end-to-end posting-retry wiring (`G-runtime-032` / G7)** — the
   `consoleRepairSaleSync` controller is present on DP-2 `main` (verified), but the
   end-to-end G7 wiring is **unverified ⇒ treated as a blocker** (gate rule); gates
   the posting-retry build (§3.4). 019 is the **only** 035 child carrying this second
@@ -532,13 +562,16 @@ contract's inline `409 repair_conflict`.
   dispatched work.
 - It marks **no 019 gate satisfied**. The upstream DP-2 035 **G2** is RATIFIED;
   that is a precondition, not an 019 gate, and 019 does not re-certify it.
-- 019 is **design-ahead** and carries **two** blocking runtime gates: the
-  consumed 035 ops are contract-present but **runtime-absent** (verified from the
-  035 contract text), and the 032 posting-retry path's **end-to-end G7 wiring is
+- The consumed 035 ops are **contract-present AND runtime-backed**: the DP-2 035
+  runtime is **merged on `origin/main` @ `cb44d4f`** (verified 2026-06-16). 019's
+  residual blockers are therefore its **own** `G-client` / `G-boundary` work **plus
+  one** genuine runtime gate — the 032 posting-retry path's **end-to-end G7 wiring,
   unverified ⇒ treated as a blocker** (the `consoleRepairSaleSync` controller is
   present on DP-2 `main`, but 019 does not self-certify the end-to-end path). 019 is
-  **not buildable** until **both** clear. Any reader treating 019 as buildable today
-  is reading more than this artifact claims.
+  **not buildable end-to-end** until those clear. (The 035 ops are also **not yet
+  activated** — contract `1.0.0-draft`, migration 0027 G3 human gate open — but that
+  is an activation caveat, not a missing runtime.) Any reader treating 019 as
+  end-to-end-buildable today is reading more than this artifact claims.
 - `consoleApplyPayment` ownership: 019 adopts cash application per this dispatch
   (the neighbor corpus left it effectively unassigned — §2.1). This is a
   flagged-but-resolved ownership clarification, not a re-decision of the contract.
@@ -560,9 +593,11 @@ contract's inline `409 repair_conflict`.
 - **SC-003** — Each consumed op's documented status set is mapped exactly
   (apply-payment / repair include 409; the two reads do not) with a
   no-undocumented-status assertion and no 422/429.
-- **SC-004** — A reviewer can confirm **no 019 gate is marked satisfied** and that
-  **two** blocking runtime gates are explicit (`G-runtime-035` + `G-runtime-032`/G7),
-  the second being the extra dependency that distinguishes 019 as the LAST child.
+- **SC-004** — A reviewer can confirm **no 019 gate is marked satisfied**, that the
+  DP-2 035 runtime is **present** @ `cb44d4f` (so 019's residual for the 035 ops is
+  its own `G-client` / `G-boundary`), and that **one** blocking runtime gate is
+  explicit (`G-runtime-032`/G7) — the extra dependency that distinguishes 019 as the
+  LAST child.
 - **SC-005** — A reviewer can confirm the surface authors **zero** OpenAPI /
   migration / code, makes **no** ERPNext call, introduces **no** new egress, defines
   **no** reversal/rejection workflow, and exposes **no** POS-local repair override.
@@ -575,8 +610,10 @@ contract's inline `409 repair_conflict`.
   field shapes; this spec consumes them and never edits them.
 - The RF-1 auth shell, `ActiveContextProvider`, shared presenters, and the
   generated-client pattern exist and are reused (no new shared primitive).
-- DP-2 will implement the 035 contract runtime AND wire the 032 sale-sync-ops
-  runtime on separately-gated slices; 019's build phases wait on **both** (§3.4).
+- DP-2 has already implemented the 035 contract runtime (merged on `origin/main` @
+  `cb44d4f`); it remains to wire the 032 sale-sync-ops end-to-end posting-retry path
+  (G7) on a separately-gated slice. 019's build phases wait on its **own** `G-client`
+  / `G-boundary` plus that **032** wiring — not on a 035 runtime (§3.4).
 - ERPNext stays valuation / back-office; DP-2 owns operational settlement state and
   mediates sync repair; the Console never calls ERPNext (architecture invariant).
 - The posting retry is the DP-2 032 `consoleRepairSaleSync` op; "retry" is **not** a
@@ -599,7 +636,8 @@ contract's inline `409 repair_conflict`.
   **no** retry/repair op (verified against all eight ops); the dispatch frames 032
   as "sync-ops runtime wiring." The real op is the 032 server-mediated
   repair/retry. Non-critical to SPECIFY: it names a real, contract-present op
-  rather than inventing one; it does set the second runtime gate (§3.4 / §9).
+  rather than inventing one; it does set the 032 posting-retry runtime gate
+  (`G-runtime-032` / G7, §3.4 / §9).
 - **CL-2 — `consoleApplyPayment` ownership** `[CRITICAL]` → **Owned by Console 019
   (settlement action); adopt the dispatch.** *Rationale:* the neighbor 018 prose
   guessed apply-payment lands in 017, but 017's SPECIFY artifact consumes only the
@@ -642,3 +680,20 @@ contract's inline `409 repair_conflict`.
   (the controller exists) nor that 032 is "RATIFIED" (unverified). Non-critical: it
   does not change the consumed surface, ownership, actor, or *whether* G7 blocks —
   only the stated reason for the block (uncertain ⇒ blocker, not absence).
+- **CL-9 — DP-2 035 runtime presence (corrects an earlier "035 runtime absent"
+  reading)** → **The DP-2 035 settlement runtime is MERGED on DP-2 `origin/main` @
+  `cb44d4f` (verified 2026-06-16): `settlement.controller.ts` (incl.
+  `consoleApplyPayment` + receivable reads), `receivable.service.ts`,
+  `claim.service.ts`, `apply-payment-decision.ts`, DTOs/tests, `SettlementModule`
+  @`app.module.ts:222`, migration `0027_settlement_receivables.sql` (runtime PRs
+  #576–#584). So the 035 ops 019 consumes are runtime-backed; the 035 runtime is
+  NOT a blocker.** *Rationale / root cause:* an earlier reading asserted the 035
+  runtime was "absent" / "no controller/DTO/service/migration exists yet." That came
+  from the **stale `settlement.yaml` header comment** (~line 13), written with the
+  contract draft PR #574 and never updated after the runtime landed; the source tree
+  is authoritative. The honest residual is 019's own `G-client` / `G-boundary` plus
+  the genuine `G-runtime-032` / G7. The 035 ops remain **not yet activated**
+  (contract `1.0.0-draft`; migration 0027 G3 is an open human review gate per the
+  migration header) — an activation caveat, not a missing runtime. Non-critical: it
+  corrects the *reason* the 035 side is not yet end-to-end-buildable; it changes no
+  consumed surface, ownership, actor, or the *fact* that no 019 gate is satisfied.
