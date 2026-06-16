@@ -69,7 +69,7 @@ comment, not the source tree.
 - **Principle 7 (no frontend authorization):** no role-conditioned hiding (VG-3).
   PASS **by design**.
 - **Op-scope boundary (VG-2):** the layer calls only the four named ops; none of
-  `consoleApplyPayment` (017) / `consoleCreatePayerAccount` / `consoleListPayerAccounts`
+  `consoleApplyPayment` (019) / `consoleCreatePayerAccount` / `consoleListPayerAccounts`
   (017) / `posRecordSettlementIntent` (POS-020). PASS **by design**; asserted by a
   boundary test in the build slice.
 - **No new egress (VG-4 / architecture invariant):** manual adjudication entry
@@ -189,8 +189,8 @@ artifact (which is not yet built — residual G-client + G-boundary).
   `cb44d4f`, verified 2026-06-16). The build phases (2–6) are gated on 018's own
   **G-client + G-boundary**, not on the upstream runtime. Activation caveat:
   contract `1.0.0-draft`; migration `0027` G3 = open human review gate.
-- **Sibling boundary:** disjoint from Console 017 (payer CRUD + apply-payment) and
-  Console 019 (reconciliation). No shared mutable surface.
+- **Sibling boundary:** disjoint from Console 017 (payer CRUD) and Console 019
+  (reconciliation + apply-payment). No shared mutable surface.
 - **Rejection reuse:** DP-026 + Connector Arc A + POS-014 (no rejection UI built
   here).
 - **Sequencing for the eventual build slice:** Phase 2 codegen at a pinned

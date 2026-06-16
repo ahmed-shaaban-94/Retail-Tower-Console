@@ -70,19 +70,19 @@ boundary between them is the source of the load-bearing op-scope discipline in
 §3:
 
 - **Console 017 — customer-and-payer-accounts**: owns payer-account CRUD
-  (`consoleCreatePayerAccount`, `consoleListPayerAccounts`) and **cash
-  application** (`consoleApplyPayment`, FR-011/012). Out of scope here.
+  (`consoleCreatePayerAccount`, `consoleListPayerAccounts`). Out of scope here.
 - **Console 018 (this slice) — receivables-and-insurance-claims**: owns
   **receivable tracking** (read one / list the queue) + the **claim →
   remittance** cycle (submit claim / reconcile remittance). FR-005..FR-007,
   FR-014, FR-017.
 - **Console 019 — settlement-reconciliation** (LAST): the cross-receivable
-  reconciliation surface; also needs DP-2 032 runtime wiring. Out of scope here.
+  reconciliation surface + **cash application** (`consoleApplyPayment`,
+  FR-011/012); also needs DP-2 032 runtime wiring. Out of scope here.
 
 `consoleApplyPayment` (cash application) **touches receivables** and is the
 obvious mis-pull. It is **deliberately excluded** from 018: cash application is
-FR-011/012 and belongs to 017. 018 reads receivables and runs the claim cycle;
-it does not apply cash.
+FR-011/012 and belongs to 019 (the settlement action). 018 reads receivables and
+runs the claim cycle; it does not apply cash.
 
 ## 3. Op-scope discipline (load-bearing)
 
@@ -110,7 +110,7 @@ the boundary is asserted by a VG-style boundary test (§7).
   - `consoleCreatePayerAccount`, `consoleListPayerAccounts` — payer-account CRUD,
     **owned by Console 017**.
   - `consoleApplyPayment` — cash application (FR-011/012), **owned by Console
-    017**; excluded from 018 even though it targets a receivable.
+    019**; excluded from 018 even though it targets a receivable.
   - `posRecordSettlementIntent` — POS-facing capture (`operatorAuthorization`),
     **owned by POS-020**; not a Console op.
 
@@ -249,9 +249,10 @@ false. No 018 gate is satisfied (§9, §11).
 ## 6. Out of scope (hard)
 
 - **Console 017 surface** — payer-account CRUD (`consoleCreatePayerAccount` /
-  `consoleListPayerAccounts`) and **cash application** (`consoleApplyPayment`).
+  `consoleListPayerAccounts`).
 - **POS-020 surface** — `posRecordSettlementIntent` (intent capture at the till).
-- **Console 019 surface** — cross-receivable settlement-reconciliation.
+- **Console 019 surface** — cross-receivable settlement-reconciliation and
+  **cash application** (`consoleApplyPayment`).
 - **No reversal / void / refund / insurance-rejection workflow** — reuses
   DP-026 + Connector Arc A + POS-014 (DP-2 035 NG-1).
 - **No OpenAPI authoring/editing** — the contract is **CONSUMED**, never edited;
@@ -263,7 +264,9 @@ false. No 018 gate is satisfied (§9, §11).
   by the orchestrator architecture invariant.
 - **No tax / VAT logic** — `taxPlaceholder` is display-only; no allocation
   (DP-2 035 §OQ-2 / NG-4).
-- **No build before DP-2 035 runtime exists** (§3.1).
+- **No build before 018's own residual gates clear** — G-client (generate the
+  DP-2 035 client) + G-boundary; the upstream 035 runtime is already present
+  (§3.1).
 
 ## 7. Non-functional / boundary (VG)
 
@@ -330,9 +333,10 @@ false. No 018 gate is satisfied (§9, §11).
   2026-06-16 (§3.1). The 018 build is gated on 018's **own** residuals
   (G-client + G-boundary), not on a missing upstream. Activation caveat: contract
   `1.0.0-draft`; migration `0027` G3 = open human review gate.
-- **Sibling boundary:** Console 017 (payer accounts + cash application) and
-  Console 019 (reconciliation) — disjoint op surfaces (§2). 018 reads
-  receivables 017/POS-020 open; it does not create payers or apply cash.
+- **Sibling boundary:** Console 017 (payer accounts) and Console 019
+  (reconciliation + cash application) — disjoint op surfaces (§2). 018 reads
+  receivables that POS-020 intent opens and 019 applies cash against; it does
+  not create payers or apply cash.
 - **Reuse anchors (rejection path):** DP-026 + Connector Arc A + POS-014
   (FR-018-006).
 - **Console foundation:** RF-1 auth shell + `ActiveContextProvider`, the shared
@@ -369,7 +373,7 @@ false. No 018 gate is satisfied (§9, §11).
   `consoleReconcileRemittance`) and that the other four settlement ops are named
   as NOT-consumed with an inline reason — **4 consumed / 4 excluded**.
 - **SC-002** — A reviewer can confirm in under 2 minutes that `consoleApplyPayment`
-  (cash application) is **excluded** and attributed to Console 017, despite
+  (cash application) is **excluded** and attributed to Console 019, despite
   targeting receivables.
 - **SC-003** — Each consumed op's documented status set is mapped exactly
   (submit/reconcile include 409; get/list do not) with a no-undocumented-status
@@ -417,12 +421,16 @@ false. No 018 gate is satisfied (§9, §11).
   egress**, forbidden by the orchestrator architecture invariant without an
   explicit allow-list update. Non-critical: it does not change the consumed
   surface (the op is consumed either way).
-- **CL-2 — 017 / 018 boundary for `consoleApplyPayment`** → **Excluded from 018;
-  owned by Console 017.** *Rationale:* DP-2 035 maps cash application to FR-011/012
-  and 018's task scope names exactly four ops (read+list+submit+reconcile), none
-  of which is apply-payment. Receivable rows in 018 may show a balance reduced by
-  017's cash application, but 018 never **calls** apply-payment. Non-critical: the
-  four-op list pre-resolves it; it changes no gate or actor.
+- **CL-2 — boundary for `consoleApplyPayment`** → **Excluded from 018; owned by
+  Console 019** (the settlement action). *Rationale:* DP-2 035 maps cash
+  application to FR-011/012 and 018's task scope names exactly four ops
+  (read+list+submit+reconcile), none of which is apply-payment. Receivable rows
+  in 018 may show a balance reduced by 019's cash application, but 018 never
+  **calls** apply-payment. Non-critical: the four-op list pre-resolves it; it
+  changes no gate or actor. *(Correction 2026-06-17: the original entry
+  attributed apply-payment to Console 017 — a stale guess; 017's SPECIFY artifact
+  consumes only `consoleCreatePayerAccount`/`consoleListPayerAccounts`, and 019
+  owns `consoleApplyPayment`. Ownership corrected to 019 across this spec.)*
 - **CL-3 — Runtime availability of the consumed ops** → *(original resolution,
   superseded — kept as audit trail)* "Treat 018 as design-ahead; gate the build on
   DP-2 035 runtime," on the rationale that the contract was `1.0.0-draft` "with no

@@ -21,8 +21,8 @@ dispatched, or run.
 
 - [ ] T001 Author `research.md`: record the reuse map (RF-1/RF-2 primitives,
   shared presenters) and the **017/018/019 boundary** decision — 018 owns
-  receivable-tracking + claim/remittance; 017 owns payer CRUD + `consoleApplyPayment`;
-  019 owns cross-receivable reconciliation. No code.
+  receivable-tracking + claim/remittance; 017 owns payer CRUD;
+  019 owns cross-receivable reconciliation + `consoleApplyPayment`. No code.
 - [ ] T002 In `research.md`, record the **runtime-vs-contract status**
   (load-bearing): the four consumed ops are **contract-present** in
   `settlement/settlement.yaml` (`1.0.0-draft`) **and runtime-present** on DP-2 —
@@ -36,8 +36,8 @@ dispatched, or run.
   service/migration exists yet") and must not be trusted over the source tree.
 - [ ] T003 In `research.md`, confirm the consumed-vs-NOT-consumed op partition
   against the contract and record the inline reason for each excluded op
-  (`consoleApplyPayment`, `consoleCreatePayerAccount`, `consoleListPayerAccounts`
-  → 017; `posRecordSettlementIntent` → POS-020).
+  (`consoleApplyPayment` → 019; `consoleCreatePayerAccount`,
+  `consoleListPayerAccounts` → 017; `posRecordSettlementIntent` → POS-020).
 
 ## Phase 1 — Design: data-model & consumption boundary (authorable now; Markdown only)
 
@@ -123,7 +123,7 @@ dispatched, or run.
 
 ## Out-of-scope reminders (do NOT add tasks for these)
 
-- `consoleApplyPayment` (cash application) — Console **017**.
+- `consoleApplyPayment` (cash application) — Console **019**.
 - `consoleCreatePayerAccount` / `consoleListPayerAccounts` (payer CRUD) — Console **017**.
 - `posRecordSettlementIntent` (intent capture) — **POS-020**.
 - Cross-receivable settlement-reconciliation — Console **019**.
