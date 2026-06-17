@@ -202,3 +202,67 @@ export interface PayerAccountCreateBody {
   storeId?: string | null;
   creditTerms?: Record<string, unknown> | null;
 }
+
+// --- 018 settlement: receivables & claims (consume-only) --------------------
+// The four 018 ops of the DP-2 035 settlement contract: two receivable reads +
+// the claim/remittance write pair. 018 does NOT call consoleApplyPayment (that
+// is 019's cash-application op) nor the payer-CRUD ops (017). All cookie auth.
+
+export type ReceivableState = "open" | "partially_applied" | "settled" | "claimed" | "flagged";
+
+export interface ReceivableListQuery {
+  store_id?: string;
+  state?: ReceivableState;
+  payerRef?: string;
+  cursor?: string;
+  page_size?: number;
+}
+
+/** GET /api/v1/settlement/receivables — tenant-scoped, state filter + keyset cursor. */
+export async function consoleListReceivables(query: ReceivableListQuery = {}) {
+  const { data, error, response } = await apiClient.GET("/api/v1/settlement/receivables", {
+    params: { query },
+  });
+  return { status: response.status, data, error };
+}
+
+/** GET /api/v1/settlement/receivables/{receivableRef} — non-disclosing 404 out of scope. */
+export async function consoleGetReceivable(receivableRef: string) {
+  const { data, error, response } = await apiClient.GET(
+    "/api/v1/settlement/receivables/{receivableRef}",
+    { params: { path: { receivableRef } } },
+  );
+  return { status: response.status, data, error };
+}
+
+export interface ClaimCreateBody {
+  payerRef: string;
+  receivableRefs: string[];
+}
+
+/** POST /api/v1/settlement/claims — submit a claim. `x-idempotency: required`. */
+export async function consoleSubmitClaim(body: ClaimCreateBody, idempotencyKey: string) {
+  const { data, error, response } = await apiClient.POST("/api/v1/settlement/claims", {
+    params: { header: { "Idempotency-Key": idempotencyKey } },
+    body,
+  });
+  return { status: response.status, data, error, headers: response.headers };
+}
+
+export interface RemittanceReconcileBody {
+  remittedAmount: string;
+  remittanceRef?: string | null;
+}
+
+/** POST .../claims/{claimRef}/reconcile-remittance — records variance. `x-idempotency: required`. */
+export async function consoleReconcileRemittance(
+  claimRef: string,
+  body: RemittanceReconcileBody,
+  idempotencyKey: string,
+) {
+  const { data, error, response } = await apiClient.POST(
+    "/api/v1/settlement/claims/{claimRef}/reconcile-remittance",
+    { params: { path: { claimRef }, header: { "Idempotency-Key": idempotencyKey } }, body },
+  );
+  return { status: response.status, data, error, headers: response.headers };
+}
