@@ -266,3 +266,29 @@ export async function consoleReconcileRemittance(
   );
   return { status: response.status, data, error, headers: response.headers };
 }
+
+// --- 019 settlement-reconciliation: apply-payment (consume-only) ------------
+// 019's OWN op — DP-2-owned cash application (7-C): reduces a receivable's
+// outstanding balance; clearing → settled, partial → partially_applied.
+// `x-idempotency: required`. 019's posting-retry op (consoleRepairSaleSync, 032)
+// is NOT here — it lives in a separate sale-sync-ops contract not yet generated
+// into the Console client (GATED on 032/G7).
+
+export interface PaymentApplicationBody {
+  amount: string;
+  version: number;
+  note?: string | null;
+}
+
+/** POST .../receivables/{receivableRef}/apply-payment — apply cash against a receivable. */
+export async function consoleApplyPayment(
+  receivableRef: string,
+  body: PaymentApplicationBody,
+  idempotencyKey: string,
+) {
+  const { data, error, response } = await apiClient.POST(
+    "/api/v1/settlement/receivables/{receivableRef}/apply-payment",
+    { params: { path: { receivableRef }, header: { "Idempotency-Key": idempotencyKey } }, body },
+  );
+  return { status: response.status, data, error, headers: response.headers };
+}

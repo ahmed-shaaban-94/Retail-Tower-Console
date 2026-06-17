@@ -12,6 +12,7 @@ import { useActiveContextValue } from "@/context/ActiveContextProvider";
  */
 import { useState } from "react";
 import type { ReceivableState } from "@/lib/client";
+import { ApplyPayment } from "@/settlement-reconciliation/ApplyPayment";
 import { ReconcileRemittance } from "./ReconcileRemittance";
 import { SubmitClaim } from "./SubmitClaim";
 import { useReceivables } from "./useReceivables";
@@ -24,6 +25,7 @@ interface ReceivableRowView {
   outstandingBalance: string;
   state: ReceivableState;
   erpnextPaymentEntryRef: string | null;
+  version: number;
 }
 
 function ScopePrompt(): React.JSX.Element {
@@ -43,6 +45,8 @@ export function ReceivableList(): React.JSX.Element {
   );
   // After a claim is submitted, offer reconcile on its returned claimRef.
   const [reconciling, setReconciling] = useState<string | null>(null);
+  // 019 apply-payment (cash application) against a selected receivable.
+  const [applying, setApplying] = useState<ReceivableRowView | null>(null);
 
   if (!rawTenant?.id) {
     return <ScopePrompt />;
@@ -114,13 +118,22 @@ export function ReceivableList(): React.JSX.Element {
                 <td>{row.erpnextPaymentEntryRef ?? "not posted"}</td>
                 <td>
                   {row.state === "open" || row.state === "partially_applied" ? (
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => startClaim(row.payerRef)}
-                    >
-                      Submit claim
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => setApplying(row)}
+                      >
+                        Apply payment
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => startClaim(row.payerRef)}
+                      >
+                        Submit claim
+                      </button>
+                    </>
                   ) : null}
                 </td>
               </tr>
@@ -149,6 +162,20 @@ export function ReceivableList(): React.JSX.Element {
           claimRef={reconciling}
           onClose={() => setReconciling(null)}
           onReconciled={() => refetch()}
+        />
+      ) : null}
+
+      {applying ? (
+        <ApplyPayment
+          receivable={{
+            receivableRef: applying.receivableRef,
+            outstandingBalance: applying.outstandingBalance,
+            version: applying.version,
+          }}
+          // Keep the drawer open on success so it can render the updated receivable
+          // (its result view + "Done" button close it); refetch the list underneath.
+          onClose={() => setApplying(null)}
+          onApplied={() => refetch()}
         />
       ) : null}
     </div>
