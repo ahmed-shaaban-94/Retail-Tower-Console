@@ -29,8 +29,19 @@ import openapiTS, { astToString, COMMENT_HEADER } from "openapi-typescript";
  *
  * The pin is UNCHANGED across slices; new slices add their contract source and
  * regenerate at the same SHA (regeneration, not a re-pin).
+ *
+ * EXCEPTION — first deliberate re-pin (017 G-client, 2026-06-17): bumped
+ * 62d0906 -> 9874d44 to add the settlement source. "Regenerate at the same SHA"
+ * was IMPOSSIBLE here because `settlement/settlement.yaml` did NOT exist at
+ * 62d0906 (035 landed later). Verified safe: the 7 existing sources are
+ * BYTE-IDENTICAL at 62d0906's contracts and at 9874d44 (no drift in
+ * auth/context/tenants/stores/memberships/audit/unknown-items), so the existing
+ * generated client is unchanged — the bump is purely additive (Settlement
+ * namespace). `9874d44` matches the pin recorded in
+ * specs/017-.../api-readiness.md (settlement.yaml authority @ cb4a7e5; 9874d44
+ * is a later no-op LOC-badge chore with identical contracts).
  */
-export const DATA_PULSE_2_PIN = "62d0906" as const;
+export const DATA_PULSE_2_PIN = "9874d44" as const;
 
 /**
  * The OpenAPI sources composed into the generated client, one entry per
@@ -55,6 +66,9 @@ export const OPENAPI_SOURCE_SPECS = [
   { name: "Memberships", path: "packages/contracts/openapi/memberships.openapi.yaml" },
   { name: "Audit", path: "packages/contracts/openapi/audit.openapi.yaml" },
   { name: "UnknownItems", path: "packages/contracts/openapi/catalog/unknown-items.yaml" },
+  // Settlement boundary (017/018/019): payer accounts, receivables, claims,
+  // apply-payment, reconciliation. Consume-only; specs author no YAML.
+  { name: "Settlement", path: "packages/contracts/openapi/settlement/settlement.yaml" },
 ] as const;
 
 /** Upstream source paths (kept for back-compat / documentation references). */
