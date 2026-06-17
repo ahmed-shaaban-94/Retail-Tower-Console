@@ -27,6 +27,7 @@ export interface PayerAccountsValue {
   isFetchingNextPage: boolean;
   error?: PayerListError;
   loadMore: () => void;
+  refetch: () => void;
 }
 
 export const payerQueryKeys = {
@@ -73,6 +74,9 @@ export function usePayerAccounts(
     error,
     loadMore: () => {
       if (query.hasNextPage && !query.isFetchingNextPage) void query.fetchNextPage();
+    },
+    refetch: () => {
+      void query.refetch();
     },
   };
 }
