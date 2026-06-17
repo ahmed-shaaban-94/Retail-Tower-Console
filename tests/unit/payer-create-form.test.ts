@@ -1,0 +1,49 @@
+import {
+  type PayerCreateDraft,
+  validatePayerDraft,
+} from "@/payers/payerCreateForm";
+import { describe, expect, test } from "vitest";
+
+/**
+ * 017 create-payer form validation (FR / PayerAccountCreate) — pure, no client.
+ * Mirrors the contract's PayerAccountCreate: required `category` (enum) +
+ * `displayName` (1..200); optional `externalRef`, `storeId`, `creditTerms`
+ * (opaque). No tax/credit-terms field invented (NG-8). The client validates only
+ * what the contract constrains; the server remains authoritative.
+ */
+function draft(partial: Partial<PayerCreateDraft>): PayerCreateDraft {
+  return { category: "credit_customer", displayName: "Acme", ...partial };
+}
+
+describe("validatePayerDraft", () => {
+  test("valid minimal draft -> no errors", () => {
+    expect(validatePayerDraft(draft({}))).toEqual({});
+  });
+
+  test("missing displayName -> required error", () => {
+    expect(validatePayerDraft(draft({ displayName: "" })).displayName).toBeDefined();
+  });
+
+  test("whitespace-only displayName -> required error (trimmed)", () => {
+    expect(validatePayerDraft(draft({ displayName: "   " })).displayName).toBeDefined();
+  });
+
+  test("displayName over 200 chars -> length error", () => {
+    expect(validatePayerDraft(draft({ displayName: "x".repeat(201) })).displayName).toBeDefined();
+  });
+
+  test("displayName exactly 200 -> ok", () => {
+    expect(validatePayerDraft(draft({ displayName: "x".repeat(200) })).displayName).toBeUndefined();
+  });
+
+  test("invalid category not in the v1 enum -> category error", () => {
+    // @ts-expect-error — exercising runtime guard against an out-of-enum value
+    expect(validatePayerDraft(draft({ category: "patient" })).category).toBeDefined();
+  });
+
+  test("each v1 category is accepted", () => {
+    for (const category of ["credit_customer", "corporate", "insurer"] as const) {
+      expect(validatePayerDraft(draft({ category })).category).toBeUndefined();
+    }
+  });
+});
