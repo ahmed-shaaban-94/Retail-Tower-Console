@@ -79,6 +79,37 @@ test("S2: submit-claim journey → drawer → 201 → closes", async ({ page }) 
   await expect(page.getByRole("heading", { name: /submit claim/i })).toBeHidden();
 });
 
+test("S4: apply-payment journey → drawer → 200 → renders updated balance/state", async ({ page }) => {
+  await mockBase(page, withTenant);
+  // Single route over the whole receivables namespace; branch by method/path so
+  // the apply-payment POST and the list GET can't shadow each other (glob overlap).
+  await page.route("**/api/v1/settlement/receivables**", (r) => {
+    const req = r.request();
+    if (req.method() === "POST" && req.url().includes("/apply-payment")) {
+      return r.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ receivableRef: "r1", outstandingBalance: "70.00", state: "partially_applied", version: 1 }),
+      });
+    }
+    return r.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ items: [receivable()], nextCursor: null }),
+    });
+  });
+
+  await page.goto("/receivables");
+  await page.getByRole("button", { name: /apply payment/i }).click();
+  const drawer = page.getByRole("dialog");
+  await expect(page.getByRole("heading", { name: /apply payment/i })).toBeVisible();
+  await drawer.getByLabel(/amount/i).fill("50.00");
+  await drawer.getByRole("button", { name: /apply payment/i }).click();
+  // Drawer shows the updated receivable (new outstanding + state).
+  await expect(drawer.getByText("70.00")).toBeVisible();
+  await expect(drawer.getByText(/partially_applied/i)).toBeVisible();
+});
+
 test("S3: no active tenant → RF-1 ScopeGate; list wrapper never called", async ({ page }) => {
   let listed = false;
   await mockBase(page, {
