@@ -7,6 +7,7 @@ import { SignInRoute } from "@/shell/SignInRoute";
 import { rf2Routes } from "@/shell/rf2Routes";
 import { rf4aRoutes } from "@/shell/rf4aRoutes";
 import { payerRoutes } from "@/shell/payerRoutes";
+import { receivableRoutes } from "@/shell/receivableRoutes";
 import { rf5Routes } from "@/shell/rf5Routes";
 import { rf6Routes } from "@/shell/rf6Routes";
 /**
@@ -45,6 +46,7 @@ export function App(): React.JSX.Element {
               {rf5Routes}
               {rf6Routes}
               {payerRoutes}
+              {receivableRoutes}
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

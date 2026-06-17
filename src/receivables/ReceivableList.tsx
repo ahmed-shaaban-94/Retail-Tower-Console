@@ -1,0 +1,102 @@
+import { Banner } from "@/components/Banner";
+import { ListState } from "@/components/ListState";
+import { useActiveContextValue } from "@/context/ActiveContextProvider";
+/**
+ * 018 SF — Receivable list. Table of the active tenant's receivables: payer +
+ * sale refs, outstanding balance (exact-decimal Money rendered VERBATIM — never
+ * float-coerced), lifecycle-state badge, and the ERP Payment-Entry pointer
+ * ("not posted" until the 011-DR-POSTING-R1 gate clears → erpnextPaymentEntryRef
+ * is null). Pre-call guard (no tenant → scope prompt, wrapper never issued).
+ * 403/other → banner. Read-only here; claim-submit + reconcile drawers wire in
+ * 018-D. Mirrors 017's PayerList.
+ */
+import type { ReceivableState } from "@/lib/client";
+import { useReceivables } from "./useReceivables";
+import "../shell/surface.css";
+
+interface ReceivableRowView {
+  receivableRef: string;
+  saleRef: string;
+  payerRef: string;
+  outstandingBalance: string;
+  state: ReceivableState;
+  erpnextPaymentEntryRef: string | null;
+}
+
+function ScopePrompt(): React.JSX.Element {
+  return (
+    <div className="surface">
+      <p className="content__sub">Select a tenant to view its receivables.</p>
+    </div>
+  );
+}
+
+export function ReceivableList(): React.JSX.Element {
+  const { context } = useActiveContextValue();
+  const rawTenant = context?.active_tenant ?? null;
+  const { rows, isLoading, error } = useReceivables(rawTenant?.id ?? null, {});
+
+  if (!rawTenant?.id) {
+    return <ScopePrompt />;
+  }
+  const tenantName = rawTenant.name ?? rawTenant.id;
+  const receivables = rows as unknown as ReceivableRowView[];
+
+  return (
+    <div className="surface">
+      <header className="surface__head">
+        <div>
+          <h1 className="content__title">Receivables</h1>
+          <p className="content__sub">Money owed against sales for {tenantName}.</p>
+        </div>
+      </header>
+
+      {error ? (
+        <Banner
+          variant="danger"
+          message={
+            error.kind === "forbidden"
+              ? "You do not have access to receivables for this tenant."
+              : "Receivables could not be loaded."
+          }
+          requestId={error.requestId}
+        />
+      ) : null}
+
+      {isLoading ? <ListState state="loading" label="receivables" /> : null}
+
+      {!isLoading && !error && receivables.length === 0 ? (
+        <ListState state="empty" emptyMessage="No receivables in this tenant yet." />
+      ) : null}
+
+      {!isLoading && !error && receivables.length > 0 ? (
+        <table className="data-table">
+          <caption className="data-table__caption">Receivables</caption>
+          <thead>
+            <tr>
+              <th scope="col">Receivable</th>
+              <th scope="col">Payer</th>
+              <th scope="col">Outstanding</th>
+              <th scope="col">State</th>
+              <th scope="col">ERP posting</th>
+            </tr>
+          </thead>
+          <tbody>
+            {receivables.map((row) => (
+              <tr key={row.receivableRef} className="data-table__row">
+                <td>{row.receivableRef}</td>
+                <td>{row.payerRef}</td>
+                {/* Exact-decimal Money string — rendered verbatim, never coerced. */}
+                <td>{row.outstandingBalance}</td>
+                <td>
+                  <span className="badge">{row.state}</span>
+                </td>
+                <td>{row.erpnextPaymentEntryRef ?? "not posted"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : null}
+    </div>
+  );
+}
