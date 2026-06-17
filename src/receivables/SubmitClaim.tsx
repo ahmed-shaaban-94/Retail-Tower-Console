@@ -18,7 +18,8 @@ export interface SubmitClaimProps {
   payerRef: string;
   receivableRefs: string[];
   onClose: () => void;
-  onSubmitted: () => void;
+  /** Receives the new claimRef (when the response carries one) so the caller can offer reconcile. */
+  onSubmitted: (claimRef?: string) => void;
 }
 
 type BannerState = { variant: "danger" | "warning"; message: string; requestId?: string };
@@ -43,9 +44,11 @@ export function SubmitClaim({
     });
     switch (outcome.kind) {
       case "ok":
-      case "replayed":
-        onSubmitted();
+      case "replayed": {
+        const claimRef = (res.data as { claimRef?: string } | undefined)?.claimRef;
+        onSubmitted(claimRef);
         return;
+      }
       case "validation":
         setFieldError("Check the claim and try again.");
         return;
