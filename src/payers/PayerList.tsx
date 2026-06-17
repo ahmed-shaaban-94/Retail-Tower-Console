@@ -12,6 +12,7 @@ import { useActiveContextValue } from "@/context/ActiveContextProvider";
  * Create affordance and refetches on success.
  */
 import { useState } from "react";
+import { PayerCreate } from "./PayerCreate";
 import { type PayerCategory, usePayerAccounts } from "./usePayerAccounts";
 import "../shell/surface.css";
 
@@ -33,7 +34,7 @@ function ScopePrompt(): React.JSX.Element {
 export function PayerList(): React.JSX.Element {
   const { context } = useActiveContextValue();
   const rawTenant = context?.active_tenant ?? null;
-  const { rows, isLoading, error } = usePayerAccounts(rawTenant?.id ?? null, {});
+  const { rows, isLoading, error, refetch } = usePayerAccounts(rawTenant?.id ?? null, {});
   const [creating, setCreating] = useState(false);
 
   // Pre-call guard: no active tenant -> scope prompt, list wrapper never issued.
@@ -113,9 +114,16 @@ export function PayerList(): React.JSX.Element {
         </table>
       ) : null}
 
-      {/* Create drawer is wired in the PayerCreate follow-on; the affordance
-          opens it and the list refetches on success. */}
-      {creating ? <div data-testid="payer-create-open" hidden /> : null}
+      {creating ? (
+        <PayerCreate
+          activeTenant={{ id: rawTenant.id, name: tenantName }}
+          onClose={() => setCreating(false)}
+          onCreated={() => {
+            setCreating(false);
+            refetch();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
