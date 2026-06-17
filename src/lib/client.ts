@@ -158,3 +158,47 @@ export async function listAuditEvents(query: AuditQuery) {
   });
   return { status: response.status, data, error };
 }
+
+// --- 017 settlement: payer accounts (consume-only) --------------------------
+// Exactly the two payer ops of the DP-2 035 settlement contract. Create is
+// idempotency-keyed (mirrors createInvitation); the outcome classifier +
+// list/form logic live in src/payers/*. NO other settlement op is reachable
+// from here (017 boundary, SC-001/VG-2).
+
+export interface PayerListQuery {
+  category?: "credit_customer" | "corporate" | "insurer";
+  cursor?: string;
+  page_size?: number;
+}
+
+/** GET /api/v1/settlement/payer-accounts — tenant-scoped, category filter + keyset cursor. */
+export async function consoleListPayerAccounts(query: PayerListQuery = {}) {
+  const { data, error, response } = await apiClient.GET("/api/v1/settlement/payer-accounts", {
+    params: { query },
+  });
+  return { status: response.status, data, error };
+}
+
+/**
+ * POST /api/v1/settlement/payer-accounts. `x-idempotency: required` — sends a
+ * client-generated Idempotency-Key header and surfaces response headers so the
+ * caller reads `Idempotent-Replayed` (see src/payers/payerIdempotency.ts).
+ */
+export async function consoleCreatePayerAccount(
+  body: PayerAccountCreateBody,
+  idempotencyKey: string,
+) {
+  const { data, error, response } = await apiClient.POST("/api/v1/settlement/payer-accounts", {
+    params: { header: { "Idempotency-Key": idempotencyKey } },
+    body,
+  });
+  return { status: response.status, data, error, headers: response.headers };
+}
+
+export interface PayerAccountCreateBody {
+  category: "credit_customer" | "corporate" | "insurer";
+  displayName: string;
+  externalRef?: string | null;
+  storeId?: string | null;
+  creditTerms?: Record<string, unknown> | null;
+}
