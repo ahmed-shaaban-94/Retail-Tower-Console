@@ -10,7 +10,9 @@ import { useActiveContextValue } from "@/context/ActiveContextProvider";
  * 403/other → banner. Read-only here; claim-submit + reconcile drawers wire in
  * 018-D. Mirrors 017's PayerList.
  */
+import { useState } from "react";
 import type { ReceivableState } from "@/lib/client";
+import { SubmitClaim } from "./SubmitClaim";
 import { useReceivables } from "./useReceivables";
 import "../shell/surface.css";
 
@@ -34,13 +36,27 @@ function ScopePrompt(): React.JSX.Element {
 export function ReceivableList(): React.JSX.Element {
   const { context } = useActiveContextValue();
   const rawTenant = context?.active_tenant ?? null;
-  const { rows, isLoading, error } = useReceivables(rawTenant?.id ?? null, {});
+  const { rows, isLoading, error, refetch } = useReceivables(rawTenant?.id ?? null, {});
+  const [claiming, setClaiming] = useState<{ payerRef: string; receivableRefs: string[] } | null>(
+    null,
+  );
 
   if (!rawTenant?.id) {
     return <ScopePrompt />;
   }
   const tenantName = rawTenant.name ?? rawTenant.id;
   const receivables = rows as unknown as ReceivableRowView[];
+
+  // Claimable = open/partially_applied receivables, grouped by payer for the claim.
+  const claimable = receivables.filter(
+    (r) => r.state === "open" || r.state === "partially_applied",
+  );
+  function startClaim(payerRef: string): void {
+    setClaiming({
+      payerRef,
+      receivableRefs: claimable.filter((r) => r.payerRef === payerRef).map((r) => r.receivableRef),
+    });
+  }
 
   return (
     <div className="surface">
@@ -79,6 +95,7 @@ export function ReceivableList(): React.JSX.Element {
               <th scope="col">Outstanding</th>
               <th scope="col">State</th>
               <th scope="col">ERP posting</th>
+              <th scope="col">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -92,10 +109,34 @@ export function ReceivableList(): React.JSX.Element {
                   <span className="badge">{row.state}</span>
                 </td>
                 <td>{row.erpnextPaymentEntryRef ?? "not posted"}</td>
+                <td>
+                  {row.state === "open" || row.state === "partially_applied" ? (
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => startClaim(row.payerRef)}
+                    >
+                      Submit claim
+                    </button>
+                  ) : null}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+      ) : null}
+
+      {claiming ? (
+        <SubmitClaim
+          activeTenant={{ id: rawTenant.id, name: tenantName }}
+          payerRef={claiming.payerRef}
+          receivableRefs={claiming.receivableRefs}
+          onClose={() => setClaiming(null)}
+          onSubmitted={() => {
+            setClaiming(null);
+            refetch();
+          }}
+        />
       ) : null}
     </div>
   );
