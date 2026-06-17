@@ -74,11 +74,13 @@ describe("SubmitClaim", () => {
     expect(consoleSubmitClaim).not.toHaveBeenCalled();
   });
 
-  test("201 -> onSubmitted; sends an Idempotency-Key", async () => {
+  test("201 -> onSubmitted(claimRef); sends an Idempotency-Key", async () => {
     consoleSubmitClaim.mockResolvedValue(result(201));
     const { onSubmitted } = renderSubmit();
     fireEvent.click(screen.getByRole("button", { name: /submit claim/i }));
     await waitFor(() => expect(onSubmitted).toHaveBeenCalled());
+    // onSubmitted receives the new claimRef so the caller can offer reconcile.
+    expect(onSubmitted).toHaveBeenCalledWith("c1");
     const [, key] = consoleSubmitClaim.mock.calls[0];
     expect(String(key)).toMatch(/^[\x21-\x7E]{16,128}$/);
   });

@@ -12,6 +12,7 @@ import { useActiveContextValue } from "@/context/ActiveContextProvider";
  */
 import { useState } from "react";
 import type { ReceivableState } from "@/lib/client";
+import { ReconcileRemittance } from "./ReconcileRemittance";
 import { SubmitClaim } from "./SubmitClaim";
 import { useReceivables } from "./useReceivables";
 import "../shell/surface.css";
@@ -40,6 +41,8 @@ export function ReceivableList(): React.JSX.Element {
   const [claiming, setClaiming] = useState<{ payerRef: string; receivableRefs: string[] } | null>(
     null,
   );
+  // After a claim is submitted, offer reconcile on its returned claimRef.
+  const [reconciling, setReconciling] = useState<string | null>(null);
 
   if (!rawTenant?.id) {
     return <ScopePrompt />;
@@ -132,10 +135,20 @@ export function ReceivableList(): React.JSX.Element {
           payerRef={claiming.payerRef}
           receivableRefs={claiming.receivableRefs}
           onClose={() => setClaiming(null)}
-          onSubmitted={() => {
+          onSubmitted={(claimRef) => {
             setClaiming(null);
             refetch();
+            // Offer remittance reconciliation on the freshly-submitted claim.
+            if (claimRef) setReconciling(claimRef);
           }}
+        />
+      ) : null}
+
+      {reconciling ? (
+        <ReconcileRemittance
+          claimRef={reconciling}
+          onClose={() => setReconciling(null)}
+          onReconciled={() => refetch()}
         />
       ) : null}
     </div>
