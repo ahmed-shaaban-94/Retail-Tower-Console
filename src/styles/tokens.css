@@ -89,6 +89,12 @@
   --space-8: 64px;
   --space-9: 96px;
 
+  /* Shell dimensions — the SF-2 frame (Console v4.0 layout). The grid template
+   * is the sole consumer; named here so topbar/scope/sidebar agree on one value. */
+  --shell-topbar-h: 56px;
+  --shell-scope-h: 40px;
+  --shell-sidebar-w: 240px;
+
   /* Motion */
   --duration-1: 80ms;
   --duration-2: 150ms;

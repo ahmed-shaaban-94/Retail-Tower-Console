@@ -5,8 +5,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: 40px;
-  padding: 0 var(--space-6);
+  height: var(--shell-scope-h);
+  padding: 0 var(--space-5);
   background-color: var(--color-gold-soft);
   border-bottom: 1px solid rgba(200, 162, 74, 0.18);
 }
@@ -24,6 +24,10 @@
 }
 .scope__btn:hover {
   background: rgba(200, 162, 74, 0.1);
+}
+.scope__btn:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 1px;
 }
 .scope__crumb {
   opacity: 0.7;
