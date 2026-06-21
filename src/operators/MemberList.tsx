@@ -1,6 +1,8 @@
+import { Avatar } from "@/components/Avatar";
 import { Banner } from "@/components/Banner";
 import { ListState } from "@/components/ListState";
 import { useActiveContextValue } from "@/context/ActiveContextProvider";
+import "@/components/avatar.css";
 /**
  * SF5-1 — Member list (T012/T013). The membership graph for the active tenant
  * rendered as a `.data-table` (DESIGN.md rule 7): Member (name over mono email),
@@ -105,11 +107,14 @@ export function MemberList(): React.JSX.Element {
                 }}
               >
                 <td>
-                  <span className="member-identity">
-                    <span className="member-identity__name">{row.displayName ?? row.email}</span>
-                    {row.displayName ? (
-                      <span className="member-identity__email">{row.email}</span>
-                    ) : null}
+                  <span className="member-cell">
+                    <Avatar name={row.displayName ?? row.email} size={32} />
+                    <span className="member-identity">
+                      <span className="member-identity__name">{row.displayName ?? row.email}</span>
+                      {row.displayName ? (
+                        <span className="member-identity__email">{row.email}</span>
+                      ) : null}
+                    </span>
                   </span>
                 </td>
                 <td>
@@ -117,7 +122,11 @@ export function MemberList(): React.JSX.Element {
                 </td>
                 <td>{storeAccessLabel(row)}</td>
                 <td>
-                  {row.revoked ? <span className="badge badge--suspended">Revoked</span> : "Active"}
+                  {row.revoked ? (
+                    <span className="badge badge--suspended">Revoked</span>
+                  ) : (
+                    <span className="badge badge--active">Active</span>
+                  )}
                 </td>
               </tr>
             ))}
