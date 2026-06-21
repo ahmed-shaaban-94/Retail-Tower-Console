@@ -1,9 +1,12 @@
-/* SF-2 app shell layout (DESIGN.md App Shell). */
+/* SF-2 app shell layout (DESIGN.md App Shell; Console v4.0 visual adoption).
+ * The frame: 56px topbar / 40px gold scope bar / sidebar + content. Gold appears
+ * in exactly two places — the scope bar and the active-nav marker — and nowhere
+ * else, so authority stays legible (PRODUCT.md scope-before-action). */
 .shell {
   min-height: 100dvh;
   display: grid;
-  grid-template-rows: 56px auto 1fr;
-  grid-template-columns: 240px 1fr;
+  grid-template-rows: var(--shell-topbar-h) var(--shell-scope-h) 1fr;
+  grid-template-columns: var(--shell-sidebar-w) 1fr;
   grid-template-areas:
     "topbar topbar"
     "scope scope"
@@ -11,6 +14,7 @@
   background: var(--color-bg);
 }
 
+/* ---- Topbar ------------------------------------------------------------- */
 .topbar {
   grid-area: topbar;
   display: flex;
@@ -23,12 +27,42 @@
 .topbar__spacer {
   flex: 1;
 }
+
+.tower-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.tower-mark {
+  color: var(--color-gold);
+}
+.tower-lockup__word {
+  font: 700 var(--text-title) / 1 var(--font-sans);
+  letter-spacing: -0.01em;
+}
+/* "Console" is a product label, not a control — a quiet pill, never gold. */
+.tower-lockup__tag {
+  font: 600 var(--text-caption) / 1 var(--font-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 8px;
+}
+
 .topbar__user {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-control);
+}
+.topbar__avatar-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
 }
 .topbar__avatar {
   width: 28px;
@@ -39,6 +73,19 @@
   place-items: center;
   font: 700 var(--text-caption) / 1 var(--font-sans);
   color: #fff;
+}
+/* Presence dot — a truthful signal about the viewing operator (they are here,
+ * now), not a claim about external systems. Decorative to AT (the name carries
+ * identity); a later slice can drive it from real session liveness. */
+.topbar__online {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  background: var(--color-success);
+  border: 2px solid var(--color-surface);
 }
 .topbar__name {
   font-size: var(--text-label);
@@ -51,6 +98,7 @@
   color: var(--color-text-muted);
 }
 
+/* ---- Sidebar ------------------------------------------------------------ */
 .sidebar {
   grid-area: sidebar;
   background: var(--color-surface-sunken);
@@ -59,27 +107,43 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  overflow: auto;
 }
 .nav-section {
   font: 600 var(--text-caption) / 1 var(--font-sans);
   color: var(--color-text-disabled);
   padding: var(--space-4) var(--space-3) var(--space-2);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .nav-entry {
   position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  width: 100%;
   height: 40px;
   padding: 0 var(--space-3);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--color-text-muted);
   font-size: var(--text-body);
   text-align: left;
   background: transparent;
   border: none;
   cursor: pointer;
+  transition: background-color var(--duration-2) var(--ease-out), color var(--duration-2)
+    var(--ease-out);
+}
+.nav-entry__icon {
+  flex-shrink: 0;
+  color: var(--color-text-disabled);
+  transition: color var(--duration-2) var(--ease-out);
+}
+.nav-entry__label {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .nav-entry--link {
   text-decoration: none;
@@ -88,11 +152,22 @@
   background: var(--color-surface-raised);
   color: var(--color-text);
 }
+.nav-entry--link:hover .nav-entry__icon {
+  color: var(--color-text-muted);
+}
+.nav-entry:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
 .nav-entry--active {
   background: var(--color-primary-subtle);
   color: var(--color-text);
   text-decoration: none;
 }
+.nav-entry--active .nav-entry__icon {
+  color: var(--color-gold);
+}
+/* The active marker — one of only two gold surfaces in the shell. */
 .nav-entry--active::before {
   content: "";
   position: absolute;
@@ -120,7 +195,11 @@
   background: var(--color-surface-raised);
   color: var(--color-text);
 }
+.nav-signout:hover .nav-entry__icon {
+  color: var(--color-text-muted);
+}
 
+/* ---- Content ------------------------------------------------------------ */
 .content {
   grid-area: content;
   padding: var(--space-7) var(--space-6);
