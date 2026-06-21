@@ -1,0 +1,145 @@
+/* ============================================================
+ * Retail Tower Console — Color tokens (dual-theme)
+ * ------------------------------------------------------------
+ * Two layers:
+ *   1. PRIMITIVES — raw hex, namespaced --dark-* / --light-*.
+ *      Never consumed by components directly.
+ *   2. SEMANTIC ROLES — --color-bg, --color-text, … . Components
+ *      consume ONLY these. Roles resolve to dark primitives in
+ *      :root (the default) and to light primitives under
+ *      [data-theme="light"] / prefers-color-scheme: light.
+ *
+ * Gold is the sole authority signal (logo · scope header ·
+ * active-nav marker). The bright gold (#c8a24a) fails AA as text
+ * on light grounds (2.4:1), so text-bearing gold resolves to
+ * --color-gold-strong (#6f5320) on light.
+ * Verbatim from the Console repo tokens.css (DESIGN.md v1.0).
+ * ============================================================ */
+
+:root {
+  /* ---- LAYER 1 — PRIMITIVES (never consumed directly) ---- */
+
+  /* Theme-agnostic brand + interactive (identical in both themes) */
+  --primary: #1f4e7a;
+  --primary-hover: #163d61;
+  --primary-subtle-dark: #0e1e30;
+  --primary-subtle-light: #e4edf5;
+  --accent: #2e7da3;
+  --gold: #c8a24a;          /* bright gold — dark text + non-text marker/logo */
+  --gold-strong: #6f5320;   /* deep gold — light-theme text-bearing authority */
+  --gold-muted: #8a6a2a;
+
+  /* Dark primitives */
+  --dark-bg: #0d1520;
+  --dark-surface: #131e2e;
+  --dark-surface-raised: #1a2840;
+  --dark-surface-sunken: #0a1018;
+  --dark-surface-overlay: #1e2d42;
+  --dark-border: #2a3d55;
+  --dark-border-strong: #3a5270;
+  --dark-text: #e8eef5;
+  --dark-text-muted: #8a9db5;
+  --dark-text-disabled: #4a5e78;
+  --dark-gold-soft: #2a2010;
+  --dark-gold-authority: var(--gold);
+
+  /* Light primitives */
+  --light-bg: #f4f7fa;
+  --light-surface: #ffffff;
+  --light-surface-raised: #eef2f7;
+  --light-surface-sunken: #e7edf3;
+  --light-surface-overlay: #ffffff;
+  --light-border: #d4dde7;
+  --light-border-strong: #aebccb;
+  --light-text: #16202e;
+  --light-text-muted: #566578;
+  --light-text-disabled: #9aa8b8;
+  --light-gold-soft: #f4ecd6;
+  --light-gold-authority: var(--gold-strong);
+
+  /* Semantic fills — theme-agnostic */
+  --color-success: #1f8a5b;
+  --color-warning: #b87600;
+  --color-danger: #b32e36;
+  --color-info: #1e6f8c;
+
+  /* ---- LAYER 2 — SEMANTIC ROLES (default = DARK) ---- */
+  --color-bg: var(--dark-bg);
+  --color-surface: var(--dark-surface);
+  --color-surface-raised: var(--dark-surface-raised);
+  --color-surface-sunken: var(--dark-surface-sunken);
+  --color-surface-overlay: var(--dark-surface-overlay);
+  --color-border: var(--dark-border);
+  --color-border-strong: var(--dark-border-strong);
+
+  --color-text: var(--dark-text);
+  --color-text-muted: var(--dark-text-muted);
+  --color-text-disabled: var(--dark-text-disabled);
+  --color-text-inverse: #0f1d2e;
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle-dark);
+  --color-accent: var(--accent);
+
+  /* Gold authority signal */
+  --color-gold: var(--gold);
+  --color-gold-strong: var(--dark-gold-authority);  /* text-bearing, theme-aware */
+  --color-gold-marker: var(--gold);                 /* non-text marker/logo, always bright */
+  --color-gold-muted: var(--gold-muted);
+  --color-gold-soft: var(--dark-gold-soft);
+
+  /* Semantic surfaces + on-surface text (dark ramp) */
+  --color-success-surface: #0a1f16;
+  --color-warning-surface: #1e1500;
+  --color-danger-surface: #1f0a0c;
+  --color-info-surface: #061520;
+  --color-success-on: #52b986;
+  --color-warning-on: #d49030;
+  --color-danger-on: #d16168;
+  --color-info-on: #50a2c0;
+
+  color-scheme: dark;
+}
+
+/* ---- LIGHT THEME — explicit opt-in. Overrides roles only. ---- */
+:root[data-theme="light"] {
+  --color-bg: var(--light-bg);
+  --color-surface: var(--light-surface);
+  --color-surface-raised: var(--light-surface-raised);
+  --color-surface-sunken: var(--light-surface-sunken);
+  --color-surface-overlay: var(--light-surface-overlay);
+  --color-border: var(--light-border);
+  --color-border-strong: var(--light-border-strong);
+
+  --color-text: var(--light-text);
+  --color-text-muted: var(--light-text-muted);
+  --color-text-disabled: var(--light-text-disabled);
+  --color-text-inverse: #ffffff;
+
+  --color-primary-subtle: var(--primary-subtle-light);
+
+  --color-gold-strong: var(--light-gold-authority);
+  --color-gold-muted: var(--light-gold-authority);
+  --color-gold-soft: var(--light-gold-soft);
+
+  --color-success-surface: #e6f4ec;
+  --color-warning-surface: #fbf0d9;
+  --color-danger-surface: #fae9ea;
+  --color-info-surface: #e3f0f5;
+  --color-success-on: #147a4d;
+  --color-warning-on: #8a5a00;
+  --color-danger-on: #b32e36;
+  --color-info-on: #1a6079;
+
+  color-scheme: light;
+}
+
+/* Auto-light by OS preference: the real app sets [data-theme] from a
+ * synchronous pre-hydration script (reading prefers-color-scheme +
+ * localStorage), so the light primitives only ever resolve through the
+ * registered [data-theme="light"] scope above — not a media-query
+ * duplicate. Consumers wanting OS-driven light should do the same:
+ *   document.documentElement.dataset.theme =
+ *     localStorage.getItem('rtc-theme') ||
+ *     (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); */
