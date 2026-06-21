@@ -66,73 +66,79 @@ export function SignIn({ onResolved }: SignInProps): React.JSX.Element {
 
   return (
     <div className="signin-stage">
-      <div className="signin-card">
-        <div className="signin-head">
+      <div className="signin-shell">
+        <div className="signin-brand">
           <span className="tower-lockup">
             <TowerMark className="tower-mark" />
             <span className="tower-lockup__word">Retail Tower OS</span>
           </span>
-          <span className="signin-head__sub">Administration Console</span>
         </div>
 
-        {phase.status === "error" ? (
-          <div className="signin-banner">
-            <Banner variant="danger" message={phase.message} requestId={phase.requestId} />
+        <div className="signin-card">
+          <div className="signin-head">
+            <h1 className="signin-head__title">Sign in</h1>
+            <p className="signin-head__sub">Operator access to the command console.</p>
           </div>
-        ) : null}
-        {phase.status === "rate-limited" ? (
-          <div className="signin-banner">
-            <Banner
-              variant="warning"
-              message={`Too many attempts. You can try again in ${phase.retryAfterSeconds}s.`}
-              requestId={phase.requestId}
-            />
-          </div>
-        ) : null}
 
-        <form className="signin-form" onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input
-              className="input"
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="username"
-              placeholder="you@operator.example"
-              disabled={disabled}
-              aria-invalid={invalid}
-              required
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="password">Password</label>
-            <input
-              className="input"
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••••"
-              disabled={disabled}
-              aria-invalid={invalid}
-              required
-            />
-          </div>
-          <button className="btn-primary signin-submit" type="submit" disabled={disabled}>
-            {submitting ? (
-              <>
-                <span className="spinner" aria-hidden="true" /> Signing in
-              </>
-            ) : rateLimited ? (
-              `Try again in ${phase.retryAfterSeconds}s`
-            ) : (
-              "Sign in"
-            )}
-          </button>
-        </form>
+          {phase.status === "error" ? (
+            <div className="signin-banner">
+              <Banner variant="danger" message={phase.message} requestId={phase.requestId} />
+            </div>
+          ) : null}
+          {phase.status === "rate-limited" ? (
+            <div className="signin-banner">
+              <Banner
+                variant="warning"
+                message={`Too many attempts. You can try again in ${phase.retryAfterSeconds}s.`}
+                requestId={phase.requestId}
+              />
+            </div>
+          ) : null}
 
-        <p className="signin-foot">Access issues? Contact your administrator.</p>
+          <form className="signin-form" onSubmit={handleSubmit} noValidate>
+            <div className="field">
+              <label htmlFor="email">Email</label>
+              <input
+                className="input"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="username"
+                placeholder="you@operator.example"
+                disabled={disabled}
+                aria-invalid={invalid}
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="password">Password</label>
+              <input
+                className="input"
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="••••••••••"
+                disabled={disabled}
+                aria-invalid={invalid}
+                required
+              />
+            </div>
+            <button className="btn-primary signin-submit" type="submit" disabled={disabled}>
+              {submitting ? (
+                <>
+                  <span className="spinner" aria-hidden="true" /> Signing in
+                </>
+              ) : rateLimited ? (
+                `Try again in ${phase.retryAfterSeconds}s`
+              ) : (
+                "Sign in"
+              )}
+            </button>
+          </form>
+        </div>
+
+        <p className="signin-foot">Protected platform · all activity is audited</p>
       </div>
     </div>
   );
