@@ -1,5 +1,6 @@
 import { Banner } from "@/components/Banner";
 import { DataTable } from "@/components/DataTable";
+import { Icon } from "@/components/Icon";
 import { ListState } from "@/components/ListState";
 import type { ListUnknownItemsParams, ReviewQueueItem } from "@/lib/unknown-items-queries";
 /**
@@ -67,7 +68,10 @@ export function UnknownItemList(): React.JSX.Element {
       </header>
 
       <fieldset className="unknown-item-controls">
-        <legend className="unknown-item-controls__legend">Queue filters</legend>
+        <legend className="unknown-item-controls__legend">
+          <Icon name="search" size={14} className="unknown-item-controls__icon" />
+          Queue filters
+        </legend>
         <label className="unknown-item-controls__field">
           <span>Source system</span>
           <input

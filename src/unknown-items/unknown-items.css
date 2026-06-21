@@ -1,21 +1,32 @@
 /* RF-4a review-queue surface styles. Composed over the design tokens; reuses the
  * shared .surface frame (src/shell/surface.css). No new visual primitive. */
 
-/* Filter / sort / group control row above the queue table. */
+/* Filter / sort / group control row above the queue table. Framed as a surface
+ * panel to match the audit query bar (Console v4.0 — consistent filter chrome). */
 .unknown-item-controls {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-4);
   align-items: flex-end;
   margin: 0;
-  padding: 0;
-  border: 0;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
 }
 .unknown-item-controls__legend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  float: left;
+  width: 100%;
   padding: 0;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
   color: var(--color-text-muted);
   font: 600 var(--text-label) / 1.4 var(--font-sans);
+}
+.unknown-item-controls__icon {
+  color: var(--color-text-muted);
 }
 .unknown-item-controls__field {
   display: grid;
