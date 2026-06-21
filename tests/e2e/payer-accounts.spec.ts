@@ -66,14 +66,18 @@ test("S2: create drawer → 201 → drawer closes and the new payer appears", as
       return r.fulfill({
         status: 201,
         contentType: "application/json",
-        body: JSON.stringify(payer({ payerRef: "p2", displayName: "Acme Corp", category: "corporate" })),
+        body: JSON.stringify(
+          payer({ payerRef: "p2", displayName: "Acme Corp", category: "corporate" }),
+        ),
       });
     }
     return r.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        items: created ? [payer({ payerRef: "p2", displayName: "Acme Corp", category: "corporate" })] : [],
+        items: created
+          ? [payer({ payerRef: "p2", displayName: "Acme Corp", category: "corporate" })]
+          : [],
         nextCursor: null,
       }),
     });

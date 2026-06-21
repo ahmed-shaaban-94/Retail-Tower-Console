@@ -1,3 +1,4 @@
+import { type PayerListQuery, consoleListPayerAccounts } from "@/lib/client";
 /**
  * 017 payer-account list hook (useInfiniteQuery over consoleListPayerAccounts,
  * scope-keyed by active tenant + category filter — a tenant switch re-queries,
@@ -10,7 +11,6 @@
  * the auth interceptor owns session expiry).
  */
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { type PayerListQuery, consoleListPayerAccounts } from "@/lib/client";
 import { type PayerListPage, flattenPayerPages, nextPayerCursor } from "./payerListLogic";
 
 export type PayerCategory = "credit_customer" | "corporate" | "insurer";

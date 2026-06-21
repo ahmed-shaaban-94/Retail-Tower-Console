@@ -2,10 +2,7 @@ import { Banner } from "@/components/Banner";
 import { Drawer } from "@/components/Drawer";
 import { InlineError } from "@/components/InlineError";
 import { type PaymentApplicationBody, consoleApplyPayment } from "@/lib/client";
-import {
-  classifyWriteOutcome,
-  newIdempotencyKey,
-} from "@/receivables/settlementWriteOutcome";
+import { classifyWriteOutcome, newIdempotencyKey } from "@/receivables/settlementWriteOutcome";
 /**
  * 019 ApplyPayment drawer — 019's own cash-application surface (consoleApplyPayment,
  * DP-2-owned operational truth 7-C). Validates the amount (>0; wrapper NOT called
@@ -32,7 +29,11 @@ interface ReceivableView {
 
 type BannerState = { variant: "danger" | "warning"; message: string; requestId?: string };
 
-export function ApplyPayment({ receivable, onClose, onApplied }: ApplyPaymentProps): React.JSX.Element {
+export function ApplyPayment({
+  receivable,
+  onClose,
+  onApplied,
+}: ApplyPaymentProps): React.JSX.Element {
   const [amountError, setAmountError] = useState<string | undefined>();
   const [banner, setBanner] = useState<BannerState | undefined>();
   const [pending, setPending] = useState(false);

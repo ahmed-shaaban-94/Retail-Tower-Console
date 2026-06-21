@@ -1,3 +1,8 @@
+import {
+  type ReceivableListQuery,
+  type ReceivableState,
+  consoleListReceivables,
+} from "@/lib/client";
 /**
  * 018 receivable-list hook (useInfiniteQuery over consoleListReceivables,
  * scope-keyed by active tenant + state filter). Read-only; no optimistic
@@ -5,7 +10,6 @@
  * other→generic. Mirrors 017's usePayerAccounts.
  */
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { type ReceivableListQuery, type ReceivableState, consoleListReceivables } from "@/lib/client";
 import {
   type ReceivableListPage,
   flattenReceivablePages,
@@ -41,7 +45,9 @@ export function useReceivables(
     queryKey: receivableQueryKeys.list(activeTenantId, filters),
     enabled: Boolean(activeTenantId),
     initialPageParam: INITIAL_CURSOR,
-    queryFn: async ({ pageParam }: { pageParam: string | undefined }): Promise<ReceivableListPage> => {
+    queryFn: async ({
+      pageParam,
+    }: { pageParam: string | undefined }): Promise<ReceivableListPage> => {
       const params: ReceivableListQuery = { ...filters, cursor: pageParam };
       const res = await consoleListReceivables(params);
       if (res.status >= 400) {

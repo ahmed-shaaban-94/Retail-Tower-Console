@@ -7,7 +7,10 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 const consoleReconcileRemittance = vi.fn();
 vi.mock("@/lib/client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/client")>();
-  return { ...actual, consoleReconcileRemittance: (...a: unknown[]) => consoleReconcileRemittance(...a) };
+  return {
+    ...actual,
+    consoleReconcileRemittance: (...a: unknown[]) => consoleReconcileRemittance(...a),
+  };
 });
 
 import { createQueryClient } from "@/lib/query";
@@ -63,7 +66,13 @@ describe("ReconcileRemittance", () => {
 
   test("zero remittance is valid (full rejection) -> wrapper called", async () => {
     consoleReconcileRemittance.mockResolvedValue(
-      result(200, { claimRef: "c1", claimedAmount: "100.00", remittedAmount: "0.00", variance: "100.00", outcome: "flagged" }),
+      result(200, {
+        claimRef: "c1",
+        claimedAmount: "100.00",
+        remittedAmount: "0.00",
+        variance: "100.00",
+        outcome: "flagged",
+      }),
     );
     renderReconcile();
     fillAndReconcile("0");
@@ -72,7 +81,13 @@ describe("ReconcileRemittance", () => {
 
   test("200 -> renders variance + outcome; onReconciled called; sends Idempotency-Key", async () => {
     consoleReconcileRemittance.mockResolvedValue(
-      result(200, { claimRef: "c1", claimedAmount: "100.00", remittedAmount: "80.00", variance: "20.00", outcome: "partial" }),
+      result(200, {
+        claimRef: "c1",
+        claimedAmount: "100.00",
+        remittedAmount: "80.00",
+        variance: "20.00",
+        outcome: "partial",
+      }),
     );
     const { onReconciled } = renderReconcile();
     fillAndReconcile("80.00");

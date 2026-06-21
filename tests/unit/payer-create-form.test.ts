@@ -1,7 +1,4 @@
-import {
-  type PayerCreateDraft,
-  validatePayerDraft,
-} from "@/payers/payerCreateForm";
+import { type PayerCreateDraft, validatePayerDraft } from "@/payers/payerCreateForm";
 import { describe, expect, test } from "vitest";
 
 /**

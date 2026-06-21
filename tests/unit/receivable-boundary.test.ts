@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, test } from "vitest";
 import * as client from "@/lib/client";
+import { describe, expect, test } from "vitest";
 
 /**
  * 018 receivable/claim boundary (VG-1..VG-4). The four consume-only wrappers

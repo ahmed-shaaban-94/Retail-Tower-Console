@@ -7,7 +7,12 @@ import { type Page, expect, test } from "@playwright/test";
  * 017 E2E lessons: scope the submit click to the drawer dialog; ScopeGate needs
  * a membership present.
  */
-const user = { id: "u1", email: "amal@northstar.eg", display_name: "Amal Saleh", is_platform_admin: true };
+const user = {
+  id: "u1",
+  email: "amal@northstar.eg",
+  display_name: "Amal Saleh",
+  is_platform_admin: true,
+};
 
 async function mockBase(page: Page, ctx: unknown): Promise<void> {
   await page.route("**/api/v1/**", (r) =>
@@ -60,7 +65,12 @@ test("S2: submit-claim journey → drawer → 201 → closes", async ({ page }) 
     r.fulfill({
       status: 201,
       contentType: "application/json",
-      body: JSON.stringify({ claimRef: "c1", payerRef: "p1", status: "submitted", receivableRefs: ["r1"] }),
+      body: JSON.stringify({
+        claimRef: "c1",
+        payerRef: "p1",
+        status: "submitted",
+        receivableRefs: ["r1"],
+      }),
     }),
   );
   await page.route("**/api/v1/settlement/receivables**", (r) =>
@@ -79,7 +89,9 @@ test("S2: submit-claim journey → drawer → 201 → closes", async ({ page }) 
   await expect(page.getByRole("heading", { name: /submit claim/i })).toBeHidden();
 });
 
-test("S4: apply-payment journey → drawer → 200 → renders updated balance/state", async ({ page }) => {
+test("S4: apply-payment journey → drawer → 200 → renders updated balance/state", async ({
+  page,
+}) => {
   await mockBase(page, withTenant);
   // Single route over the whole receivables namespace; branch by method/path so
   // the apply-payment POST and the list GET can't shadow each other (glob overlap).
@@ -89,7 +101,12 @@ test("S4: apply-payment journey → drawer → 200 → renders updated balance/s
       return r.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ receivableRef: "r1", outstandingBalance: "70.00", state: "partially_applied", version: 1 }),
+        body: JSON.stringify({
+          receivableRef: "r1",
+          outstandingBalance: "70.00",
+          state: "partially_applied",
+          version: 1,
+        }),
       });
     }
     return r.fulfill({

@@ -74,7 +74,18 @@ describe("PayerList", () => {
     activeContext.mockReturnValue(withTenant);
     consoleListPayerAccounts.mockResolvedValue({
       status: 200,
-      data: { items: [payer(), payer({ payerRef: "p2", displayName: "Acme Corp", category: "corporate", status: "suspended" })], nextCursor: null },
+      data: {
+        items: [
+          payer(),
+          payer({
+            payerRef: "p2",
+            displayName: "Acme Corp",
+            category: "corporate",
+            status: "suspended",
+          }),
+        ],
+        nextCursor: null,
+      },
     });
     renderList();
     expect(await screen.findByText("MedCover Insurance")).toBeDefined();
@@ -82,9 +93,7 @@ describe("PayerList", () => {
     // Category + status render as badges in the table cells. Scope to the badge
     // elements so the page subtitle ("…corporate & insurer payers…") does not
     // false-match the category assertion.
-    const badges = screen.getAllByText(
-      (_, el) => el?.classList.contains("badge") ?? false,
-    );
+    const badges = screen.getAllByText((_, el) => el?.classList.contains("badge") ?? false);
     const badgeText = badges.map((b) => b.textContent);
     expect(badgeText).toContain("insurer");
     expect(badgeText).toContain("corporate");
@@ -93,7 +102,10 @@ describe("PayerList", () => {
 
   test("empty -> zero-payers state with the Create action", async () => {
     activeContext.mockReturnValue(withTenant);
-    consoleListPayerAccounts.mockResolvedValue({ status: 200, data: { items: [], nextCursor: null } });
+    consoleListPayerAccounts.mockResolvedValue({
+      status: 200,
+      data: { items: [], nextCursor: null },
+    });
     renderList();
     expect(await screen.findByText(/no payer accounts/i)).toBeDefined();
     expect(screen.getByRole("button", { name: /create payer/i })).toBeDefined();
@@ -101,7 +113,10 @@ describe("PayerList", () => {
 
   test("403 -> forbidden banner", async () => {
     activeContext.mockReturnValue(withTenant);
-    consoleListPayerAccounts.mockResolvedValue({ status: 403, error: { error: { request_id: "req-403" } } });
+    consoleListPayerAccounts.mockResolvedValue({
+      status: 403,
+      error: { error: { request_id: "req-403" } },
+    });
     renderList();
     await waitFor(() => expect(screen.getByRole("alert")).toBeDefined());
     expect(screen.getByText(/req-403/)).toBeDefined();

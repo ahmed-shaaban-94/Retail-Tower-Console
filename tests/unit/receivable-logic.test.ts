@@ -1,14 +1,14 @@
 import {
-  type ReceivableListPage,
-  flattenReceivablePages,
-  nextReceivableCursor,
-} from "@/receivables/receivableListLogic";
-import {
   type ClaimDraft,
   type RemittanceDraft,
   validateClaimDraft,
   validateRemittanceDraft,
 } from "@/receivables/receivableForms";
+import {
+  type ReceivableListPage,
+  flattenReceivablePages,
+  nextReceivableCursor,
+} from "@/receivables/receivableListLogic";
 import { describe, expect, test } from "vitest";
 
 /**
@@ -32,7 +32,9 @@ describe("nextReceivableCursor", () => {
 describe("flattenReceivablePages", () => {
   test("flattens pages in order", () => {
     expect(
-      flattenReceivablePages([page(["a", "b"], "C"), page(["c"], null)]).map((r) => r.receivableRef),
+      flattenReceivablePages([page(["a", "b"], "C"), page(["c"], null)]).map(
+        (r) => r.receivableRef,
+      ),
     ).toEqual(["a", "b", "c"]);
   });
   test("empty -> []", () => {
@@ -79,9 +81,13 @@ describe("validateRemittanceDraft", () => {
     expect(validateRemittanceDraft(remit({ remittedAmount: "abc" })).remittedAmount).toBeDefined();
   });
   test("negative amount -> error (Money is non-negative exact-decimal)", () => {
-    expect(validateRemittanceDraft(remit({ remittedAmount: "-5.00" })).remittedAmount).toBeDefined();
+    expect(
+      validateRemittanceDraft(remit({ remittedAmount: "-5.00" })).remittedAmount,
+    ).toBeDefined();
   });
   test("too many fractional digits -> error (scale 4)", () => {
-    expect(validateRemittanceDraft(remit({ remittedAmount: "1.23456" })).remittedAmount).toBeDefined();
+    expect(
+      validateRemittanceDraft(remit({ remittedAmount: "1.23456" })).remittedAmount,
+    ).toBeDefined();
   });
 });

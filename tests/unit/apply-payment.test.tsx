@@ -67,7 +67,12 @@ describe("ApplyPayment", () => {
 
   test("200 -> renders updated balance + state; onApplied; sends version + Idempotency-Key", async () => {
     consoleApplyPayment.mockResolvedValue(
-      result(200, { receivableRef: "r1", outstandingBalance: "70.00", state: "partially_applied", version: 1 }),
+      result(200, {
+        receivableRef: "r1",
+        outstandingBalance: "70.00",
+        state: "partially_applied",
+        version: 1,
+      }),
     );
     const { onApplied } = renderApply();
     fillAndApply("50.00");
