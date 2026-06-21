@@ -8,30 +8,48 @@
     var(--color-bg);
 }
 
-.signin-card {
+.signin-shell {
   width: 100%;
   max-width: 384px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-pane);
-  padding: var(--space-7) var(--space-6) var(--space-6);
 }
 
-.signin-head {
-  display: grid;
-  gap: var(--space-2);
-  justify-items: center;
-  text-align: center;
-  margin-bottom: var(--space-6);
+/* Brand lockup sits above the card (Console v4.0): the gold mark anchors the
+ * surface before the operator reads the form. Centered, gold reserved to the mark. */
+.signin-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-5);
 }
-.signin-head .tower-lockup__word {
-  font-size: var(--text-headline);
+.signin-brand .tower-mark {
+  color: var(--color-gold);
+}
+.signin-brand .tower-lockup__word {
+  font: 700 var(--text-headline) / 1 var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+.signin-card {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-pane);
+  padding: var(--space-6);
+}
+
+/* Card heading — left-aligned now that identity lives in the brand lockup above. */
+.signin-head {
+  margin-bottom: var(--space-5);
+}
+.signin-head__title {
+  margin: 0 0 var(--space-1);
+  font: 600 var(--text-headline) / 1.3 var(--font-sans);
+  letter-spacing: -0.01em;
 }
 .signin-head__sub {
+  margin: 0;
   color: var(--color-text-muted);
-  font-size: var(--text-caption);
-  letter-spacing: 0.02em;
+  font-size: var(--text-body);
 }
 
 .signin-banner {
@@ -51,5 +69,5 @@
   margin: var(--space-5) 0 0;
   text-align: center;
   font-size: var(--text-caption);
-  color: var(--color-text-disabled);
+  color: var(--color-text-muted);
 }
