@@ -1,5 +1,5 @@
-import { Route } from "react-router";
 import { ReceivableList } from "@/receivables/ReceivableList";
+import { Route } from "react-router";
 /**
  * 018 receivables route registration. Mounts inside the protected layout
  * (`/` → ProtectedArea → AppShell → <Outlet/>), behind RF-1's context gate.

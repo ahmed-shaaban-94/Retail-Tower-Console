@@ -72,7 +72,10 @@ describe("ReceivableList", () => {
     consoleListReceivables.mockResolvedValue({
       status: 200,
       data: {
-        items: [receivable(), receivable({ receivableRef: "r2", outstandingBalance: "0.00", state: "settled" })],
+        items: [
+          receivable(),
+          receivable({ receivableRef: "r2", outstandingBalance: "0.00", state: "settled" }),
+        ],
         nextCursor: null,
       },
     });
@@ -96,14 +99,20 @@ describe("ReceivableList", () => {
 
   test("empty -> zero-receivables state", async () => {
     activeContext.mockReturnValue(withTenant);
-    consoleListReceivables.mockResolvedValue({ status: 200, data: { items: [], nextCursor: null } });
+    consoleListReceivables.mockResolvedValue({
+      status: 200,
+      data: { items: [], nextCursor: null },
+    });
     renderList();
     expect(await screen.findByText(/no receivables/i)).toBeDefined();
   });
 
   test("403 -> forbidden banner", async () => {
     activeContext.mockReturnValue(withTenant);
-    consoleListReceivables.mockResolvedValue({ status: 403, error: { error: { request_id: "req-403" } } });
+    consoleListReceivables.mockResolvedValue({
+      status: 403,
+      error: { error: { request_id: "req-403" } },
+    });
     renderList();
     await waitFor(() => expect(screen.getByRole("alert")).toBeDefined());
     expect(screen.getByText(/req-403/)).toBeDefined();

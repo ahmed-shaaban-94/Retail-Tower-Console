@@ -1,6 +1,8 @@
 import { Banner } from "@/components/Banner";
 import { ListState } from "@/components/ListState";
 import { useActiveContextValue } from "@/context/ActiveContextProvider";
+import type { ReceivableState } from "@/lib/client";
+import { ApplyPayment } from "@/settlement-reconciliation/ApplyPayment";
 /**
  * 018 SF — Receivable list. Table of the active tenant's receivables: payer +
  * sale refs, outstanding balance (exact-decimal Money rendered VERBATIM — never
@@ -11,8 +13,6 @@ import { useActiveContextValue } from "@/context/ActiveContextProvider";
  * 018-D. Mirrors 017's PayerList.
  */
 import { useState } from "react";
-import type { ReceivableState } from "@/lib/client";
-import { ApplyPayment } from "@/settlement-reconciliation/ApplyPayment";
 import { ReconcileRemittance } from "./ReconcileRemittance";
 import { SubmitClaim } from "./SubmitClaim";
 import { useReceivables } from "./useReceivables";

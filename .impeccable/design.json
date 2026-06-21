@@ -4,24 +4,173 @@
   "title": "Design System: Retail Tower Console",
   "extensions": {
     "colorMeta": {
-      "primary":      { "role": "primary",  "displayName": "Command Navy",  "canonical": "oklch(36% 0.085 236)", "tonalRamp": ["#0a1726", "#0e2438", "#14324f", "#1f4e7a", "#2c6299", "#4f84b9", "#85aed4", "#c2d9ee"] },
-      "accent":       { "role": "primary",  "displayName": "Teal Marker",   "canonical": "oklch(52% 0.085 218)", "tonalRamp": ["#0a2230", "#103346", "#1a5066", "#2e7da3", "#4196bd", "#6cb1d2", "#9fcde0", "#cfe7f0"] },
-      "gold":         { "role": "secondary","displayName": "Tower Gold",    "canonical": "oklch(70% 0.110 72)",  "tonalRamp": ["#2a2010", "#473717", "#6f5320", "#8a6a2a", "#a98538", "#c8a24a", "#dcbd7a", "#eedcb4"], "note": "Bright gold (#c8a24a) is the authority signal: AA on dark (7.6:1), but fails as text on light (2.4:1). On light, text-bearing gold steps down to gold-strong (#6f5320); bright gold is non-text only (marker, logo)." },
-      "gold-strong":  { "role": "secondary","displayName": "Deep Gold",     "canonical": "oklch(44% 0.090 72)",  "tonalRamp": ["#2a2010", "#473717", "#6f5320", "#8a6a2a", "#a98538", "#c8a24a", "#dcbd7a", "#eedcb4"], "value": "#6f5320", "note": "Light-theme authority signal for any gold carrying text. Set deep (#6f5320) to read on the gilded scope-header surface (#f4ecd6): 6.07:1 there, 6.8:1+ on neutral light. The mid-tone #8a6a2a fails (4.27:1 on gold-soft)." },
-      "success":      { "role": "tertiary", "displayName": "Confirmation Green", "canonical": "oklch(56% 0.12 158)", "tonalRamp": ["#0a1f16", "#0f3526", "#147a4d", "#1f8a5b", "#2aa56d", "#52b986", "#88d2ac", "#c2ead6"] },
-      "warning":      { "role": "tertiary", "displayName": "Caution Amber", "canonical": "oklch(63% 0.13 70)",   "tonalRamp": ["#1e1500", "#3a2a00", "#8a5a00", "#b87600", "#d08800", "#d49030", "#e6b873", "#f2dcb0"] },
-      "danger":       { "role": "tertiary", "displayName": "Alert Red",     "canonical": "oklch(50% 0.16 22)",   "tonalRamp": ["#1f0a0c", "#3a1418", "#7a2329", "#b32e36", "#c84d55", "#d97179", "#e8a3a8", "#f3d0d3"] },
-      "info":         { "role": "tertiary", "displayName": "Info Teal",     "canonical": "oklch(50% 0.08 220)",  "tonalRamp": ["#061520", "#0c2838", "#1a6079", "#1e6f8c", "#2f87a3", "#50a2c0", "#8cc3d8", "#c4e1ec"] },
-      "dark-bg":      { "role": "neutral",  "displayName": "Command Room",  "canonical": "oklch(13% 0.032 236)", "tonalRamp": ["#0a1018", "#0d1520", "#131e2e", "#1a2840", "#243450", "#3a5270", "#6b87a8", "#aebccb"] },
-      "light-bg":     { "role": "neutral",  "displayName": "Paper",         "canonical": "oklch(97% 0.006 236)", "tonalRamp": ["#16202e", "#2c3a4d", "#566578", "#9aa8b8", "#d4dde7", "#e7edf3", "#f4f7fa", "#ffffff"] }
+      "primary": {
+        "role": "primary",
+        "displayName": "Command Navy",
+        "canonical": "oklch(36% 0.085 236)",
+        "tonalRamp": [
+          "#0a1726",
+          "#0e2438",
+          "#14324f",
+          "#1f4e7a",
+          "#2c6299",
+          "#4f84b9",
+          "#85aed4",
+          "#c2d9ee"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Teal Marker",
+        "canonical": "oklch(52% 0.085 218)",
+        "tonalRamp": [
+          "#0a2230",
+          "#103346",
+          "#1a5066",
+          "#2e7da3",
+          "#4196bd",
+          "#6cb1d2",
+          "#9fcde0",
+          "#cfe7f0"
+        ]
+      },
+      "gold": {
+        "role": "secondary",
+        "displayName": "Tower Gold",
+        "canonical": "oklch(70% 0.110 72)",
+        "tonalRamp": [
+          "#2a2010",
+          "#473717",
+          "#6f5320",
+          "#8a6a2a",
+          "#a98538",
+          "#c8a24a",
+          "#dcbd7a",
+          "#eedcb4"
+        ],
+        "note": "Bright gold (#c8a24a) is the authority signal: AA on dark (7.6:1), but fails as text on light (2.4:1). On light, text-bearing gold steps down to gold-strong (#6f5320); bright gold is non-text only (marker, logo)."
+      },
+      "gold-strong": {
+        "role": "secondary",
+        "displayName": "Deep Gold",
+        "canonical": "oklch(44% 0.090 72)",
+        "tonalRamp": [
+          "#2a2010",
+          "#473717",
+          "#6f5320",
+          "#8a6a2a",
+          "#a98538",
+          "#c8a24a",
+          "#dcbd7a",
+          "#eedcb4"
+        ],
+        "value": "#6f5320",
+        "note": "Light-theme authority signal for any gold carrying text. Set deep (#6f5320) to read on the gilded scope-header surface (#f4ecd6): 6.07:1 there, 6.8:1+ on neutral light. The mid-tone #8a6a2a fails (4.27:1 on gold-soft)."
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Confirmation Green",
+        "canonical": "oklch(56% 0.12 158)",
+        "tonalRamp": [
+          "#0a1f16",
+          "#0f3526",
+          "#147a4d",
+          "#1f8a5b",
+          "#2aa56d",
+          "#52b986",
+          "#88d2ac",
+          "#c2ead6"
+        ]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Caution Amber",
+        "canonical": "oklch(63% 0.13 70)",
+        "tonalRamp": [
+          "#1e1500",
+          "#3a2a00",
+          "#8a5a00",
+          "#b87600",
+          "#d08800",
+          "#d49030",
+          "#e6b873",
+          "#f2dcb0"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Alert Red",
+        "canonical": "oklch(50% 0.16 22)",
+        "tonalRamp": [
+          "#1f0a0c",
+          "#3a1418",
+          "#7a2329",
+          "#b32e36",
+          "#c84d55",
+          "#d97179",
+          "#e8a3a8",
+          "#f3d0d3"
+        ]
+      },
+      "info": {
+        "role": "tertiary",
+        "displayName": "Info Teal",
+        "canonical": "oklch(50% 0.08 220)",
+        "tonalRamp": [
+          "#061520",
+          "#0c2838",
+          "#1a6079",
+          "#1e6f8c",
+          "#2f87a3",
+          "#50a2c0",
+          "#8cc3d8",
+          "#c4e1ec"
+        ]
+      },
+      "dark-bg": {
+        "role": "neutral",
+        "displayName": "Command Room",
+        "canonical": "oklch(13% 0.032 236)",
+        "tonalRamp": [
+          "#0a1018",
+          "#0d1520",
+          "#131e2e",
+          "#1a2840",
+          "#243450",
+          "#3a5270",
+          "#6b87a8",
+          "#aebccb"
+        ]
+      },
+      "light-bg": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(97% 0.006 236)",
+        "tonalRamp": [
+          "#16202e",
+          "#2c3a4d",
+          "#566578",
+          "#9aa8b8",
+          "#d4dde7",
+          "#e7edf3",
+          "#f4f7fa",
+          "#ffffff"
+        ]
+      }
     },
     "typographyMeta": {
-      "display":  { "displayName": "Display",  "purpose": "Screen title. One per view, never more." },
+      "display": { "displayName": "Display", "purpose": "Screen title. One per view, never more." },
       "headline": { "displayName": "Headline", "purpose": "Section header, panel title." },
-      "title":    { "displayName": "Title",    "purpose": "Card title, group label." },
-      "body":     { "displayName": "Body",     "purpose": "Paragraph and description. Prose capped 65ch; tables run denser." },
-      "label":    { "displayName": "Label",    "purpose": "Badge, chip, table header. No all-caps." },
-      "mono":     { "displayName": "Mono",     "purpose": "IDs, refs, audit strings, UUIDs, scope context values." }
+      "title": { "displayName": "Title", "purpose": "Card title, group label." },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Paragraph and description. Prose capped 65ch; tables run denser."
+      },
+      "label": { "displayName": "Label", "purpose": "Badge, chip, table header. No all-caps." },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "IDs, refs, audit strings, UUIDs, scope context values."
+      }
     },
     "themes": {
       "default": "dark",
@@ -29,27 +178,87 @@
       "note": "Two grounds, one role system. Components consume semantic role tokens (--color-bg, --color-text, --color-gold-strong) only; primitives (--dark-*, --light-*) are never consumed directly. Light is a synthesis (Vision 4 has no light mockup), AA-verified, designed to harmonize with POS-Pulse light without owning it."
     },
     "shadows": [
-      { "name": "sm-dark",     "value": "0 1px 2px rgba(0,0,0,0.3)", "purpose": "Inline chips (dark)." },
-      { "name": "card-dark",   "value": "0 2px 4px rgba(13,21,32,0.4), 0 8px 24px rgba(13,21,32,0.3)", "purpose": "Resting card/pane (dark), flooded toward bg hue." },
-      { "name": "pane-dark",   "value": "0 20px 60px rgba(13,21,32,0.7)", "purpose": "Dialogs, drawers (dark)." },
-      { "name": "card-light",  "value": "0 1px 2px rgba(22,32,46,0.06), 0 4px 16px rgba(22,32,46,0.08)", "purpose": "Resting card/pane (light), soft cool paper-raise." },
-      { "name": "pane-light",  "value": "0 20px 60px rgba(22,32,46,0.20)", "purpose": "Dialogs, drawers (light)." },
-      { "name": "gold-ring",   "value": "0 0 0 3px rgba(200,162,74,0.25)", "purpose": "Gold-tinted focus ring for scope elements (both themes)." }
+      {
+        "name": "sm-dark",
+        "value": "0 1px 2px rgba(0,0,0,0.3)",
+        "purpose": "Inline chips (dark)."
+      },
+      {
+        "name": "card-dark",
+        "value": "0 2px 4px rgba(13,21,32,0.4), 0 8px 24px rgba(13,21,32,0.3)",
+        "purpose": "Resting card/pane (dark), flooded toward bg hue."
+      },
+      {
+        "name": "pane-dark",
+        "value": "0 20px 60px rgba(13,21,32,0.7)",
+        "purpose": "Dialogs, drawers (dark)."
+      },
+      {
+        "name": "card-light",
+        "value": "0 1px 2px rgba(22,32,46,0.06), 0 4px 16px rgba(22,32,46,0.08)",
+        "purpose": "Resting card/pane (light), soft cool paper-raise."
+      },
+      {
+        "name": "pane-light",
+        "value": "0 20px 60px rgba(22,32,46,0.20)",
+        "purpose": "Dialogs, drawers (light)."
+      },
+      {
+        "name": "gold-ring",
+        "value": "0 0 0 3px rgba(200,162,74,0.25)",
+        "purpose": "Gold-tinted focus ring for scope elements (both themes)."
+      }
     ],
     "motion": [
-      { "name": "duration-1", "value": "80ms",  "purpose": "Micro-interactions: hover fills, pulse onset." },
-      { "name": "duration-2", "value": "150ms", "purpose": "Standard: button hover, focus, border, theme swap." },
-      { "name": "duration-3", "value": "220ms", "purpose": "Panel slides, sidebar expand/collapse." },
+      {
+        "name": "duration-1",
+        "value": "80ms",
+        "purpose": "Micro-interactions: hover fills, pulse onset."
+      },
+      {
+        "name": "duration-2",
+        "value": "150ms",
+        "purpose": "Standard: button hover, focus, border, theme swap."
+      },
+      {
+        "name": "duration-3",
+        "value": "220ms",
+        "purpose": "Panel slides, sidebar expand/collapse."
+      },
       { "name": "duration-4", "value": "320ms", "purpose": "Dialog entrance, route fade." },
-      { "name": "ease-out",    "value": "cubic-bezier(0.2, 0.7, 0.25, 1)", "purpose": "All exit/in easing. Expo-style. No bounce." },
-      { "name": "ease-in-out", "value": "cubic-bezier(0.45, 0.05, 0.25, 1)", "purpose": "Bidirectional: sidebar toggle." },
-      { "name": "reduced-motion", "value": "all durations -> 0ms", "purpose": "prefers-reduced-motion collapses motion to instant." }
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.2, 0.7, 0.25, 1)",
+        "purpose": "All exit/in easing. Expo-style. No bounce."
+      },
+      {
+        "name": "ease-in-out",
+        "value": "cubic-bezier(0.45, 0.05, 0.25, 1)",
+        "purpose": "Bidirectional: sidebar toggle."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "all durations -> 0ms",
+        "purpose": "prefers-reduced-motion collapses motion to instant."
+      }
     ],
     "breakpoints": [
-      { "name": "mobile",       "value": "768px",  "purpose": "Sidebar hides, top bar gains hamburger." },
-      { "name": "sidebar-icon", "value": "1024px", "purpose": "Sidebar collapses to 60px icon-only." },
-      { "name": "sidebar-full", "value": "1280px", "purpose": "Sidebar expands to 240px with labels." },
-      { "name": "content-wide", "value": "1440px", "purpose": "Content padding-inline grows 32px -> 48px." }
+      { "name": "mobile", "value": "768px", "purpose": "Sidebar hides, top bar gains hamburger." },
+      {
+        "name": "sidebar-icon",
+        "value": "1024px",
+        "purpose": "Sidebar collapses to 60px icon-only."
+      },
+      {
+        "name": "sidebar-full",
+        "value": "1280px",
+        "purpose": "Sidebar expands to 240px with labels."
+      },
+      {
+        "name": "content-wide",
+        "value": "1440px",
+        "purpose": "Content padding-inline grows 32px -> 48px."
+      }
     ]
   },
   "components": [
@@ -145,11 +354,31 @@
       "Flat by default; depth is structural, never decorative."
     ],
     "rules": [
-      { "name": "The Gold Authority Rule", "body": "Gold is brand authority, never decoration and never an action. It appears on exactly three things: the logo mark, the scope header, and the active-nav marker. On light, text-bearing gold becomes gold-strong (#6f5320, AA on the gilded scope surface); the bright gold is reserved for the non-text marker and logo.", "section": "colors" },
-      { "name": "The Two-Ground Rule", "body": "Light is not a recolor of dark; it is the same role system resolved on a light ground. A token role means the same thing in both themes; only its primitive value differs. Never hardcode a hex where a role token exists, or the toggle breaks.", "section": "colors" },
-      { "name": "The No-Extremes Rule", "body": "Never #000 or #fff as a surface. The darkest surface is #0d1520; the lightest is #ffffff reserved for cards only, with the page floor a tinted #f4f7fa. Every neutral carries chroma toward the 236deg hue.", "section": "colors" },
-      { "name": "The Single-Voice Rule", "body": "One typeface for the entire product UI. A heading is a heavier weight and tighter tracking of the same family, never a different font. Display faces in labels, buttons, or data are prohibited.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "If a surface has a shadow, it must be because it sits structurally above another surface. Shadow as hover decoration is forbidden. Smell test: if a flat list row gains a drop shadow on hover, the shadow is wrong, use a background tint instead.", "section": "elevation" }
+      {
+        "name": "The Gold Authority Rule",
+        "body": "Gold is brand authority, never decoration and never an action. It appears on exactly three things: the logo mark, the scope header, and the active-nav marker. On light, text-bearing gold becomes gold-strong (#6f5320, AA on the gilded scope surface); the bright gold is reserved for the non-text marker and logo.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Ground Rule",
+        "body": "Light is not a recolor of dark; it is the same role system resolved on a light ground. A token role means the same thing in both themes; only its primitive value differs. Never hardcode a hex where a role token exists, or the toggle breaks.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Extremes Rule",
+        "body": "Never #000 or #fff as a surface. The darkest surface is #0d1520; the lightest is #ffffff reserved for cards only, with the page floor a tinted #f4f7fa. Every neutral carries chroma toward the 236deg hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Single-Voice Rule",
+        "body": "One typeface for the entire product UI. A heading is a heavier weight and tighter tracking of the same family, never a different font. Display faces in labels, buttons, or data are prohibited.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "If a surface has a shadow, it must be because it sits structurally above another surface. Shadow as hover decoration is forbidden. Smell test: if a flat list row gains a drop shadow on hover, the shadow is wrong, use a background tint instead.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do keep gold to the three authority surfaces only (logo, scope header, active-nav marker), and on light swap text-bearing gold to gold-strong (#6f5320) to hold AA.",

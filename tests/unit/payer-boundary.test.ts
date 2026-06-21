@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, test } from "vitest";
 import * as client from "@/lib/client";
+import { describe, expect, test } from "vitest";
 
 /**
  * 017 payer boundary (CON-G1 / SC-001, VG-1..VG-4). The payer wrappers consume

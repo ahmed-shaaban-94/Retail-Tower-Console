@@ -60,7 +60,10 @@ describe("useReceivables", () => {
   });
 
   test("zero-receivable tenant -> empty, not an error", async () => {
-    consoleListReceivables.mockResolvedValue({ status: 200, data: { items: [], nextCursor: null } });
+    consoleListReceivables.mockResolvedValue({
+      status: 200,
+      data: { items: [], nextCursor: null },
+    });
     const { result } = renderHook(() => useReceivables("t1", {}), { wrapper });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.rows).toEqual([]);

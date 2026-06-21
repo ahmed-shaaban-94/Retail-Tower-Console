@@ -1,8 +1,4 @@
-import {
-  type PayerListPage,
-  flattenPayerPages,
-  nextPayerCursor,
-} from "@/payers/payerListLogic";
+import { type PayerListPage, flattenPayerPages, nextPayerCursor } from "@/payers/payerListLogic";
 import { describe, expect, test } from "vitest";
 
 /**

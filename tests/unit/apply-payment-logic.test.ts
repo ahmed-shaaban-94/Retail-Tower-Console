@@ -1,8 +1,11 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, test } from "vitest";
 import * as client from "@/lib/client";
-import { type ApplyPaymentDraft, validateApplyPaymentDraft } from "@/settlement-reconciliation/applyPaymentForm";
+import {
+  type ApplyPaymentDraft,
+  validateApplyPaymentDraft,
+} from "@/settlement-reconciliation/applyPaymentForm";
+import { describe, expect, test } from "vitest";
 
 /**
  * 019 apply-payment pure logic + boundary. consoleApplyPayment is 019's OWN
@@ -38,7 +41,8 @@ describe("validateApplyPaymentDraft", () => {
   test("missing/invalid version -> error", () => {
     // Cast to exercise the runtime guard against a non-integer version.
     expect(
-      validateApplyPaymentDraft({ amount: "50.00", version: undefined as unknown as number }).version,
+      validateApplyPaymentDraft({ amount: "50.00", version: undefined as unknown as number })
+        .version,
     ).toBeDefined();
   });
 });

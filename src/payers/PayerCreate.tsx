@@ -21,12 +21,12 @@ import { type PayerAccountCreateBody, consoleCreatePayerAccount } from "@/lib/cl
  * the InviteMember drawer, minus the 425/auth-disambiguation (payer create has none).
  */
 import { useState } from "react";
+import { type PayerCategory, type PayerCreateDraft, validatePayerDraft } from "./payerCreateForm";
 import {
   type PayerCreateOutcome,
   classifyPayerCreateOutcome,
   newIdempotencyKey,
 } from "./payerIdempotency";
-import { type PayerCategory, type PayerCreateDraft, validatePayerDraft } from "./payerCreateForm";
 
 export interface PayerCreateProps {
   activeTenant: { id: string; name: string };
@@ -36,7 +36,11 @@ export interface PayerCreateProps {
 
 type BannerState = { variant: "danger" | "warning"; message: string; requestId?: string };
 
-export function PayerCreate({ activeTenant, onClose, onCreated }: PayerCreateProps): React.JSX.Element {
+export function PayerCreate({
+  activeTenant,
+  onClose,
+  onCreated,
+}: PayerCreateProps): React.JSX.Element {
   const [nameError, setNameError] = useState<string | undefined>();
   const [banner, setBanner] = useState<BannerState | undefined>();
   const [pending, setPending] = useState(false);
@@ -137,7 +141,12 @@ export function PayerCreate({ activeTenant, onClose, onCreated }: PayerCreatePro
 
         <div className="field">
           <label htmlFor="payer-category">Category</label>
-          <select id="payer-category" name="category" className="input" defaultValue="credit_customer">
+          <select
+            id="payer-category"
+            name="category"
+            className="input"
+            defaultValue="credit_customer"
+          >
             <option value="credit_customer">Credit customer</option>
             <option value="corporate">Corporate</option>
             <option value="insurer">Insurer</option>
