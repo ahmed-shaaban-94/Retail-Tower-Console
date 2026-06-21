@@ -1,0 +1,35 @@
+/* ============================================================
+ * Retail Tower Console — Spacing, radius & layout tokens
+ * ------------------------------------------------------------
+ * 4px base grid. Density earns its place: prefer a tight,
+ * well-organized layout over airy whitespace — but never clutter.
+ * ============================================================ */
+
+:root {
+  /* Spacing — 4px base */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Radius */
+  --radius-sm: 4px;        /* inline chips, mock tags */
+  --radius-md: 6px;        /* nav entries, small controls */
+  --radius-control: 10px;  /* buttons, inputs */
+  --radius-card: 12px;     /* cards, panes, tables */
+  --radius-dialog: 16px;   /* dialogs, drawers, menus */
+  --radius-pill: 9999px;   /* badges, chips, avatars */
+
+  /* App-shell layout rails */
+  --shell-topbar-h: 56px;
+  --shell-scope-h: 40px;
+  --shell-sidebar-w: 240px;
+  --shell-sidebar-collapsed-w: 60px;
+  --control-h: 36px;        /* default touch target */
+  --control-h-sm: 32px;     /* ghost / toolbar icon buttons */
+}

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Retail Tower Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="_ds/tower-console-design-system-b7c448df-c864-471a-add6-63824963fe8f/styles.css" />
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--color-bg); color: var(--color-text);
+         font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+  #app { height: 100vh; }
+  button { font-family: inherit; border: none; background: none; color: inherit; }
+  ::selection { background: rgba(46,125,163,0.30); }
+
+  /* Slim, on-system scrollbars for the dense surfaces */
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+  *::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong); background-clip: content-box; }
+
+  /* Route entrance — motion confirms the screen changed, never decorates. */
+  @keyframes rtc-screen-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .rtc-screen { animation: rtc-screen-in var(--duration-4, 240ms) var(--ease-out, cubic-bezier(0.2,0,0,1)) both; }
+  html[data-motion="off"] .rtc-screen { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .rtc-screen { animation: none; } }
+
+  /* Density tweak hook — compact trims vertical rhythm in dense tables. */
+  html[data-density="compact"] table td,
+  html[data-density="compact"] table th { padding-top: var(--space-2) !important; padding-bottom: var(--space-2) !important; }
+
+  /* ---- Responsiveness ---- */
+  /* KPI strips wrap as the viewport narrows. */
+  @media (max-width: 1440px) {
+    [style*="repeat(6, 1fr)"] { grid-template-columns: repeat(3, 1fr) !important; }
+  }
+  @media (max-width: 1180px) {
+    [style*="repeat(6, 1fr)"], [style*="repeat(5, 1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
+    /* tree | table | drawer  and  table | drawer  layouts stack */
+    [style*="332px"] { grid-template-columns: 1fr !important; }
+    [style*="1.55fr 1fr 1fr"] { grid-template-columns: 1fr 1fr !important; }
+    [style*="1.3fr 1fr"] { grid-template-columns: 1fr !important; }
+    /* let dense tables scroll horizontally instead of clipping */
+    main [style*="overflow: hidden"] { overflow-x: auto !important; }
+  }
+  @media (max-width: 920px) {
+    [style*="1.75fr 1fr"], [style*="1.55fr 1fr"], [style*="1.55fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 760px) {
+    main [style*="display: grid"] { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 1024px) { .rtc-hide-md { display: none !important; } }
+  @media (max-width: 680px) { .rtc-hide-sm { display: none !important; } }
+
+  /* ---- Live status pulse (functional, not decorative) ---- */
+  @keyframes rtc-pulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-success-on) 55%, transparent); }
+    70%  { box-shadow: 0 0 0 7px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .rtc-pulse { animation: rtc-pulse 2.2s var(--ease-out, ease-out) infinite; }
+  html[data-motion="off"] .rtc-pulse, html[data-reduce] .rtc-pulse { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .rtc-pulse { animation: none; } }
+
+  /* count-up flash when a live value changes */
+  @keyframes rtc-flash { from { color: var(--color-accent); } to { color: inherit; } }
+  .rtc-live-val { animation: rtc-flash 0.6s var(--ease-out, ease-out); }
+  html[data-motion="off"] .rtc-live-val { animation: none; }
+
+  /* ---- Arabic / RTL mode ---- */
+  html[lang="ar"] { --font-sans: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif; }
+  html[dir="rtl"] .rtc-flip { transform: scaleX(-1); }
+
+  /* ---- Command Desk: live topology ---- */
+  @keyframes rtc-flow { to { stroke-dashoffset: -40; } }
+  .rtc-flow { stroke-dasharray: 3 7; animation: rtc-flow 0.95s linear infinite; }
+  @keyframes rtc-halo { 0% { transform: scale(1); opacity: 0.55; } 70% { transform: scale(1.55); opacity: 0; } 100% { opacity: 0; } }
+  .rtc-halo { transform-box: fill-box; transform-origin: center; animation: rtc-halo 2.2s ease-out infinite; }
+  .rtc-node text { transition: fill 0.15s var(--ease-out, ease-out); }
+  .rtc-node:hover circle { filter: brightness(1.12); }
+  @keyframes rtc-logslide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  .rtc-logrow-new { animation: rtc-logslide 0.45s var(--ease-out, ease-out); }
+  html[data-motion="off"] .rtc-flow, html[data-motion="off"] .rtc-halo, html[data-motion="off"] .rtc-logrow-new { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .rtc-flow, .rtc-halo, .rtc-logrow-new { animation: none; } }
+  @media (max-width: 1400px) { .rtc-command { grid-template-columns: 1fr !important; } }
+
+  /* War-Room: three-column command layout collapses progressively. */
+  @media (max-width: 1320px) { .rtc-warroom { grid-template-columns: 248px 1fr !important; } }
+  @media (max-width: 980px) { .rtc-warroom { grid-template-columns: 1fr !important; } }
+
+  /* Money Close / Onboarding / Pricing: three-column layouts collapse the same way. */
+  @media (max-width: 1320px) {
+    .rtc-mclose, .rtc-pricing { grid-template-columns: 288px 1fr !important; }
+    .rtc-onboard { grid-template-columns: 220px 1fr !important; }
+    .rtc-onboard > div:last-child { grid-column: 1 / -1; }
+  }
+  @media (max-width: 980px) {
+    .rtc-mclose, .rtc-pricing, .rtc-onboard { grid-template-columns: 1fr !important; }
+  }
+
+  /* Outbox: pipeline wraps to 2×2, body stacks. */
+  @media (max-width: 1100px) { .rtc-obx { grid-template-columns: 1fr !important; } }
+  @media (max-width: 860px) { .rtc-obx-pipe { grid-template-columns: 1fr 1fr !important; } }
+
+  /* Returns / On-Call / Transfers / Billing: master+detail, collapse to one column. */
+  @media (max-width: 1100px) {
+    .rtc-rf, .rtc-oc, .rtc-tr, .rtc-bl { grid-template-columns: 1fr !important; }
+  }
+  /* Observability: business-correlation cards 2 → 1. */
+  @media (max-width: 1180px) { .rtc-corr { grid-template-columns: 1fr !important; } }
+
+  /* Edge-states gallery: 3 → 2 → 1. */
+  @media (max-width: 1180px) { .rtc-es { grid-template-columns: 1fr 1fr !important; } }
+  @media (max-width: 720px) { .rtc-es { grid-template-columns: 1fr !important; } .rtc-bl-meters { grid-template-columns: 1fr !important; } }
+
+  /* Skeleton shimmer for the loading edge-state. */
+  .rtc-shimmer { background: linear-gradient(90deg, var(--color-surface-raised) 25%, var(--color-border) 37%, var(--color-surface-raised) 63%); background-size: 400% 100%; animation: rtc-shimmer 1.4s ease infinite; }
+  @keyframes rtc-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+  @media (prefers-reduced-motion: reduce) { .rtc-shimmer { animation: none; } }
+
+  @keyframes rtc-flare { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+  .rtc-flare { transform-box: fill-box; transform-origin: center; animation: rtc-flare 1.3s ease-out infinite; }
+  html[data-motion="off"] .rtc-flare { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .rtc-flare { animation: none; } }
+
+  @keyframes rtc-toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .rtc-toast { animation: rtc-toast-in 0.28s var(--ease-out, ease-out) both; pointer-events: auto; }
+  html[data-motion="off"] .rtc-toast { animation: none; }
+  @media (prefers-reduced-motion: reduce) { .rtc-toast { animation: none; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Design-system bundle: populates primitives on the namespace + screen globals on window.
+     Its own ConsoleApp auto-mounts to #root, which does not exist here, so it no-ops. -->
+<script src="_ds/tower-console-design-system-b7c448df-c864-471a-add6-63824963fe8f/_ds_bundle.js"></script>
+
+<!-- Editable kit source — these override the bundle's window globals with our polished versions. -->
+<script type="text/babel" src="console/charts.jsx"></script>
+<script type="text/babel" src="console/widgets.jsx"></script>
+<script type="text/babel" src="console/shell.jsx"></script>
+<script type="text/babel" src="console/screens.jsx"></script>
+<script type="text/babel" src="console/sales.jsx"></script>
+<script type="text/babel" src="console/reconciliation.jsx"></script>
+<script type="text/babel" src="console/unknown.jsx"></script>
+<script type="text/babel" src="console/settings.jsx"></script>
+<script type="text/babel" src="console/aistudio.jsx"></script>
+<!-- Rich rebuilds of the thin screens — load last so they override window globals. -->
+<script type="text/babel" src="console/stores2.jsx"></script>
+<script type="text/babel" src="console/catalog2.jsx"></script>
+<script type="text/babel" src="console/operators2.jsx"></script>
+<script type="text/babel" src="console/audit2.jsx"></script>
+<script type="text/babel" src="console/observability.jsx"></script>
+<script type="text/babel" src="console/command_desk.jsx?v=6"></script>
+<script type="text/babel" src="console/incident.jsx"></script>
+<script type="text/babel" src="console/moneyclose.jsx"></script>
+<script type="text/babel" src="console/outbox.jsx"></script>
+<script type="text/babel" src="console/returns.jsx"></script>
+<script type="text/babel" src="console/oncall.jsx"></script>
+<script type="text/babel" src="console/transfers.jsx"></script>
+<script type="text/babel" src="console/billing.jsx"></script>
+<script type="text/babel" src="console/edgestates.jsx"></script>
+<script type="text/babel" src="console/permissions.jsx"></script>
+<script type="text/babel" src="console/onboarding.jsx"></script>
+<script type="text/babel" src="console/pricing.jsx"></script>
+<script type="text/babel" src="console/signin.jsx"></script>
+<script type="text/babel" src="console/command.jsx"></script>
+<script type="text/babel" src="console/extras.jsx"></script>
+<script type="text/babel" src="console/tweaks-panel.jsx"></script>
+<script type="text/babel" src="console/app.jsx"></script>
+</body>
+</html>
