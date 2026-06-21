@@ -4,6 +4,7 @@
  * scope — scope-driven, never role-driven, FR-006-004), from/to date-time. One
  * navy Apply; a quiet Clear. Serializes to the contract's query params.
  */
+import { Icon } from "@/components/Icon";
 import { useRef } from "react";
 import type { AuditFilters as Filters } from "./auditQueryKeys";
 import "./audit.css";
@@ -47,6 +48,9 @@ export function AuditFilters({
       }}
       noValidate
     >
+      <span className="audit-filters__lead" aria-hidden="true">
+        <Icon name="search" size={16} />
+      </span>
       <div className="audit-filters__field">
         <label htmlFor="f-action">Action</label>
         <input
